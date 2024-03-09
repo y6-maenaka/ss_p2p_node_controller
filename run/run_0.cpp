@@ -3,6 +3,7 @@
 #include <ss_p2p/kademlia/k_routing_table.hpp>
 #include <ss_p2p/node_controller.hpp>
 #include <string>
+#include <chrono>
 
 #include "openssl/evp.h"
 #include "boost/asio.hpp"
@@ -13,6 +14,9 @@ int main()
 {
   std::cout << "Hello" << "\n";
 
+  return 0;
+
+  /*
   k_routing_table routing_table;
   node_controller node_controller;
   routing_table.hello();
@@ -33,5 +37,6 @@ int main()
 	size_t len = socket.receive_from(boost::asio::buffer(recv_buffer), remote_endpoint);
 	std::cout << std::string(recv_buffer.begin() + len ) << "\n";
   }
+  */
 
 }

@@ -13,28 +13,43 @@ if( Boost_FOUND )
   message( STATUS "Using Boost" ${Boost_VERSION} )
 endif( Boost_FOUND )
 
-message("include dires ::  ${OPENSSL_INCLUDE_DIRS}" )
-message("include dires ::  ${Boost_INCLUDE_DIRS}" )
-
-
 # .hpp, .cppをまとめる
+set( basic_include_files
+	  include/json.hpp
+)
 set( ss_p2p_include_files
     node_controller.hpp
 	peer.hpp
+	endpoint.hpp
+	message.hpp
+	message_pool.hpp
+	socket_manager.hpp
+	udp_server.hpp
 )
 set( ss_p2p_source_files
     node_controller.cpp
 	peer.cpp
+	endpoint.cpp
+	message.cpp
+	message_pool.cpp
+	socket_manager.cpp
+	udp_server.cpp
 )
 set( ss_p2p_kademlia_include_files
     k_routing_table.hpp
     k_bucket.hpp
     k_node.hpp
+	dht_manager.hpp
+	node_id.hpp
+	observer.hpp
 )
 set( ss_p2p_kademlia_source_files
     k_routing_table.cpp
     k_bucket.cpp
     k_node.cpp
+	dht_manager.cpp
+	node_id.cpp
+	observer.cpp
 )
 
 # リスト要素にプレフィックスを付与
@@ -45,6 +60,7 @@ list(TRANSFORM ss_p2p_kademlia_source_files PREPEND "src/ss_p2p/kademlia/")
 
 
 add_library( ss_p2p # ss_p2pをライブラリとしてまとめる
+			${basic_include_files}
             ${ss_p2p_include_files}
             ${ss_p2p_source_files}
 
@@ -56,6 +72,7 @@ target_include_directories( ss_p2p PUBLIC
 
 			${OPENSSL_INCLUDE_DIRS}
 			${Boost_INCLUDE_DIRS}
+			include/json.hpp # use nlohmann_json
 )
 
 # if KADEMLIA FLAG
