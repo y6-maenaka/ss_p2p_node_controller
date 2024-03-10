@@ -42,6 +42,7 @@ set( ss_p2p_kademlia_include_files
 	dht_manager.hpp
 	node_id.hpp
 	observer.hpp
+	message_format.hpp
 )
 set( ss_p2p_kademlia_source_files
     k_routing_table.cpp
@@ -50,6 +51,7 @@ set( ss_p2p_kademlia_source_files
 	dht_manager.cpp
 	node_id.cpp
 	observer.cpp
+	message_format.cpp
 )
 
 # リスト要素にプレフィックスを付与
@@ -57,7 +59,6 @@ list(TRANSFORM ss_p2p_include_files PREPEND "include/ss_p2p/" )
 list(TRANSFORM ss_p2p_source_files PREPEND "src/ss_p2p/")
 list(TRANSFORM ss_p2p_kademlia_include_files PREPEND "include/ss_p2p/kademlia/")
 list(TRANSFORM ss_p2p_kademlia_source_files PREPEND "src/ss_p2p/kademlia/")
-
 
 add_library( ss_p2p # ss_p2pをライブラリとしてまとめる
 			${basic_include_files}
@@ -97,4 +98,6 @@ endif()
 
 
 
+add_compile_definitions( SS_VERBOSE )
+add_compile_definitions( SS_CAPTURE_PACKET )
 add_definitions( -std=c++20 )

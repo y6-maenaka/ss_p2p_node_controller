@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <thread>
 #include <iostream>
+#include <cassert>
 
 #include "boost/asio.hpp"
 
@@ -25,14 +26,13 @@ namespace ss
 {
 
 
-constexpr std::time_t DEFAULT_NODE_CONTROLLER_TICK_TIME_S = 30; // 時間周期処理
+constexpr std::time_t DEFAULT_NODE_CONTROLLER_TICK_TIME_S = 30/*[s]*/; // 時間周期処理
 
 
 class node_controller
 {
 public:
   const ip::udp::socket &self_sock();
-  void tick( const boost::system::error_code &ec ); // 未使用ピアノ削除, on_tickのセット, 新しいpeerへの接続要求
 
   peer get_peer();
 
@@ -43,21 +43,24 @@ public:
   void async_call( Func f, Args ... a );
 
   void requires_routing( bool b );
+  void on_receive_packet( std::span<char> raw_msg , ip::udp::endpoint &ep );
 
-  void on_receive_packet();
-
-  node_controller( ip::udp::endpoint &self_ep ,const std::shared_ptr<io_context> io_ctx = nullptr );
   void start();
   void stop();
+  node_controller( ip::udp::endpoint &self_ep , std::shared_ptr<io_context> io_ctx = std::make_shared<boost::asio::io_context>() );
+
+protected:
+  void tick( const boost::system::error_code &ec ); // 未使用ピアノ削除, on_tickのセット, 新しいpeerへの接続要求
+  void call_tick();
 
 private:
   udp_socket_manager _u_sock_manager;
-  std::shared_ptr< udp_server > const _udp_server;
+  std::shared_ptr< udp_server > _udp_server;
 
   std::shared_ptr<kademlia::dht_manager> const _dht_manager;
-  std::shared_ptr<io_context> const _core_io_ctx;
+  std::shared_ptr<io_context> _core_io_ctx;
   boost::asio::deadline_timer _d_timer;
-  
+
   message_pool const _msg_pool;
 };
 

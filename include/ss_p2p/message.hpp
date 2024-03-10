@@ -3,6 +3,9 @@
 
 
 #include <span>
+#include <algorithm>
+#include <vector>
+
 #include <json.hpp>
 
 
@@ -19,13 +22,13 @@ using encoded_message = std::span<char const>;
 class message
 {
 public:
-  std::span<char const> encode();
+  message( json from );
 
-  message( std::span<const char> from_raw ); // decode
-  message();
+  [[ nodiscard ]] bool is_contain_param( std::string param );
 
-  // std::span<char const> encode();
-  // std::span<char const> decode();
+  static std::span<char> encode( json from ); 
+  static message decode( std::span<char> from ); // 生メッセージのデコード
+  void print();
 private:
   json _body;
 

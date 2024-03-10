@@ -50,7 +50,6 @@ concept AllowedSocketTypes = std::is_same_v<T, ip::udp::socket> || std::is_same_
 class socket_manager
 {
 public:
-
   template< AllowedSocketManagerTypes T >
   socket_manager( T& from ) : _u_sock_manager(from){};
 

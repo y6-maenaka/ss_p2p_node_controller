@@ -4,15 +4,29 @@
 #include <ss_p2p/node_controller.hpp>
 #include <string>
 #include <chrono>
+#include <mutex>
+#include <condition_variable>
 
 #include "openssl/evp.h"
 #include "boost/asio.hpp"
+
+#include "../test/setup_node_controller.cpp"
+#include "../test/dummy_message.cpp"
 
 using boost::asio::ip::udp;
 
 int main()
 {
   std::cout << "Hello" << "\n";
+
+  dummy_message();
+  //setup_node_controller();
+  
+
+  std::mutex mtx;
+  std::condition_variable cv;
+  std::unique_lock<std::mutex> lock(mtx);
+  cv.wait( lock );
 
   return 0;
 
