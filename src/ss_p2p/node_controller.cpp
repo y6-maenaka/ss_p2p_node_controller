@@ -8,7 +8,8 @@ namespace ss
 node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io_context> io_ctx ) :
   _core_io_ctx( io_ctx ) ,
   _u_sock_manager( self_ep, std::ref(*io_ctx) ) ,
-  _d_timer( *io_ctx )
+  _d_timer( *io_ctx ) ,
+  _msg_pool( *io_ctx, true )
 {
   const std::function<void(std::span<char>, ip::udp::endpoint&)> recv_handler = std::bind(
 	  &node_controller::on_receive_packet,
@@ -69,7 +70,7 @@ void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpo
 
   if( msg->is_contain_param("kademlia") )
   {
-	// _dht_manager->handle( msg , peer );
+	int state = _dht_manager->handle_msg( msg , ep );
   }
 
   if( msg->is_contain_param("ice_agent") )

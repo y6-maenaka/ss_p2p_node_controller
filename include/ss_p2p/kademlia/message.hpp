@@ -22,20 +22,23 @@ namespace kademlia
 const std::vector<const std::string> kademlia_message_params = {"rpc","k_node"};
 
 
-class message_format
+class message
 {
 private:
   json _body;
-  void hello();
 
 public:
-  message_format( std::string msg_type );
+  message( std::string query_type );
+  message( json &k_msg );
 
   bool set_param( std::string key, std::string value );
 
-  static message_format (request)();
-  static message_format (response)();
+  static message (request)();
+  static message (response)();
 
+  bool is_request() const;
+
+  [[nodiscard]] bool validate() const; // 必ずvalidateする
   void print();
 };
 

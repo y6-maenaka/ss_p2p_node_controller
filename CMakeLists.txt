@@ -42,7 +42,7 @@ set( ss_p2p_kademlia_include_files
 	dht_manager.hpp
 	node_id.hpp
 	observer.hpp
-	message_format.hpp
+	message.hpp
 )
 set( ss_p2p_kademlia_source_files
     k_routing_table.cpp
@@ -51,7 +51,7 @@ set( ss_p2p_kademlia_source_files
 	dht_manager.cpp
 	node_id.cpp
 	observer.cpp
-	message_format.cpp
+	message.cpp
 )
 
 # リスト要素にプレフィックスを付与

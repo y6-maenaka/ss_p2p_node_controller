@@ -10,6 +10,17 @@ message::message( json from )
   this->_body = from;
 }
 
+void message::set_app_id( app_id id )
+{
+  _body["app_id"] = id;
+}
+
+std::shared_ptr<json> message::get_param( std::string param )
+{
+  if( _body.contains(param) ) return std::make_shared<json>(_body[param]);
+  return nullptr;
+}
+
 bool message::is_contain_param( std::string param )
 {
   return _body.contains(param);

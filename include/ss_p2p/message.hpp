@@ -8,7 +8,6 @@
 
 #include <json.hpp>
 
-
 using json = nlohmann::json;
 
 
@@ -24,10 +23,15 @@ class message
 public:
   message( json from );
 
+  using app_id = std::array<char, 8>;
+  void set_app_id( app_id );
+  std::shared_ptr<json> get_param( std::string param );
   [[ nodiscard ]] bool is_contain_param( std::string param );
 
   static std::span<char> encode( json from ); 
   static message decode( std::span<char> from ); // 生メッセージのデコード
+
+  json& operator()();
   void print();
 private:
   json _body;

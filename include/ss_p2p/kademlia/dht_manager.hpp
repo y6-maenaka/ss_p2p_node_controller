@@ -8,8 +8,17 @@
 #include <ss_p2p/kademlia/k_routing_table.hpp>
 #include <ss_p2p/kademlia/k_node.hpp>
 #include <ss_p2p/kademlia/observer.hpp>
+#include <ss_p2p/message.hpp>
+#include <ss_p2p/endpoint.hpp>
+#include <json.hpp>
 
 #include "./rpc_manager.hpp"
+#include "./message.hpp"
+
+#include "boost/asio.hpp"
+
+using namespace boost::asio;
+using json = nlohmann::json;
 
 
 namespace ss
@@ -35,9 +44,17 @@ public:
 
   void add_node();
   
-  dht_manager();
+  dht_manager( boost::asio::io_context &io_ctx );
+
+  enum update_state_t{
+	added,
+	pending,
+	error
+  };
+  update_state_t handle_msg( std::shared_ptr<ss::message> msg, ip::udp::endpoint &ep );
 private:
   void find_node();
+  io_context &_io_ctx;
 
   // const rpc_manager _rpc_manager;
   std::unordered_multimap< std::uint16_t, observer_ptr > observer_ptrs;
