@@ -16,6 +16,7 @@ endif( Boost_FOUND )
 # .hpp, .cppをまとめる
 set( basic_include_files
 	  include/json.hpp
+	  include/hash.hpp
 )
 set( ss_p2p_include_files
     node_controller.hpp

@@ -72,7 +72,6 @@ void node_controller::call_tick()
 
 void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpoint &ep )
 {
-  std::cout << "パケットを受信しました" << "\n";
   std::shared_ptr<message> msg = std::make_shared<message>(raw_msg);
   if( msg == nullptr ) return;
 

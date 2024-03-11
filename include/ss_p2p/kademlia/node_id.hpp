@@ -4,6 +4,8 @@
 
 #include <ss_p2p/endpoint.hpp>
 
+#include "boost/asio.hpp"
+
 
 namespace ss
 {
@@ -19,12 +21,8 @@ class node_id
 public:
   using id = std::array< std::uint8_t , K_NODE_ID_LENGTH >;
 
-  node_id( endpoint &ep );
   bool operator ==( const node_id &ni ) const;
   static node_id (none)() noexcept;
-
-private:
-  id _id;
 };
 
 

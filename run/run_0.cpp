@@ -13,6 +13,7 @@
 #include "../test/setup_node_controller.cpp"
 #include "../test/dummy_message.cpp"
 #include "../test/setup_peer.cpp"
+#include "../test/setup_k_routing_table.cpp"
 
 using boost::asio::ip::udp;
 
@@ -20,9 +21,10 @@ int main()
 {
   std::cout << "Hello" << "\n";
 
-  setup_peer();
+  setup_k_routing_table();
+  // setup_peer();
   // dummy_message();
-  //setup_node_controller();
+  // setup_node_controller();
   
 
   std::mutex mtx;

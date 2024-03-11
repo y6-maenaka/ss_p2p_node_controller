@@ -5,8 +5,13 @@
 #include <array>
 
 #include <ss_p2p/endpoint.hpp>
-
 #include "./node_id.hpp"
+
+#include "boost/asio.hpp"
+
+
+using namespace boost::asio;
+
 
 namespace ss
 {
@@ -18,13 +23,12 @@ namespace kademlia
 class k_node : public node_id
 {
 public:
-  k_node( endpoint& ep );
+  k_node( ip::udp::endpoint &ep, node_id id );
 
 private: 
-  const endpoint &_endpoint;
   node_id _id;
+  ip::udp::endpoint _ep;
 };
-
 
 
 };
