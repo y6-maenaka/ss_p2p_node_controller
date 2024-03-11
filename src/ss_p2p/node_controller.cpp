@@ -29,6 +29,7 @@ void node_controller::start()
 	  _udp_server->start();
 
 	  call_tick(); // tickを呼び出す
+	  _msg_pool.requires_refresh(true); // msg_poolの定期リフレッシュを停止する
 
 	  _core_io_ctx->run();
 	});
@@ -43,10 +44,17 @@ void node_controller::stop()
 {
   _udp_server->stop();
   _core_io_ctx->stop();
+  _msg_pool.requires_refresh(false); // msg_poolの定期リフレッシュを再開する
 
   #if SS_VERBOSE
   std::cout << "[\x1b[31m stop \x1b[39m] node controller" << "\n";
   #endif
+}
+
+peer node_controller::get_peer( ip::udp::endpoint &ep )
+{
+  peer ret( ep, _msg_pool.get_symbolic(ep) );
+  return ret;
 }
 
 void node_controller::tick( const boost::system::error_code& ec )
@@ -77,10 +85,8 @@ void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpo
   {
 	// _ice_manager->handle( msg , peer );
   }
-
-
-  // long long index = messages.push();
-  // peer.buffer.push( std::make_pair(message, index) );
+  
+  _msg_pool.store( msg, ep ); // メッセージの保存
 }
 
 

@@ -7,10 +7,13 @@
 #include <mutex>
 #include <condition_variable>
 #include <span>
+#include <chrono>
 
 #include "./endpoint.hpp"
 #include "./message.hpp"
 #include "./message_pool.hpp"
+
+#include "boost/asio.hpp"
 
 
 namespace ss
@@ -20,28 +23,21 @@ namespace ss
 class peer
 {
 public:
-  endpoint ep;
+  ip::udp::endpoint _ep;
 
-  message receive( std::time_t timeout );
   std::time_t keep_alive = 1;
 
   bool operator ==(const peer& pr) const;
 
-  peer();
+  std::shared_ptr<message> receive( std::time_t timeout = -1 );
+  peer( ip::udp::endpoint &ep, message_pool::symbolic msg_pool_symbolic );
   ~peer();
- 
+  void print() const;
 private:
-  using delete_msg_pool_symbolic = std::function<void(long long index)>;
-  std::vector< message_pool::index > _msg_queue; // buffer
-
-  std::mutex _mtx;
-  std::condition_variable _cv;
-
-  void add_message( message_pool::index msg_idx ); // add from message_poo;
   void send( const std::span<unsigned char> msg );
-  std::shared_ptr<message> receive( int timeout = -1 );
-  // -1: データが存在しない場合はすぐに戻す
-  // 0 : データが到着するまでロッキングする
+  message_pool::symbolic _msg_pool_symbolic;
+  // -1: データが到着するまでブロッキングする
+  // 0 : すぐに戻す
   // n : n秒間データの到着を待つ
 };
 

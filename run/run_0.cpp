@@ -12,6 +12,7 @@
 
 #include "../test/setup_node_controller.cpp"
 #include "../test/dummy_message.cpp"
+#include "../test/setup_peer.cpp"
 
 using boost::asio::ip::udp;
 
@@ -19,7 +20,8 @@ int main()
 {
   std::cout << "Hello" << "\n";
 
-  dummy_message();
+  setup_peer();
+  // dummy_message();
   //setup_node_controller();
   
 

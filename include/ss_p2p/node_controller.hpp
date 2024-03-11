@@ -34,8 +34,6 @@ class node_controller
 public:
   const ip::udp::socket &self_sock();
 
-  peer get_peer();
-
   template <typename Func, typename ... Args>
   void sync_call( Func f, Args ... a );
 
@@ -47,6 +45,7 @@ public:
 
   void start();
   void stop();
+  peer get_peer( ip::udp::endpoint &ep );
   node_controller( ip::udp::endpoint &self_ep , std::shared_ptr<io_context> io_ctx = std::make_shared<boost::asio::io_context>() );
 
 protected:
@@ -61,7 +60,7 @@ private:
   std::shared_ptr<io_context> _core_io_ctx;
   boost::asio::deadline_timer _d_timer;
 
-  message_pool const _msg_pool;
+  message_pool _msg_pool;
 };
 
 

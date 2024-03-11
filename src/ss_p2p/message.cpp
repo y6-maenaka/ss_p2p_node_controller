@@ -41,5 +41,10 @@ message message::decode( std::span<char> from )
   return message(ret_json);
 }
 
+void message::print() const
+{
+  std::cout << _body << "\n";
+}
+
 
 }; // namespace ss

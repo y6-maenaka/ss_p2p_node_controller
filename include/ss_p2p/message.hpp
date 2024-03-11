@@ -5,6 +5,7 @@
 #include <span>
 #include <algorithm>
 #include <vector>
+#include <iostream>
 
 #include <json.hpp>
 
@@ -32,7 +33,7 @@ public:
   static message decode( std::span<char> from ); // 生メッセージのデコード
 
   json& operator()();
-  void print();
+  void print() const;
 private:
   json _body;
 
