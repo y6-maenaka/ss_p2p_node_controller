@@ -77,7 +77,7 @@ void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpo
 
   if( msg->is_contain_param("kademlia") )
   {
-	int state = _dht_manager->handle_msg( msg , ep );
+	// int state = _dht_manager->handle_msg( msg , ep );
   }
 
   if( msg->is_contain_param("ice_agent") )

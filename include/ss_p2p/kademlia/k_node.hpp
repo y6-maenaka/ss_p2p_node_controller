@@ -19,15 +19,18 @@ namespace kademlia
 {
 
 
-
-class k_node : public node_id
+class k_node 
 {
 public:
-  k_node( ip::udp::endpoint &ep, node_id id );
-
+  k_node( ip::udp::endpoint &ep );
+  k_node( ip::udp::endpoint &ep , node_id id );
+  bool operator==( const k_node &kn ) const;
+  bool operator!=( const k_node &kn ) const;
+  
+  void print() const;
 private: 
-  node_id _id;
   ip::udp::endpoint _ep;
+  node_id _id;
 };
 
 

@@ -7,50 +7,74 @@ namespace kademlia
 {
 
 
-k_routing_table::k_routing_table( ip::udp::endpoint &ep ) :
-  _self_ep(ep)
+k_routing_table::k_routing_table( node_id self_id ) :
+  _self_id( self_id )
 {
+  #if SS_VERBOSE 
+  std::cout << "k routing table hosting with :: "; _self_id.print(); std::cout << "\n";
+  #endif
   return;
 }
 
-std::pair< std::shared_ptr<unsigned char>, std::size_t > k_routing_table::endpoint_to_binary( ip::udp::endpoint &ep ) noexcept
+unsigned short k_routing_table::calc_branch( ip::udp::endpoint &ep ) // オーバヘッドが多少大きい
 {
-  const auto addr_str = ep.address().to_string();
-  const auto port = ep.port();
-
-  std::shared_ptr<unsigned char> addr_binary = std::shared_ptr<unsigned char>( new unsigned char[addr_str.size() + sizeof(port)] );
-  std::size_t cpyOffset = 0;
-  std::memcpy( addr_binary.get() + cpyOffset, addr_str.data(), addr_str.size() ); cpyOffset += addr_str.size();
-  std::memcpy( addr_binary.get() + cpyOffset, &port, sizeof(port) ); cpyOffset += sizeof(port);
-
-  return std::make_pair( addr_binary, cpyOffset );
-}
-
-unsigned int k_routing_table::calc_branch( ip::udp::endpoint &ep )
-{
-
-  auto self_ep_bin = this->endpoint_to_binary( _self_ep );
-  auto peer_ep_bin = this->endpoint_to_binary( ep );
-
-  std::vector<unsigned char> self_ep_md = sha1_hash( self_ep_bin.first.get(), self_ep_bin.second );
-  std::vector<unsigned char> peer_ep_md = sha1_hash( peer_ep_bin.first.get(), peer_ep_bin.second );
-
-  unsigned char xorDistance[ K_NODE_ID_LENGTH ];
-  for( int i=0; i<K_NODE_ID_LENGTH; i++ )
-	xorDistance[i] = (self_ep_md.at(i)) ^ (peer_ep_md.at(i));
-
-  unsigned short prefixZeroCount = 0;
-  for( int i=0; i<K_NODE_ID_LENGTH * 8; i++ ){
-	if( ((xorDistance[i/8] >> (i%8)) & 1) == 0x01 ) break;
-	prefixZeroCount++;
-  }
-
+  node_id self_node_id = _self_id;
+  node_id peer_node_id = calc_node_id( ep );
+  unsigned short node_xor_distance = calc_node_xor_distance( self_node_id, peer_node_id );
+  /* 
   #if SS_VERBOSE
   std::cout << "calculated relative branch :: ";
-  std::cout << "\x1b[32m" << (K_NODE_ID_LENGTH*8) - prefixZeroCount << "\x1b[39m" << "\n";
+  std::cout << ep;
+  std::cout << " \x1b[32m(" << (K_NODE_ID_LENGTH*8) - node_xor_distance << ")\x1b[39m" << "\n";
   #endif
-  
-  return (K_NODE_ID_LENGTH*8) - prefixZeroCount; 
+  */ 
+  return (K_NODE_ID_LENGTH*8) - node_xor_distance;
+}
+
+k_bucket::update_state k_routing_table::auto_update( ip::udp::endpoint &ep )
+{
+  k_node target_node( ep );
+  unsigned short branch_idx = calc_branch_index( ep );
+  k_bucket& target_bucket = _table[branch_idx];
+
+  auto ret = target_bucket.auto_update( target_node );
+
+  #if SS_VERBOSE
+  std::cout << "\x1b[31m" << "[ routing table update ]" << "\x1b[39m ";
+  std::cout << "(endpoint): " << ep;
+  std::cout << "| (branch): " << branch_idx + 1;
+  std::cout << "| (state): ";
+  if( ret == k_bucket::update_state::added_back ) std::cout << "\x1b[32m" << "add back" << "\x1b[39m" << "\n";
+  else if( ret == k_bucket::update_state::moved_back ) std::cout << "\x1b[34m" << "move back" << "\x1b[39m" << "\n";
+  else if( ret == k_bucket::update_state::not_found ) std::cout << "not found" << "\n";
+  else if ( ret == k_bucket::update_state::overflow ) std::cout << "\x1b[31m" << "overflow" << "\x1b[39m" << "\n";
+  else std::cout << "error" << "\n";
+  #endif
+
+  return ret;
+}
+
+unsigned short k_routing_table::calc_branch_index( ip::udp::endpoint &ep )
+{
+  const auto branch = this->calc_branch(ep);
+  /*
+  #if SS_VERBOSE
+  std::cout << "branch *index* :: ";
+  std::cout << " \x1b[32m(" << std::max(branch-1, 0) << ")\x1b[39m" << "\n";
+  #endif 
+  */
+  return std::max( branch -1 , 0 );
+}
+
+k_bucket& k_routing_table::get_bucket( ip::udp::endpoint &ep )
+{
+  const auto branch_idx = calc_branch_index(ep);
+  return _table[branch_idx];
+}
+
+k_bucket& k_routing_table::get_bucket( unsigned short branch )
+{
+  return _table[ std::max(branch-1,0) ];
 }
 
 

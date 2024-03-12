@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <condition_variable>
+#include <algorithm>
 
 #include "./k_node.hpp"
 
@@ -16,7 +17,7 @@ namespace kademlia
 {
 
 
-constexpr unsigned short DEFAULT_K = 20;
+constexpr unsigned short DEFAULT_K = 2;
 
 
 class k_bucket
@@ -25,11 +26,28 @@ private:
   std::mutex _mtx;
   std::condition_variable _cv;
 
-  std::vector< std::shared_ptr<k_node> > _nodes;
+  std::vector< k_node > _nodes;
 
 public:
   k_bucket();
 
+  enum update_state
+  {
+	added_back , 
+	moved_back ,
+	not_found ,
+	overflow ,
+	error
+  };
+  update_state auto_update( k_node kn );
+
+  bool add_back( k_node kn );
+  bool move_back( k_node &kn );
+  bool is_exist( k_node &kn ) const;
+  bool is_full() const;
+  std::size_t count() const;
+
+  void print() const;
 };
 
   

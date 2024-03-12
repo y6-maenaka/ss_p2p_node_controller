@@ -17,6 +17,7 @@ endif( Boost_FOUND )
 set( basic_include_files
 	  include/json.hpp
 	  include/hash.hpp
+	  include/utils.hpp
 )
 set( ss_p2p_include_files
     node_controller.hpp
@@ -44,6 +45,7 @@ set( ss_p2p_kademlia_include_files
 	node_id.hpp
 	observer.hpp
 	message.hpp
+	rpc_manager.hpp
 )
 set( ss_p2p_kademlia_source_files
     k_routing_table.cpp
@@ -53,6 +55,7 @@ set( ss_p2p_kademlia_source_files
 	node_id.cpp
 	observer.cpp
 	message.cpp
+	rpc_manager.cpp
 )
 
 # リスト要素にプレフィックスを付与
@@ -101,4 +104,5 @@ endif()
 
 add_compile_definitions( SS_VERBOSE )
 add_compile_definitions( SS_CAPTURE_PACKET )
+add_compile_definitions( SS_DEBUG )
 add_definitions( -std=c++20 )

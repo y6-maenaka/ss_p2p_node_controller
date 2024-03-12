@@ -32,21 +32,19 @@ constexpr unsigned short K_BUCKET_COUNT = 160;
 class k_routing_table
 {
 private:
-  ip::udp::endpoint &_self_ep;
   using routing_table = std::array< k_bucket, K_BUCKET_COUNT >;
   routing_table _table;
 
-  std::pair< std::shared_ptr<unsigned char>, std::size_t > endpoint_to_binary( ip::udp::endpoint &ep ) noexcept;
-  node_id clac_node_id( ip::udp::endpoint &ep );
-
+  node_id _self_id;
+  unsigned short calc_branch( ip::udp::endpoint &ep );
 public:
-  unsigned int calc_branch( ip::udp::endpoint &ep );
-  k_routing_table( ip::udp::endpoint &ep );
-  enum add_state
-  {
-	success,
-	overflow	
-  };
+  k_routing_table( node_id self_id );
+
+  k_bucket::update_state auto_update( ip::udp::endpoint &ep );
+
+  k_bucket& get_bucket( ip::udp::endpoint &ep );
+  k_bucket& get_bucket( unsigned short branch );
+  unsigned short calc_branch_index( ip::udp::endpoint &ep );
 };
 
 
