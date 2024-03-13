@@ -35,6 +35,12 @@ k_bucket::update_state k_bucket::auto_update( k_node kn )
   return update_state::error;
 }
 
+std::shared_ptr<k_node> k_bucket::get_front() const
+{
+  if( _nodes.empty() ) return nullptr;
+  return std::make_shared<k_node>( _nodes.at(0) );
+}
+
 bool k_bucket::add_back( k_node kn )
 {
   std::unique_lock<std::mutex> lock(_mtx);
@@ -56,6 +62,36 @@ bool k_bucket::move_back( k_node &kn )
   k_node target_node = *itr; // temp
   auto erase_itr = _nodes.erase(itr);
   _nodes.push_back( target_node );
+  return true;
+}
+
+bool k_bucket::delete_node( k_node &kn )
+{
+  auto itr = std::find( _nodes.begin(), _nodes.end(), kn );
+  if( itr == _nodes.end() ) return false;
+
+  #if SS_VERBOSE
+  std::cout << "(delete node)" << kn.get_endpoint() << "\n";
+  #endif
+  _nodes.erase(itr);
+  return true;
+}
+
+bool k_bucket::swap_node( k_node &node_src, k_node node_dest )
+{
+  auto src_itr = std::find( _nodes.begin(), _nodes.end(), node_src );
+  if( src_itr == _nodes.end() ) return false;
+
+  auto dest_itr = std::find( _nodes.begin(), _nodes.end(), node_dest );
+  if( dest_itr != _nodes.end() ) return false;
+
+  #if SS_VERBOSE
+  std::cout << "(swap node) " << node_src.get_endpoint() << " -> " << node_dest.get_endpoint() << "\n";
+  #endif
+
+  auto itr = _nodes.erase( src_itr );
+  _nodes.insert( itr, node_dest );
+
   return true;
 }
 

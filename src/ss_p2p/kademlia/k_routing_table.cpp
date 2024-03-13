@@ -16,10 +16,10 @@ k_routing_table::k_routing_table( node_id self_id ) :
   return;
 }
 
-unsigned short k_routing_table::calc_branch( ip::udp::endpoint &ep ) // オーバヘッドが多少大きい
+unsigned short k_routing_table::calc_branch( k_node &kn ) // オーバヘッドが多少大きい
 {
   node_id self_node_id = _self_id;
-  node_id peer_node_id = calc_node_id( ep );
+  node_id peer_node_id = kn.get_id();
   unsigned short node_xor_distance = calc_node_xor_distance( self_node_id, peer_node_id );
   /* 
   #if SS_VERBOSE
@@ -31,17 +31,17 @@ unsigned short k_routing_table::calc_branch( ip::udp::endpoint &ep ) // オー�
   return (K_NODE_ID_LENGTH*8) - node_xor_distance;
 }
 
-k_bucket::update_state k_routing_table::auto_update( ip::udp::endpoint &ep )
+k_bucket::update_state k_routing_table::auto_update( k_node kn )
 {
-  k_node target_node( ep );
-  unsigned short branch_idx = calc_branch_index( ep );
+  // k_node target_node( ep );
+  unsigned short branch_idx = calc_branch_index( kn );
   k_bucket& target_bucket = _table[branch_idx];
 
-  auto ret = target_bucket.auto_update( target_node );
+  auto ret = target_bucket.auto_update( kn );
 
   #if SS_VERBOSE
   std::cout << "\x1b[31m" << "[ routing table update ]" << "\x1b[39m ";
-  std::cout << "(endpoint): " << ep;
+  std::cout << "(endpoint): " << kn.get_endpoint();
   std::cout << "| (branch): " << branch_idx + 1;
   std::cout << "| (state): ";
   if( ret == k_bucket::update_state::added_back ) std::cout << "\x1b[32m" << "add back" << "\x1b[39m" << "\n";
@@ -54,9 +54,21 @@ k_bucket::update_state k_routing_table::auto_update( ip::udp::endpoint &ep )
   return ret;
 }
 
-unsigned short k_routing_table::calc_branch_index( ip::udp::endpoint &ep )
+bool k_routing_table::is_exist( k_node &kn )
 {
-  const auto branch = this->calc_branch(ep);
+  k_bucket &target_bucket = this->get_bucket( kn );
+  return target_bucket.is_exist(kn);
+}
+
+std::shared_ptr<k_node> k_routing_table::get_front( k_node &kn )
+{
+  k_bucket &target_bucket = this->get_bucket( kn );
+  return target_bucket.get_front();
+}
+
+unsigned short k_routing_table::calc_branch_index( k_node &kn )
+{
+  const auto branch = this->calc_branch(kn);
   /*
   #if SS_VERBOSE
   std::cout << "branch *index* :: ";
@@ -66,9 +78,9 @@ unsigned short k_routing_table::calc_branch_index( ip::udp::endpoint &ep )
   return std::max( branch -1 , 0 );
 }
 
-k_bucket& k_routing_table::get_bucket( ip::udp::endpoint &ep )
+k_bucket& k_routing_table::get_bucket( k_node &kn )
 {
-  const auto branch_idx = calc_branch_index(ep);
+  const auto branch_idx = calc_branch_index(kn);
   return _table[branch_idx];
 }
 

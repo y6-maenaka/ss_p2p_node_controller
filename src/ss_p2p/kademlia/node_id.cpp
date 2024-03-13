@@ -9,13 +9,17 @@ namespace kademlia
 
 node_id::node_id()
 {
-  return;
+  _id.fill(0);
 }
 
 node_id::node_id( std::vector<unsigned char> id_from )
 {
   std::copy( id_from.begin(), id_from.end(), _id.begin() );
-  return; 
+}
+
+node_id::node_id( const node_id &nid ) 
+{
+  std::copy( nid._id.begin(), nid._id.end(), _id.begin() );
 }
 
 bool node_id::operator ==( const node_id &nid ) const
@@ -26,6 +30,11 @@ bool node_id::operator ==( const node_id &nid ) const
 node_id::id node_id::operator()() const
 {
   return _id;
+}
+
+node_id node_id::operator=( const node_id &nid ) const
+{
+  return *this;
 }
 
 unsigned char node_id::operator[](unsigned short idx) const

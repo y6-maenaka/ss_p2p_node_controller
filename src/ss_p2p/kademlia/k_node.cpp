@@ -6,24 +6,39 @@ namespace ss
 namespace kademlia
 {
 
-
-k_node::k_node( ip::udp::endpoint &ep ) : 
-  _ep(ep)
-{
-  _id = calc_node_id(_ep);
   
+k_node::k_node( ip::udp::endpoint &ep ) : 
+  _ep(ep) , 
+  _id( calc_node_id(ep) )
+{
   /*
   #if SS_VERBOSE
   std::cout << "k_node generate with :: "; _id.print(); std::cout << "\n";
   #endif
   */
+  return;
 }
 
-k_node::k_node( ip::udp::endpoint &ep, node_id id ) :
-  _ep( ep ) ,
-  _id( id )
+k_node::k_node( const k_node &kn ) :
+  _ep(kn._ep)  ,
+  _id(kn._id)
 {
-  return;  
+  return;
+}
+
+ip::udp::endpoint k_node::get_endpoint()
+{
+  return _ep;
+}
+
+node_id& k_node::get_id() 
+{
+  return _id;
+}
+
+k_node k_node::operator=( const k_node &kn ) const
+{
+  return *this;
 }
 
 bool k_node::operator==( const k_node &kn ) const

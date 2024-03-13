@@ -64,6 +64,11 @@ bool message::validate() const
   return true;
 }
 
+json message::export_json() const
+{
+  return _body;
+}
+
 void message::print()
 {
   std::cout << _body << "\n";

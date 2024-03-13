@@ -41,8 +41,11 @@ public:
   };
   update_state auto_update( k_node kn );
 
+  std::shared_ptr<k_node> get_front() const;
   bool add_back( k_node kn );
   bool move_back( k_node &kn );
+  bool delete_node( k_node &kn );
+  bool swap_node( k_node &node_src, k_node node_dest );
   bool is_exist( k_node &kn ) const;
   bool is_full() const;
   std::size_t count() const;

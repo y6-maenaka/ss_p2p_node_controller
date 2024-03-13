@@ -29,15 +29,17 @@ public:
   using id = std::array< std::uint8_t , K_NODE_ID_LENGTH >;
   id _id;
 
+  node_id();
+  node_id( const node_id &nid );
+  node_id( std::vector<unsigned char> id_from );
+
   bool operator==( const node_id &nid ) const;
   id operator()() const;
+  node_id operator=( const node_id &nid ) const;
   unsigned char operator[](unsigned short idx) const;
   static node_id (none)() noexcept;
 
-  node_id();
-  node_id( std::vector<unsigned char> id_from );
-
-  void print() const;
+   void print() const;
 };
 
 template <typename T>

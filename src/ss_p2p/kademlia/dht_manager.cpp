@@ -22,6 +22,24 @@ dht_manager::dht_manager( boost::asio::io_context &io_ctx, ip::udp::endpoint ep 
   return; 
 }
 
+void dht_manager::handle_msg( json &msg, ip::udp::endpoint &ep )
+{
+  std::shared_ptr<ss::kademlia::message> k_msg = std::make_shared<ss::kademlia::message>(msg);
+
+  // 必ずメッセージは検証する
+  if( bool flag = k_msg->validate(); !flag ) return;
+  if( k_msg->is_request() ) // handle request
+  {
+	auto update_ctx = _rpc_manager->incoming_request( k_msg, ep );
+	// observer_ptr->setup( io_context &io_ctx );
+  }
+  else // handle response
+  {
+	auto update_ctx = _rpc_manager->incoming_response( k_msg, ep );
+  }
+
+}
+
 /* dht_manager::update_state_t dht_manager::handle_msg( std::shared_ptr<ss::message> msg, ip::udp::endpoint &ep )
 {
   ss::kademlia::message k_msg( *(msg->get_param("kademlia")) );

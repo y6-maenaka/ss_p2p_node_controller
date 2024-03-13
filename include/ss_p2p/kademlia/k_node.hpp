@@ -22,11 +22,17 @@ namespace kademlia
 class k_node 
 {
 public:
+  k_node( const k_node &kn );
   k_node( ip::udp::endpoint &ep );
-  k_node( ip::udp::endpoint &ep , node_id id );
+  // k_node( ip::udp::endpoint &ep , node_id id );
+
+  k_node operator=( const k_node &kn ) const;
   bool operator==( const k_node &kn ) const;
   bool operator!=( const k_node &kn ) const;
-  
+
+  ip::udp::endpoint get_endpoint();
+  node_id& get_id();
+
   void print() const;
 private: 
   ip::udp::endpoint _ep;

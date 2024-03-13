@@ -4,7 +4,7 @@ project( SS_P2P CXX )
 
 find_package( PkgConfig REQUIRED ) # 外部パッケージを検出する準備(opensslは外部パッケージ(?))
 find_package( OpenSSL REQUIRED )
-find_package( Boost REQUIRED COMPONENTS system ) # brew install boost でboost関連パッケージのインストールが必要
+find_package( Boost REQUIRED )
 
 if( OpenSSL_FOUND )
   message( STATUS "Using OpenSSL" ${OPENSSL_VERSION} )
@@ -44,6 +44,7 @@ set( ss_p2p_kademlia_include_files
 	dht_manager.hpp
 	node_id.hpp
 	observer.hpp
+	observer_strage.hpp
 	message.hpp
 	rpc_manager.hpp
 )
@@ -54,6 +55,7 @@ set( ss_p2p_kademlia_source_files
 	dht_manager.cpp
 	node_id.cpp
 	observer.cpp
+	observer_strage.cpp
 	message.cpp
 	rpc_manager.cpp
 )

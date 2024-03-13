@@ -36,15 +36,17 @@ private:
   routing_table _table;
 
   node_id _self_id;
-  unsigned short calc_branch( ip::udp::endpoint &ep );
+  unsigned short calc_branch( k_node &kn );
 public:
   k_routing_table( node_id self_id );
 
-  k_bucket::update_state auto_update( ip::udp::endpoint &ep );
+  k_bucket::update_state auto_update( k_node kn );
+  bool is_exist( k_node &kn );
+  std::shared_ptr<k_node> get_front( k_node &kn ); // 対象(kn)が所属するバケットの先頭要素を取得する
 
-  k_bucket& get_bucket( ip::udp::endpoint &ep );
+  k_bucket& get_bucket( k_node &kn );
   k_bucket& get_bucket( unsigned short branch );
-  unsigned short calc_branch_index( ip::udp::endpoint &ep );
+  unsigned short calc_branch_index( k_node &kn );
 };
 
 

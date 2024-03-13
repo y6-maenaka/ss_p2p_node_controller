@@ -6,7 +6,8 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
+#include <span>
+  
 #include <json.hpp>
 
 
@@ -32,6 +33,7 @@ public:
   message( json &k_msg );
 
   bool set_param( std::string key, std::string value );
+  std::string get_param( std::string key );
 
   static message (request)();
   static message (response)();
@@ -39,6 +41,8 @@ public:
   bool is_request() const;
 
   [[nodiscard]] bool validate() const; // 必ずvalidateする
+  
+  json export_json() const; // bodyを取り出すだけ
   void print();
 };
 
