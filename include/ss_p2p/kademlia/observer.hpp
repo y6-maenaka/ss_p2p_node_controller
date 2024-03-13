@@ -31,24 +31,31 @@ class observer
 public:
   using observer_id = uuid;
 
-  observer();
+  observer( const k_routing_table &routing_table );
   virtual void on_call( io_context &io_ctx, k_routing_table &routing_table ) = 0;
   const observer_id get_id() const;
 
 private:
   const observer_id _obs_id;
   std::time_t _expire_at;
+  const k_routing_table &_routing_table;
 };
 
 class ping_observer : observer
 {
 public:
-  ping_observer( k_node host_node, k_node swap_node );
+  ping_observer( k_node host_node, k_node swap_node, const k_routing_table &routing_table );
   void update_observer( k_routing_table &routing_table );
 
 private:
   k_node _host_node;
   k_node _swap_node;
+};
+
+
+struct _union_observer_init
+{
+  void operator()( std::shared_ptr<ping_observer> obs );
 };
 
 
@@ -73,9 +80,9 @@ public:
   union_observer( T obs_from );
 
   template < typename ... Args >
-  union_observer( std::string type, Args ... args );
+  union_observer( std::string type, const k_routing_table &routing_table, Args ... args );
 
-  union_observer( std::string type );
+  void init( io_context &io_ctx );
 };
 
 

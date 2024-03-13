@@ -32,17 +32,27 @@ public:
 
   struct update_context
   {
-	enum update_state
+	enum update_state_t
 	{
+	  none ,
 	  generate_obs ,
-	  error
+	  failure
 	};
-	enum observer_handle_t
+	enum rpc_t
 	{
-	  ignore , // 特に何もしなくて良い
+	  ping ,
+	  find_node ,
 	};
-	observer_ptr obs_ptr;
-
+	update_state_t update_state;
+	rpc_t rpc;
+	union_observer_ptr obs_ptr;
+	static update_context (error)() noexcept
+	{
+	  update_context ret;
+	  ret.update_state = update_state_t::failure;
+	  ret.obs_ptr = nullptr;
+	  return ret;
+	};
 	update_context() : obs_ptr(nullptr){};
   };
   update_context incoming_request( std::shared_ptr<ss::kademlia::message> msg, ip::udp::endpoint &ep );

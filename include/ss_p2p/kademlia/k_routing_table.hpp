@@ -39,8 +39,10 @@ private:
   unsigned short calc_branch( k_node &kn );
 public:
   k_routing_table( node_id self_id );
+  
 
-  k_bucket::update_state auto_update( k_node kn );
+  using update_state = k_bucket::update_state;
+  update_state auto_update( k_node kn );
   bool is_exist( k_node &kn );
   std::shared_ptr<k_node> get_front( k_node &kn ); // 対象(kn)が所属するバケットの先頭要素を取得する
 
