@@ -3,6 +3,9 @@
 
 
 #include <iostream>
+#include <variant>
+#include <vector>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -42,14 +45,22 @@ namespace kademlia
 class observer_strage
 {
 private:
-  using observer_ptr_strage = std::unordered_set< union_observer, union_observer::Hash >;
-  observer_ptr_strage _strage;
+  using ping_observer_strage = std::unordered_set< observer<ping_observer>, observer<ping_observer>::Hash >;
+  using find_node_observer_strage = std::unordered_set< observer<find_node_observer>, observer<find_node_observer>::Hash >;
+
+  using observer_strage_idv = std::variant< ping_observer_strage, find_node_observer_strage >;
+  using union_observer_strage = std::map< std::string, observer_strage_idv >;
+  
+  union_observer_strage _strage;
 
 public:
-  void add_obs( union_observer_ptr obs_ptr );
-  union_observer_ptr get_obs( observer::observer_id &id );
+  observer_strage();
 
-  void refresh();
+  template < typename T >
+  observer<T> get_observer( T key, base_observer::observer_id id );
+
+  template < typename T >
+  void add_observer( observer<T> obs );
 };
 
 

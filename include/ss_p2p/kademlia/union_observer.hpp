@@ -26,7 +26,7 @@ namespace kademlia
 
 struct _union_observer_get_id
 {
-  observer::observer_id operator()( const std::shared_ptr<ping_observer> &obs );
+  base_observer::observer_id operator()( const std::shared_ptr<ping_observer> &obs );
 };
 struct _union_observer_is_expired
 {
@@ -34,14 +34,15 @@ struct _union_observer_is_expired
 };
 
 
-using observers = std::variant< std::shared_ptr<ping_observer> >;
+using observers = std::variant< std::shared_ptr<ping_observer>, std::shared_ptr<find_node_observer> >;
 template <typename T>
-concept AllowedObservers = std::is_same_v<T, ping_observer>;
+concept AllowedObservers = std::is_same_v<T, ping_observer> || std::is_same_v<T, find_node_observer>;
 
 class union_observer
 {
-  friend class observer;
+  friend class base_observer;
   friend class ping_observer;
+  friend class find_node_observer;
 
 private:
   observers _obs;
@@ -63,20 +64,20 @@ public:
   };
 
   template < typename ... Args >
-  union_observer( std::string type, k_routing_table &routing_table, Args ... args )
+  union_observer( std::string type, k_routing_table &routing_table, io_context &io_ctx, deadline_timer &d_timer, Args ... args )
   {
 	if( type == "ping" ){
-	  _obs = std::make_shared<ping_observer>( routing_table, std::forward<Args>(args)... );
+	  // _obs = std::make_shared<ping_observer>( routing_table, io_ctx, d_timer, std::forward<Args>(args)... );
 	}
 	else if( type == "find_node" ){
-	  return;
+	  // _obs = std::make_shared<find_node_observer>( routing_table, io_ctx, d_timer, std::forward<Args>(args)... );
 	}
 	return;
   };
 
-  void init( io_context &io_ctx );
+  void init();
   bool is_expired() const;
-  observer::observer_id get_id() const;
+  base_observer::observer_id get_id() const;
   void print() const;
 
   bool operator==(const union_observer &obs) const;

@@ -7,7 +7,7 @@ namespace kademlia
 {
 
 
-observer::observer_id _union_observer_get_id::operator()( const std::shared_ptr<ping_observer> &obs )
+base_observer::observer_id _union_observer_get_id::operator()( const std::shared_ptr<ping_observer> &obs )
 {
   return obs->get_id();
 }
@@ -16,16 +16,30 @@ bool _union_observer_is_expired::operator()( const std::shared_ptr<ping_observer
   return obs->is_expired();
 }
 
-void union_observer::init( io_context &io_ctx ) 
+void union_observer::init()
 {
-  std::visit( [&io_ctx]( const std::shared_ptr<ping_observer> &o ){
-		o->init(io_ctx);
-	  }, _obs );
-
+  if( std::holds_alternative<std::shared_ptr<ping_observer>>(_obs) ){
+	auto ping_obs = std::get<std::shared_ptr<ping_observer>>(_obs);
+	ping_obs->init();
+	return;
+  }
+  if( std::holds_alternative<std::shared_ptr<find_node_observer>>(_obs) ){
+	auto find_node_obs = std::get<std::shared_ptr<find_node_observer>>(_obs);
+	find_node_obs->init();
+	return;
+  }
+  return;
 }
-observer::observer_id union_observer::get_id() const
+
+base_observer::observer_id union_observer::get_id() const
 {
-  return std::visit( _union_observer_get_id{}, _obs );
+  std::shared_ptr<base_observer> base_obs;
+  if( std::holds_alternative<std::shared_ptr<ping_observer>>(_obs) )
+	base_obs = std::dynamic_pointer_cast<base_observer>( std::get<std::shared_ptr<ping_observer>>(_obs) );
+  else if( std::holds_alternative<std::shared_ptr<find_node_observer>>(_obs) )
+	base_obs = std::dynamic_pointer_cast<base_observer>( std::get<std::shared_ptr<find_node_observer>>(_obs) );
+
+  return base_obs->get_id();
 }
 
 void union_observer::print() const
@@ -46,9 +60,11 @@ bool union_observer::operator!=( const union_observer &obs ) const
 
 bool union_observer::is_expired() const
 {
-  std::shared_ptr<observer> base_obs;
+  std::shared_ptr<base_observer> base_obs;
   if( std::holds_alternative<std::shared_ptr<ping_observer>>(_obs) )
-	base_obs = std::dynamic_pointer_cast<observer>( std::get<std::shared_ptr<ping_observer>>(_obs) );
+	base_obs = std::dynamic_pointer_cast<base_observer>( std::get<std::shared_ptr<ping_observer>>(_obs) );
+  else if( std::holds_alternative<std::shared_ptr<find_node_observer>>(_obs) )
+	base_obs = std::dynamic_pointer_cast<base_observer>( std::get<std::shared_ptr<find_node_observer>>(_obs) );
 
   if( base_obs == nullptr) return false;
   return base_obs->is_expired();

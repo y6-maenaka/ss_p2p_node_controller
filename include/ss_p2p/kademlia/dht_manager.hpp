@@ -48,6 +48,7 @@ public:
 
 private:
   io_context &_io_ctx;
+  deadline_timer _d_timer;
   ip::udp::endpoint _self_ep;
   node_id _self_id;
   std::shared_ptr<rpc_manager> _rpc_manager;
@@ -55,8 +56,6 @@ private:
   void tick();
   void call_tick();
 
-  using observer_ptr_starget = std::unordered_map< std::uint16_t, observer_ptr >;
-  observer_ptr_starget _obs_strage;
 };
 
 

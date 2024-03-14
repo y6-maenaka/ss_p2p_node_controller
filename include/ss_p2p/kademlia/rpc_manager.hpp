@@ -29,7 +29,7 @@ namespace kademlia
 class rpc_manager
 {
 public:
-  rpc_manager( node_id self_id );
+  rpc_manager( node_id self_id, io_context &io_ctx, deadline_timer &d_timer );
 
   struct update_context
   {
@@ -67,11 +67,12 @@ private:
   union_observer_ptr find_node();
   union_observer_ptr join();
 
-  union_observer_ptr handle_observer( observer_ptr op );
-
   const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _send_func;
   std::shared_ptr<k_routing_table> _routing_table;
+
   node_id _self_id;
+  io_context &_io_ctx;
+  deadline_timer &_d_timer;
 };
 
 

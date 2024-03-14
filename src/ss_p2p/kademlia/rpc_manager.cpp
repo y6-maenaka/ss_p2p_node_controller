@@ -7,11 +7,12 @@ namespace kademlia
 {
 
 
-rpc_manager::rpc_manager( node_id self_id ) :
-  _self_id( self_id ) 
+rpc_manager::rpc_manager( node_id self_id, io_context &io_ctx, deadline_timer &d_timer ) :
+  _self_id( self_id ) ,
+  _io_ctx( io_ctx ) ,
+  _d_timer( d_timer )
 {
   _routing_table = std::make_shared<k_routing_table>( self_id );
-  return;
 }
 
 union_observer_ptr rpc_manager::ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep ) 
@@ -21,12 +22,12 @@ union_observer_ptr rpc_manager::ping( k_node host_node, k_node swap_node, ip::ud
   const auto k_payload = k_msg.export_json();
 
   _send_func( ep , "kademlia", k_payload );
-  return std::make_shared<union_observer>( "ping", *_routing_table ,host_node, swap_node );
+  return nullptr;
+  // return std::make_shared<union_observer>( "ping", *_routing_table, _io_ctx, _d_timer, host_node, swap_node );
 }
 
 rpc_manager::update_context rpc_manager::incoming_request( std::shared_ptr<ss::kademlia::message> msg, ip::udp::endpoint &ep )
 {
- 
   // 処理
   k_routing_table::update_state update_state;
   union_observer_ptr u_obs_ptr = nullptr;
