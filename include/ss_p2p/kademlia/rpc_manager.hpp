@@ -9,6 +9,7 @@
 #include <ss_p2p/message.hpp>
 #include <hash.hpp>
 #include "./observer.hpp"
+#include "./union_observer.hpp"
 #include "./message.hpp"
 #include "./node_id.hpp"
 #include "./k_routing_table.hpp"

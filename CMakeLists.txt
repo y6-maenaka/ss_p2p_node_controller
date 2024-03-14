@@ -44,6 +44,7 @@ set( ss_p2p_kademlia_include_files
 	dht_manager.hpp
 	node_id.hpp
 	observer.hpp
+	union_observer.hpp
 	observer_strage.hpp
 	message.hpp
 	rpc_manager.hpp
@@ -55,6 +56,7 @@ set( ss_p2p_kademlia_source_files
 	dht_manager.cpp
 	node_id.cpp
 	observer.cpp
+	union_observer.cpp
 	observer_strage.cpp
 	message.cpp
 	rpc_manager.cpp

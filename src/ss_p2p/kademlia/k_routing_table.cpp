@@ -31,6 +31,12 @@ unsigned short k_routing_table::calc_branch( k_node &kn ) // オーバヘッド�
   return (K_NODE_ID_LENGTH*8) - node_xor_distance;
 }
 
+bool k_routing_table::swap_node( k_node &node_src, k_node node_dest )
+{
+  k_bucket &target_bucket = this->get_bucket(node_src);
+  return target_bucket.swap_node( node_src, node_dest );
+}
+
 k_bucket::update_state k_routing_table::auto_update( k_node kn )
 {
   // k_node target_node( ep );

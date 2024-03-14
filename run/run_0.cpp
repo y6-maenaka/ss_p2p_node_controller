@@ -14,6 +14,7 @@
 #include "../test/dummy_message.cpp"
 #include "../test/setup_peer.cpp"
 #include "../test/setup_k_routing_table.cpp"
+#include "../test/setup_union_observer.cpp"
 
 using boost::asio::ip::udp;
 
@@ -21,7 +22,8 @@ int main()
 {
   std::cout << "Hello" << "\n";
 
-  setup_k_routing_table();
+  setup_union_observer();
+  // setup_k_routing_table();
   // setup_peer();
   // dummy_message();
   // setup_node_controller();

@@ -25,69 +25,47 @@ namespace ss
 namespace kademlia
 {
 
+constexpr unsigned short DEFAULT_EXPIRE_TIME_s = 10/*[seconds]*/;
+
 
 class observer
 {
 public:
   using observer_id = uuid;
+  observer_id get_id() const;
+  bool is_expired() const;
 
-  observer( const k_routing_table &routing_table );
-  virtual void on_call( io_context &io_ctx, k_routing_table &routing_table ) = 0;
-  const observer_id get_id() const;
+protected:
+  observer( k_routing_table &routing_table );
+  virtual void on_call( io_context &io_ctx ) = 0;
+
+  void destruct_self(); // 本オブザーバーの破棄を許可する
+  void extend_expire_at( std::time_t t = DEFAULT_EXPIRE_TIME_s );
+  std::time_t _expire_at; // このオブザーバーを破棄する時間
+  k_routing_table &_routing_table;
 
 private:
   const observer_id _obs_id;
-  std::time_t _expire_at;
-  const k_routing_table &_routing_table;
 };
 
-class ping_observer : observer
+class ping_observer : public observer
 {
 public:
-  ping_observer( k_node host_node, k_node swap_node, const k_routing_table &routing_table );
+  ping_observer( k_routing_table &routing_table, k_node host_node, k_node swap_node );
+
   void update_observer( k_routing_table &routing_table );
+  void on_call( io_context &io_ctx ) override; // このメソッドをタイマーセットしてio_ctxにポスト
+  void init( io_context &io_ctx );
 
 private:
+  bool _is_pong_arrived;
+
   k_node _host_node;
   k_node _swap_node;
 };
 
 
-struct _union_observer_init
-{
-  void operator()( std::shared_ptr<ping_observer> obs );
-};
-
-
-using observers = std::variant< std::shared_ptr<ping_observer> >;
-template <typename T>
-concept allowed_observers = std::is_same_v<T, ping_observer>;
-
-class union_observer
-{
-private:
-  observers _obs;
-
-public:
-  enum type
-  {
-	ping,
-	find_node,
-	get_node
-  };
-
-  template < typename T > // あとで実装
-  union_observer( T obs_from );
-
-  template < typename ... Args >
-  union_observer( std::string type, const k_routing_table &routing_table, Args ... args );
-
-  void init( io_context &io_ctx );
-};
-
-
 using observer_ptr = std::shared_ptr<observer>;
-using union_observer_ptr = std::shared_ptr<union_observer>;
 const std::string generate_h_id();
 
 

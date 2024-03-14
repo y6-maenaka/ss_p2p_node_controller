@@ -39,7 +39,7 @@ private:
   unsigned short calc_branch( k_node &kn );
 public:
   k_routing_table( node_id self_id );
-  
+  bool swap_node( k_node &node_src, k_node node_dest );
 
   using update_state = k_bucket::update_state;
   update_state auto_update( k_node kn );

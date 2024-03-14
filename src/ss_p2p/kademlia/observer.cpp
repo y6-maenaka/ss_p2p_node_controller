@@ -7,39 +7,55 @@ namespace kademlia
 {
 
 
-observer::observer( const k_routing_table &routing_table ) : 
+observer::observer( k_routing_table &routing_table ) : 
   _obs_id( random_generator()() ) ,
   _routing_table(routing_table)
 {
   return;
 }
 
+observer::observer_id observer::get_id() const
+{
+  return _obs_id;
+}
 
-ping_observer::ping_observer( k_node host_node, k_node swap_node, const k_routing_table &routing_table ) : 
+void observer::destruct_self()
+{
+  _expire_at = 0;
+}
+
+void observer::extend_expire_at( std::time_t t )
+{
+  _expire_at = std::time(nullptr) + t;
+}
+
+bool observer::is_expired() const
+{
+  return _expire_at <= std::time(nullptr);
+}
+
+
+ping_observer::ping_observer( k_routing_table &routing_table, k_node host_node, k_node swap_node ) : 
   observer(routing_table) ,
   _host_node(host_node) ,
   _swap_node(swap_node)
 {
-  return;
+  _is_pong_arrived = false;
 }
 
-template< typename ... Args >
-union_observer::union_observer( std::string type, const k_routing_table &routing_table, Args ... args )
+void ping_observer::init( io_context &io_ctx )
 {
-  if( type == "ping" )
-  {
-	_obs = std::make_shared<ping_observer>( routing_table, std::forward<Args>(args)... );
-  }
-  else if( type == "find_node" )
-  {
-	return;
-  }
-  return;
+  #if SS_VERBOSE
+  std::cout << "ping_observer init" << "\n";
+  #endif
 }
 
-void union_observer::init( io_context &io_ctx ) 
+void ping_observer::on_call( io_context &io_ctx )
 {
-  std::visit( _union_observer_init, _obs );
+  if( _is_pong_arrived ) return; // pongが到着していれば特に何もしない
+  
+  this->destruct_self() ; // 実質破棄を許可する
+  _routing_table.swap_node( _host_node, _swap_node ); // タイムアウトしていればノードを交換する
 }
 
 

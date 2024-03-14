@@ -21,7 +21,7 @@ union_observer_ptr rpc_manager::ping( k_node host_node, k_node swap_node, ip::ud
   const auto k_payload = k_msg.export_json();
 
   _send_func( ep , "kademlia", k_payload );
-  return std::make_shared<union_observer>("ping", *_routing_table ,host_node, swap_node );
+  return std::make_shared<union_observer>( "ping", *_routing_table ,host_node, swap_node );
 }
 
 rpc_manager::update_context rpc_manager::incoming_request( std::shared_ptr<ss::kademlia::message> msg, ip::udp::endpoint &ep )

@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "./rpc_manager.hpp"
 #include "./k_routing_table.hpp"
@@ -20,7 +21,7 @@
 using namespace boost::asio;
 using namespace boost::uuids;
 
-
+/*
 namespace std
 {
   template<>
@@ -30,7 +31,7 @@ namespace std
 	}
   };
 }; // namespace std
-
+*/
 
 namespace ss
 {
@@ -41,12 +42,14 @@ namespace kademlia
 class observer_strage
 {
 private:
-  using observer_ptr_strage = std::unordered_map< observer::observer_id const , union_observer , std::hash<boost::uuids::uuid> >;
+  using observer_ptr_strage = std::unordered_set< union_observer, union_observer::Hash >;
   observer_ptr_strage _strage;
 
 public:
-  void add_obs( observer_ptr obs_ptr );
-  observer_ptr get_obs( observer::observer_id &id );
+  void add_obs( union_observer_ptr obs_ptr );
+  union_observer_ptr get_obs( observer::observer_id &id );
+
+  void refresh();
 };
 
 
