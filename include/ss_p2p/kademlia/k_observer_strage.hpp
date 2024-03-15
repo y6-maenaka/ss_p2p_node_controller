@@ -9,10 +9,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "./rpc_manager.hpp"
-#include "./k_routing_table.hpp"
-#include "./k_bucket.hpp"
-#include "./observer.hpp"
+#include <ss_p2p/observer.hpp>
+#include "./k_observer.hpp"
 
 #include "boost/asio.hpp"
 #include "boost/uuid/uuid.hpp"
@@ -42,11 +40,11 @@ namespace kademlia
 {
 
 
-class observer_strage
+class k_observer_strage
 {
 private:
-  using ping_observer_strage = std::unordered_set< observer<ping_observer>, observer<ping_observer>::Hash >;
-  using find_node_observer_strage = std::unordered_set< observer<find_node_observer>, observer<find_node_observer>::Hash >;
+  using ping_observer_strage = std::unordered_set< observer<ping>, observer<ping>::Hash >;
+  using find_node_observer_strage = std::unordered_set< observer<find_node>, observer<find_node>::Hash >;
 
   using observer_strage_idv = std::variant< ping_observer_strage, find_node_observer_strage >;
   using union_observer_strage = std::map< std::string, observer_strage_idv >;
@@ -54,10 +52,10 @@ private:
   union_observer_strage _strage;
 
 public:
-  observer_strage();
+  k_observer_strage();
 
   template < typename T >
-  observer<T> get_observer( T key, base_observer::observer_id id );
+  observer<T> get_observer( std::string key, base_observer::id id );
 
   template < typename T >
   void add_observer( observer<T> obs );

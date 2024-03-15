@@ -13,7 +13,8 @@
 #include "./k_routing_table.hpp"
 #include "./k_node.hpp"
 #include "./node_id.hpp"
-#include "./observer.hpp"
+#include "./k_observer.hpp"
+#include "./k_observer_strage.hpp"
 #include "./rpc_manager.hpp"
 #include "./message.hpp"
 

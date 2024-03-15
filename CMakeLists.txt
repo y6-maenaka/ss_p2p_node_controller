@@ -27,6 +27,8 @@ set( ss_p2p_include_files
 	message_pool.hpp
 	socket_manager.hpp
 	udp_server.hpp
+	observer.hpp
+	observer_strage.hpp
 )
 set( ss_p2p_source_files
     node_controller.cpp
@@ -36,6 +38,8 @@ set( ss_p2p_source_files
 	message_pool.cpp
 	socket_manager.cpp
 	udp_server.cpp
+	observer.cpp
+	observer_strage.cpp
 )
 set( ss_p2p_kademlia_include_files
     k_routing_table.hpp
@@ -43,11 +47,11 @@ set( ss_p2p_kademlia_include_files
     k_node.hpp
 	dht_manager.hpp
 	node_id.hpp
-	observer.hpp
-	union_observer.hpp
-	observer_strage.hpp
+	k_observer.hpp
+	k_observer_strage.hpp
 	message.hpp
 	rpc_manager.hpp
+	direct_routing_table_controller.hpp
 )
 set( ss_p2p_kademlia_source_files
     k_routing_table.cpp
@@ -55,11 +59,20 @@ set( ss_p2p_kademlia_source_files
     k_node.cpp
 	dht_manager.cpp
 	node_id.cpp
-	observer.cpp
-	union_observer.cpp
-	observer_strage.cpp
+	k_observer.cpp
+	k_observer_strage.cpp
 	message.cpp
 	rpc_manager.cpp
+	direct_routing_table_controller.cpp
+)
+set( ss_p2p_ice_agent_include_files 
+	ice_observer.hpp
+	ice_observer_strage.hpp
+	signaling_server.hpp
+)
+set( ss_p2p_ice_agent_source_files 
+	ice_observer.cpp
+	ice_observer_strage.cpp
 )
 
 # リスト要素にプレフィックスを付与
@@ -67,6 +80,8 @@ list(TRANSFORM ss_p2p_include_files PREPEND "include/ss_p2p/" )
 list(TRANSFORM ss_p2p_source_files PREPEND "src/ss_p2p/")
 list(TRANSFORM ss_p2p_kademlia_include_files PREPEND "include/ss_p2p/kademlia/")
 list(TRANSFORM ss_p2p_kademlia_source_files PREPEND "src/ss_p2p/kademlia/")
+list(TRANSFORM ss_p2p_ice_agent_include_files PREPEND "include/ss_p2p/ice_agent/")
+list(TRANSFORM ss_p2p_ice_agent_source_files PREPEND "src/ss_p2p/ice_agent/")
 
 add_library( ss_p2p # ss_p2pをライブラリとしてまとめる
 			${basic_include_files}
@@ -90,10 +105,12 @@ target_sources( ss_p2p PRIVATE
               ${ss_p2p_kademlia_include_files}
 
 )
+target_sources( ss_p2p PRIVATE 
+			  ${ss_p2p_ice_agent_source_files}
+			  ${ss_p2p_ice_agent_include_files}
+)
 
 if( _BUILD_SS )
-  add_executable( ver_0 ./release/ver_0.cpp )
-  target_link_libraries( ver_0 PRIVATE )
 endif()
 
 if( _BUILD_TEST )

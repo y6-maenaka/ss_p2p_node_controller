@@ -41,7 +41,11 @@ public:
   };
   update_state auto_update( k_node kn );
 
-  std::shared_ptr<k_node> get_front() const;
+  std::vector< std::shared_ptr<k_node> > get_node_front( std::size_t count = 1 , unsigned short start_idx = 0,
+	  const std::vector<k_node*> &ignore_nodes = std::vector<k_node*>() );
+  std::vector< std::shared_ptr<k_node> > get_node_back( std::size_t count = 1 , unsigned short start_idx = 0,
+	  const std::vector<k_node*> &ignore_nodes = std::vector<k_node*>() );
+
   bool add_back( k_node kn );
   bool move_back( k_node &kn );
   bool delete_node( k_node &kn );

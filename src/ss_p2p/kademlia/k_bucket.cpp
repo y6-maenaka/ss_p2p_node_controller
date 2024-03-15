@@ -35,10 +35,54 @@ k_bucket::update_state k_bucket::auto_update( k_node kn )
   return update_state::error;
 }
 
-std::shared_ptr<k_node> k_bucket::get_front() const
+/* std::shared_ptr<k_node> k_bucket::get_front_node( unsigned int idx ) 
 {
+  std::unique_lock<std::mutex> lock(_mtx);
   if( _nodes.empty() ) return nullptr;
-  return std::make_shared<k_node>( _nodes.at(0) );
+  return std::make_shared<k_node>( _nodes.at( std::min(
+		  idx,
+		  static_cast<unsigned int>(_nodes.size()-1)) 
+		));
+} */
+
+std::vector< std::shared_ptr<k_node> > k_bucket::get_node_front( std::size_t count, unsigned short start_idx, const std::vector<k_node*> &ignore_nodes )
+{
+  std::vector< std::shared_ptr<k_node> > ret;
+  for( auto itr = _nodes.begin() + start_idx; itr != _nodes.end(); itr++ )
+  {
+	if( auto iitr = std::find_if( ignore_nodes.begin(), ignore_nodes.end(), [itr]( k_node *kn ){
+			return *itr == *kn ;
+		  } ); iitr != ignore_nodes.end() ) continue; // ignoreに一致するものがあればスキップする
+
+	ret.push_back( std::make_shared<k_node>(*itr) );
+	if( ret.size() >= count ) break;
+  }
+  return ret;
+}
+
+/* std::shared_ptr<k_node> k_bucket::get_back_node( unsigned int idx ) 
+{
+  std::unique_lock<std::mutex> lock(_mtx);
+  if( _nodes.empty() ) return nullptr;
+  return std::make_shared<k_node>( _nodes.at( std::min( 
+		  std::max( static_cast<int>(_nodes.size()-1), static_cast<int>(0)),
+		  static_cast<int>(_nodes.size()-1))
+		));
+} */
+
+std::vector< std::shared_ptr<k_node> > k_bucket::get_node_back( std::size_t count, unsigned short start_idx, const std::vector<k_node*> &ignore_nodes )
+{
+  std::vector< std::shared_ptr<k_node> > ret;
+  for( auto itr = _nodes.rbegin() + start_idx; itr != _nodes.rend(); itr++ )
+  {
+	if( auto iitr = std::find_if( ignore_nodes.begin(), ignore_nodes.end(), [itr]( k_node *kn ){
+			return *itr == *kn ;
+		  } ); iitr != ignore_nodes.end() ) continue; // ignoreに一致するものがあればスキップする
+
+	ret.push_back( std::make_shared<k_node>(*itr) );
+	if( ret.size() >= count ) break;
+  }
+  return ret;
 }
 
 bool k_bucket::add_back( k_node kn )

@@ -6,10 +6,11 @@
 #include <memory>
 #include <string>
 
-#include <ss_p2p/message.hpp>
 #include <hash.hpp>
-#include "./observer.hpp"
-#include "./union_observer.hpp"
+#include <ss_p2p/message.hpp>
+#include <ss_p2p/observer.hpp>
+#include "./k_observer.hpp"
+#include "./k_observer_strage.hpp"
 #include "./message.hpp"
 #include "./node_id.hpp"
 #include "./k_routing_table.hpp"
@@ -46,15 +47,13 @@ public:
 	};
 	update_state_t update_state;
 	rpc_t rpc;
-	union_observer_ptr obs_ptr;
 	static update_context (error)() noexcept
 	{
 	  update_context ret;
 	  ret.update_state = update_state_t::failure;
-	  ret.obs_ptr = nullptr;
 	  return ret;
 	};
-	update_context() : obs_ptr(nullptr){};
+	update_context();
   };
   update_context incoming_request( std::shared_ptr<ss::kademlia::message> msg, ip::udp::endpoint &ep );
   update_context incoming_response( std::shared_ptr<ss::kademlia::message> msg, ip::udp::endpoint &ep );
@@ -63,16 +62,19 @@ public:
 private:
   void set_triger_observer();
 
-  union_observer_ptr ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep );
-  union_observer_ptr find_node();
-  union_observer_ptr join();
+  std::shared_ptr< observer<ping> > ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep );
+  // union_observer_ptr find_node();
+  // union_observer_ptr join();
 
   const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _send_func;
+  const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _traversal_send_func;
+
   std::shared_ptr<k_routing_table> _routing_table;
 
   node_id _self_id;
   io_context &_io_ctx;
   deadline_timer &_d_timer;
+  k_observer_strage _obs_strage;
 };
 
 

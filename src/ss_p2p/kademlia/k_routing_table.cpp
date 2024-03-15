@@ -60,16 +60,66 @@ k_bucket::update_state k_routing_table::auto_update( k_node kn )
   return ret;
 }
 
+std::vector< std::shared_ptr<k_node> > k_routing_table::get_node_front( k_node& root_node, std::size_t count, unsigned short short_idx, const std::vector<k_node*> &ignore_nodes )
+{
+   k_bucket &target_bucket = this->get_bucket( root_node );
+  return target_bucket.get_node_front( count, short_idx, ignore_nodes );
+}
+
+std::vector< std::shared_ptr<k_node> > k_routing_table::get_node_back( k_node& root_node, std::size_t count, unsigned short short_idx, const std::vector<k_node*> &ignore_nodes )
+{
+   k_bucket &target_bucket = this->get_bucket( root_node );
+  return target_bucket.get_node_back( count, short_idx, ignore_nodes );
+}
+
+
 bool k_routing_table::is_exist( k_node &kn )
 {
   k_bucket &target_bucket = this->get_bucket( kn );
   return target_bucket.is_exist(kn);
 }
 
-std::shared_ptr<k_node> k_routing_table::get_front( k_node &kn )
+std::vector<std::shared_ptr<k_node>> k_routing_table::collect_nodes( k_node& root_node, std::size_t max_count, const std::vector<k_node*> &ignore_nodes )
 {
-  k_bucket &target_bucket = this->get_bucket( kn );
-  return target_bucket.get_front();
+  std::vector<std::shared_ptr<k_node>> ret;
+
+  unsigned int root_bucket_idx = this->calc_branch_index(root_node);
+  std::size_t remaining_nodes_count = max_count - ret.size();
+  routing_table::iterator root_bucket_itr = _table.begin() + root_bucket_idx;
+
+  // センター(ルート)バケットの処理
+  auto geted_nodes = root_bucket_itr->get_node_back( remaining_nodes_count, 0, ignore_nodes );
+  ret.insert( ret.end(), geted_nodes.begin(), geted_nodes.end() );
+
+  routing_table::iterator upper_bucket_itr = _table.end();
+  routing_table::iterator lower_bucket_itr = _table.end();
+  bool upper_flag = false ;
+  bool lower_flag = false;
+  unsigned short count = 1;
+
+  // 上下バケットの処理
+  while( max_count > ret.size() && !(upper_flag) && !(lower_flag) )
+  {
+	if( upper_bucket_itr != _table.end() )
+	{
+	  remaining_nodes_count = max_count - ret.size(); // 残りノード数の再計算
+	  geted_nodes = upper_bucket_itr->get_node_back( remaining_nodes_count, 0, ignore_nodes );
+	  ret.insert( ret.end(), geted_nodes.begin(), geted_nodes.end() );
+	}
+	if( lower_bucket_itr != _table.end() )
+	{
+	  remaining_nodes_count = max_count - ret.size(); // 残りノード数の再計算
+	  geted_nodes = lower_bucket_itr->get_node_back( remaining_nodes_count, 0, ignore_nodes );
+	  ret.insert( ret.end(), geted_nodes.begin(), geted_nodes.end() );
+	}
+
+	if( upper_bucket_itr = std::prev( root_bucket_itr, count ); upper_bucket_itr == _table.end() ) upper_flag = true;
+	if( lower_bucket_itr = std::prev( root_bucket_itr, -count ); lower_bucket_itr == _table.end() ) lower_flag = true;
+
+	count++;
+  }
+
+  return ret;
 }
 
 unsigned short k_routing_table::calc_branch_index( k_node &kn )
