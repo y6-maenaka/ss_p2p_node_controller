@@ -17,6 +17,12 @@ namespace ss
 {
 
 
+namespace ice
+{
+  class signaling_open;
+};
+
+
 constexpr unsigned short DEFAULT_EXPIRE_TIME_s = 10/*[seconds]*/;
 
 
@@ -50,10 +56,11 @@ private:
 
 public:
   using id = base_observer::id;
+
+  observer( std::shared_ptr<T> from );
+  observer(  T from );
   template < typename ... Args >
-  observer( io_context &io_ctx, deadline_timer &d_timer, Args ... args ){
-	_body = std::make_shared<T>( io_ctx, d_timer, std::forward<Args>(args)... );
-  };
+  observer( io_context &io_ctx, deadline_timer &d_timer, Args ... args );
 
   void init();
   bool is_expired() const;

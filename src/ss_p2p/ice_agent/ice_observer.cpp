@@ -7,7 +7,7 @@ namespace ice
 {
 
 
-ice_observer::ice_observer( io_context &io_ctx, deadline_timer &d_timer, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+ice_observer::ice_observer( io_context &io_ctx, deadline_timer &d_timer, direct_routing_table_controller &d_routing_table_controller ) :
   base_observer( io_ctx, d_timer ) ,
   _d_routing_table_controller( d_routing_table_controller )
 {
@@ -15,7 +15,7 @@ ice_observer::ice_observer( io_context &io_ctx, deadline_timer &d_timer, ss::kad
 }
 
 
-signaling_open::signaling_open( io_context &io_ctx, deadline_timer &d_timer, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+signaling_open::signaling_open( io_context &io_ctx, deadline_timer &d_timer, direct_routing_table_controller &d_routing_table_controller ) :
   ice_observer( io_ctx, d_timer, d_routing_table_controller ) 
 {
   return;

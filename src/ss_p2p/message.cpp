@@ -5,6 +5,11 @@ namespace ss
 {
 
 
+message::message( app_id id )
+{
+  this->set_app_id(id);
+}
+
 message::message( json from )
 {
   this->_body = from;
@@ -21,15 +26,20 @@ std::shared_ptr<json> message::get_param( std::string param )
   return nullptr;
 }
 
+void message::set_param( std::string key, const json value )
+{
+  _body[key] = value;
+}
+
 bool message::is_contain_param( std::string param )
 {
   return _body.contains(param);
 }
 
-std::span<char> message::encode( json from )
+std::span<char> message::encode( const message &from )
 {
   std::vector<std::uint8_t> u8_bson;
-  u8_bson = nlohmann::json::to_bson(from);
+  u8_bson = nlohmann::json::to_bson(from._body);
 
   std::span<char> ret( reinterpret_cast<char*>(u8_bson.data()), u8_bson.size() );
   return ret;

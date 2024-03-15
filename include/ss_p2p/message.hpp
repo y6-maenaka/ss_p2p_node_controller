@@ -22,14 +22,17 @@ using encoded_message = std::span<char const>;
 class message
 {
 public:
+  using app_id = std::array<char, 8>;
+  message( app_id id );
   message( json from );
 
-  using app_id = std::array<char, 8>;
   void set_app_id( app_id );
   std::shared_ptr<json> get_param( std::string param );
+  void set_param( std::string key, const json value );
   [[ nodiscard ]] bool is_contain_param( std::string param );
 
-  static std::span<char> encode( json from ); 
+  using encoded_message = std::span<char>;
+  static std::span<char> encode( const message &from ); 
   static message decode( std::span<char> from ); // 生メッセージのデコード
 
   json& operator()();

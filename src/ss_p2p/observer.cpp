@@ -35,6 +35,25 @@ bool base_observer::is_expired() const
 
 
 template < typename T >
+observer<T>::observer( std::shared_ptr<T> from )
+{
+  _body = from;
+}
+
+template <typename T>
+observer<T>::observer( T from )
+{
+  _body = from;
+}
+
+template <typename T >
+template <typename ... Args >
+observer<T>::observer( io_context &io_ctx, deadline_timer &d_timer, Args ... args )
+{
+  _body = std::make_shared<T>( io_ctx, d_timer, std::forward<Args>(args)... );
+}
+
+template < typename T >
 void observer<T>::init()
 {
   return _body->init();
