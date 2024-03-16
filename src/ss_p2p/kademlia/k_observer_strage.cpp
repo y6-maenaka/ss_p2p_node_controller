@@ -17,28 +17,29 @@ k_observer_strage::k_observer_strage()
 }
 
 template <typename T>
-observer<T> k_observer_strage::get_observer( std::string key, base_observer::id id )
+std::optional< observer<T> >& k_observer_strage::find_observer( base_observer::id id )
 {
   observer<T> ret = _strage.end();
 
-  if ( key == "ping" )
+  if constexpr (std::is_same_v<T, ping>)
   {
-	observer_strage_idv &strage_entry_v/*variant*/ = _strage[key];
+	observer_strage_idv &strage_entry_v/*variant*/ = _strage["ping"];
 	ping_observer_strage &strage_entry = std::get<observer<T>>(strage_entry_v);
 	for( auto &itr : strage_entry ){
 	  if( itr.get_id() == id ) return itr;
 	}
   }
 
-  if ( key == "find_node" )
+  if constexpr (std::is_same_v<T, find_node>)
   {
-	observer_strage_idv &strage_entry_v/*variant*/ = _strage[key];
+	observer_strage_idv &strage_entry_v/*variant*/ = _strage["find_node"];
 	find_node_observer_strage &strage_entry = std::get<observer<T>>(strage_entry_v);
 	for( auto &itr : strage_entry ){
 	  if( itr.get_id() == id ) return itr;
 	}
   }
-  return ret;
+
+  return std::nullopt;
 }
 
 template < typename T >

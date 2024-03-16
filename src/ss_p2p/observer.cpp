@@ -60,6 +60,12 @@ void observer<T>::init()
 }
 
 template < typename T >
+void observer<T>::income_message( ss::message &msg )
+{
+  return _body->income_msg(msg);
+}
+
+template < typename T >
 bool observer<T>::is_expired() const
 {
   return _body->is_expired();

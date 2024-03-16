@@ -67,9 +67,9 @@ json signaling_open::format_request_msg( ip::udp::endpoint &src_ep, ip::udp::end
   return ret;
 }
 
-void signaling_open::handle_response( std::shared_ptr<ss::message> msg )
+void signaling_open::income_message( message &msg )
 {
-  ice_message ice_msg( *(msg->get_param("ice_agent")) );
+  ice_message ice_msg( *(msg.get_param("ice_agent")) );
   std::string ip_v4 = ice_msg.get_param<std::string>("src_ipv4");
 
   // メッセージの検証

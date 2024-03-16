@@ -1,4 +1,9 @@
+#include <optional>
+
 #include <ss_p2p/ice_agent/ice_agent.hpp>
+#include <ss_p2p/ice_agent/signaling_server.hpp>
+#include <ss_p2p/observer.hpp>
+
 
 
 namespace ss
@@ -24,6 +29,13 @@ void ice_agent::income_msg( std::shared_ptr<message> msg )
   const auto protocol = ice_msg.get_protocol();
   if( protocol == ice_message::protocol_t::req_signaling_open )
   {
+	observer_id obs_id = ice_msg.get_param<observer_id>("observer_id");
+	if( std::optional<observer<signaling_open>> &obs = _obs_strage.find_observer<signaling_open>(obs_id); obs != std::nullopt )
+	{
+	  return obs->income_message( *msg ); // observerがあれば優先する
+	}
+
+	_sgnl_server->handle_message( msg );
 	return;
   }
   else if( protocol == ice_message::protocol_t::req_stun )

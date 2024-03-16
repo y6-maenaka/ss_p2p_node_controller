@@ -41,7 +41,7 @@ class signaling_open : public ice_observer
 public:
   void init( ip::udp::endpoint &glob_self_ep ); 
   void timeout();
-  void handle_response( std::shared_ptr<ss::message> msg );
+  void income_message( ss::message &msg );
 
   struct msg_cache
   {

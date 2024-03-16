@@ -2,6 +2,8 @@
 #define A3106EAE_F653_43A8_AFA9_3E54D88AD98F
 
 
+#include <ss_p2p/message.hpp>
+
 #include "boost/asio.hpp"
 #include "boost/uuid/uuid.hpp"
 #include "boost/uuid/uuid_io.hpp"
@@ -63,6 +65,7 @@ public:
   observer( io_context &io_ctx, deadline_timer &d_timer, Args ... args );
 
   void init();
+  void income_message( message &msg );
   bool is_expired() const;
   id get_id() const;
   void print() const;
@@ -77,7 +80,7 @@ struct observer<T>::Hash
   std::size_t operator()( const observer<T> &obs ) const;
 };
 
-
+using observer_id = base_observer::id;
 base_observer::id str_to_observer_id( std::string from );
 
 };

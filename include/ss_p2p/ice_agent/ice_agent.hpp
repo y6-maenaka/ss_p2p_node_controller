@@ -9,8 +9,8 @@
 #include <ss_p2p/kademlia/direct_routing_table_controller.hpp>
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/socket_manager.hpp>
-#include "./ice_message.hpp"
 #include "./ice_observer_strage.hpp"
+#include "./ice_message.hpp"
 
 #include "boost/asio.hpp"
 
@@ -35,13 +35,14 @@ public:
 
   void income_msg( std::shared_ptr<message> msg ); // メッセージ受信
 
-  struct ice_sender
+  class ice_sender
   {
-	template < typename SuccessHandler >
-	void ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg, SuccessHandler handler );
+	public:
+	  template < typename SuccessHandler >
+	  void ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg, SuccessHandler handler );
 
-	ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id );
-	ip::udp::endpoint &get_host_endpoint() const; 
+	  ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id );
+	  ip::udp::endpoint &get_host_endpoint() const; 
 	private:
 	  udp_socket_manager &_sock_manager;
 	  ip::udp::endpoint &_glob_self_ep;

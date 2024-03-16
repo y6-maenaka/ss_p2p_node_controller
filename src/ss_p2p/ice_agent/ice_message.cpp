@@ -1,4 +1,5 @@
 #include <ss_p2p/ice_agent/ice_message.hpp>
+#include <ss_p2p/observer.hpp>
 
 
 namespace ss
@@ -92,6 +93,10 @@ T ice_message::get_param( std::string key )
 
   if constexpr (std::is_same_v<T, std::string>){
 	return value.get<std::string>();
+  }
+  else if constexpr (std::is_same_v<T, observer_id>)
+  {
+	return str_to_observer_id( value.get<std::string>() );
   }
   else if constexpr (std::is_arithmetic_v<T> && !std::is_same_v<T, bool> )
   {

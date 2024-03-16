@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <optional>
 
 #include <ss_p2p/observer.hpp>
 #include "./k_observer.hpp"
@@ -55,7 +56,7 @@ public:
   k_observer_strage();
 
   template < typename T >
-  observer<T> get_observer( std::string key, base_observer::id id );
+  std::optional< observer<T> >& find_observer( base_observer::id id );
 
   template < typename T >
   void add_observer( observer<T> obs );
