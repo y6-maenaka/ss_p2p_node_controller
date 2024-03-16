@@ -60,13 +60,13 @@ k_bucket::update_state k_routing_table::auto_update( k_node kn )
   return ret;
 }
 
-std::vector< std::shared_ptr<k_node> > k_routing_table::get_node_front( k_node& root_node, std::size_t count, unsigned short short_idx, const std::vector<k_node*> &ignore_nodes )
+std::vector<k_node> k_routing_table::get_node_front( k_node& root_node, std::size_t count, unsigned short short_idx, const std::vector<k_node> &ignore_nodes )
 {
    k_bucket &target_bucket = this->get_bucket( root_node );
   return target_bucket.get_node_front( count, short_idx, ignore_nodes );
 }
 
-std::vector< std::shared_ptr<k_node> > k_routing_table::get_node_back( k_node& root_node, std::size_t count, unsigned short short_idx, const std::vector<k_node*> &ignore_nodes )
+std::vector<k_node> k_routing_table::get_node_back( k_node& root_node, std::size_t count, unsigned short short_idx, const std::vector<k_node> &ignore_nodes )
 {
    k_bucket &target_bucket = this->get_bucket( root_node );
   return target_bucket.get_node_back( count, short_idx, ignore_nodes );
@@ -79,9 +79,9 @@ bool k_routing_table::is_exist( k_node &kn )
   return target_bucket.is_exist(kn);
 }
 
-std::vector<std::shared_ptr<k_node>> k_routing_table::collect_nodes( k_node& root_node, std::size_t max_count, const std::vector<k_node*> &ignore_nodes )
+std::vector<k_node> k_routing_table::collect_nodes( k_node& root_node, std::size_t max_count, const std::vector<k_node> &ignore_nodes )
 {
-  std::vector<std::shared_ptr<k_node>> ret;
+  std::vector<k_node> ret;
 
   unsigned int root_bucket_idx = this->calc_branch_index(root_node);
   std::size_t remaining_nodes_count = max_count - ret.size();
@@ -143,6 +143,14 @@ k_bucket& k_routing_table::get_bucket( k_node &kn )
 k_bucket& k_routing_table::get_bucket( unsigned short branch )
 {
   return _table[ std::max(branch-1,0) ];
+}
+
+
+std::vector<k_node> eps_to_k_nodds( std::vector<ip::udp::endpoint> eps )
+{
+  std::vector<k_node> ret;
+  for( auto itr : eps ) ret.push_back( k_node(itr) );
+  return ret;
 }
 
 

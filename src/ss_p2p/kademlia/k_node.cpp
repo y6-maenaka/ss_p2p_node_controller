@@ -6,6 +6,11 @@ namespace ss
 namespace kademlia
 {
 
+
+k_node::k_node()
+{
+  _id = node_id::none();
+}
   
 k_node::k_node( ip::udp::endpoint &ep ) : 
   _ep(ep) , 

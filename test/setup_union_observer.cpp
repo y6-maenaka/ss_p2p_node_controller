@@ -1,7 +1,7 @@
-#include <ss_p2p/kademlia/union_observer.hpp>
 #include <ss_p2p/kademlia/observer.hpp>
 #include <ss_p2p/kademlia/k_routing_table.hpp>
 #include <ss_p2p/kademlia/k_node.hpp>
+#include <utils.h>
 
 #include <iostream>
 #include <vector>

@@ -8,6 +8,11 @@ namespace ice
 {
 
 
+class ice_observer_strage
+{
+
+};
+
 
 };
 };

@@ -42,7 +42,7 @@ void ping::timeout( const boost::system::error_code &ec )
   _routing_table.swap_node( _host_node, _swap_node ); // タイムアウトしていればノードを交換する
 }
 
-void ping::handle_response( std::shared_ptr<message> msg )
+void ping::handle_response( std::shared_ptr<k_message> msg )
 {
   _is_pong_arrived = true;
 }
@@ -61,7 +61,7 @@ void find_node::init()
   #endif
 }
 
-void find_node::handle_response( std::shared_ptr<message> msg )
+void find_node::handle_response( std::shared_ptr<k_message> msg )
 {
   return;
 }

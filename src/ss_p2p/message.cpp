@@ -36,6 +36,12 @@ bool message::is_contain_param( std::string param )
   return _body.contains(param);
 }
 
+message message::request( app_id &id )
+{
+  message ret(id);
+  return ret;
+}
+
 std::span<char> message::encode( const message &from )
 {
   std::vector<std::uint8_t> u8_bson;

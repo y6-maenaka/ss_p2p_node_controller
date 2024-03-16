@@ -42,6 +42,13 @@ unsigned char node_id::operator[](unsigned short idx) const
   return static_cast<unsigned char>(_id[idx]);
 }
 
+node_id node_id::none() noexcept
+{
+  node_id ret;
+  ret._id.fill(0); 
+  return ret;
+}
+
 void node_id::print() const
 {
   for( int i=0; i<_id.size(); i++ )

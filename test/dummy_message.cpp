@@ -1,4 +1,4 @@
-#include <ss_p2p/kademlia/message.hpp>
+#include <ss_p2p/kademlia/k_message.hpp>
 
 #include <mutex>
 #include <condition_variable>

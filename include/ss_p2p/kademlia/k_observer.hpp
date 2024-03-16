@@ -15,7 +15,7 @@
 #include <ss_p2p/observer.hpp>
 #include "./k_node.hpp"
 #include "./k_routing_table.hpp"
-#include "./message.hpp"
+#include "./k_message.hpp"
 
 
 using namespace boost::asio;
@@ -46,7 +46,7 @@ public:
   ping( k_routing_table &routing_table, io_context &io_ctx, deadline_timer &d_timer, k_node host_node, k_node swap_node );
 
   void update_observer( k_routing_table &routing_table );
-  void handle_response( std::shared_ptr<message> msg ); // このメソッドをタイマーセットしてio_ctxにポスト
+  void handle_response( std::shared_ptr<k_message> msg ); // このメソッドをタイマーセットしてio_ctxにポスト
   void timeout( const boost::system::error_code &ec );
   void init();
 
@@ -62,7 +62,7 @@ class find_node : public k_observer
 public:
   find_node( k_routing_table &routing_table, io_context &io_ctx, deadline_timer &d_timer );
   void init();
-  void handle_response( std::shared_ptr<message> msg );
+  void handle_response( std::shared_ptr<k_message> msg );
 };
 
 

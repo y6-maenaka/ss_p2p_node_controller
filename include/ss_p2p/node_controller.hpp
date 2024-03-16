@@ -9,6 +9,8 @@
 #include <thread>
 #include <iostream>
 #include <cassert>
+#include <mutex>
+#include <condition_variable>
 
 #include "boost/asio.hpp"
 

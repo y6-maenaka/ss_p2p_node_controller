@@ -1,4 +1,4 @@
-#include <ss_p2p/kademlia/message.hpp>
+#include <ss_p2p/kademlia/k_message.hpp>
 
 
 namespace ss
@@ -7,7 +7,7 @@ namespace kademlia
 {
 
 
-message::message( std::string query_type )
+k_message::k_message( std::string query_type )
 {
   if( query_type == "request" )
   {
@@ -23,12 +23,12 @@ message::message( std::string query_type )
   return;
 }
 
-message::message( json& k_msg )
+k_message::k_message( json& k_msg )
 {
   _body = k_msg;
 }
 
-bool message::set_param( std::string key, std::string value )
+bool k_message::set_param( std::string key, std::string value )
 {
   auto itr = std::find( kademlia_message_params.begin(), kademlia_message_params.end(), key );
   if( itr == kademlia_message_params.end() ) return false;
@@ -37,25 +37,39 @@ bool message::set_param( std::string key, std::string value )
   return true;
 }
 
-message message::request()
+template <typename T>
+T k_message::get_param( std::string key )
 {
-  message ret("request");
+  auto value = _body[key];
+  if constexpr (std::is_same_v<T, std::string>){
+	return value.get<std::string>();
+  }
+  else if constexpr (std::is_arithmetic_v<T> && !std::is_same_v<T, bool> )
+  {
+	return value.get<T>();
+  }
+  return T{};
+}
+
+k_message k_message::request()
+{
+  k_message ret("request");
   return ret;
 }
 
-message message::response()
+k_message k_message::response()
 {
-  message ret("response");
+  k_message ret("response");
   return ret;
 }
 
-bool message::is_request() const
+bool k_message::is_request() const
 {
   // 必ず検証済みであること
   return _body["query_type"] == "request";
 }
 
-bool message::validate() const
+bool k_message::validate() const
 { 
   if( !(_body.contains("query_type")) ) return false;
   if( !(_body.contains("rpc")) ) return false;
@@ -64,12 +78,12 @@ bool message::validate() const
   return true;
 }
 
-json message::export_json() const
+json k_message::export_json() const
 {
   return _body;
 }
 
-void message::print()
+void k_message::print()
 {
   std::cout << _body << "\n";
 }

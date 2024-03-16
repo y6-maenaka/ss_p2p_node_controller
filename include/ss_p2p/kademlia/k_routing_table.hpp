@@ -46,19 +46,21 @@ public:
   update_state auto_update( k_node kn );
   bool is_exist( k_node &kn );
 
-  std::vector< std::shared_ptr<k_node> > collect_nodes( k_node& root_node, std::size_t max_count,
-	  const std::vector<k_node*> &ignore_nodes = std::vector<k_node*>() );
+  std::vector<k_node> collect_nodes( k_node& root_node, std::size_t max_count,
+	  const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
 
-  std::vector< std::shared_ptr<k_node> > get_node_front( k_node &root_node, std::size_t count = 1 , unsigned short start_idx = 0,
-	  const std::vector<k_node*> &ignore_nodes = std::vector<k_node*>() );
-  std::vector< std::shared_ptr<k_node> > get_node_back( k_node &root_node, std::size_t count = 1 , unsigned short start_idx = 0,
-	  const std::vector<k_node*> &ignore_nodes = std::vector<k_node*>() );
+  std::vector<k_node> get_node_front( k_node &root_node, std::size_t count = 1 , unsigned short start_idx = 0,
+	  const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  std::vector<k_node> get_node_back( k_node &root_node, std::size_t count = 1 , unsigned short start_idx = 0,
+	  const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
 
 
   k_bucket& get_bucket( k_node &kn );
   k_bucket& get_bucket( unsigned short branch );
   unsigned short calc_branch_index( k_node &kn );
 };
+
+std::vector<k_node> eps_to_k_nodes( std::vector<ip::udp::endpoint> eps );
 
 
 };

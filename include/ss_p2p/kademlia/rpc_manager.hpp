@@ -11,7 +11,7 @@
 #include <ss_p2p/observer.hpp>
 #include "./k_observer.hpp"
 #include "./k_observer_strage.hpp"
-#include "./message.hpp"
+#include "./k_message.hpp"
 #include "./node_id.hpp"
 #include "./k_routing_table.hpp"
 
@@ -55,8 +55,8 @@ public:
 	};
 	update_context();
   };
-  update_context incoming_request( std::shared_ptr<ss::kademlia::message> msg, ip::udp::endpoint &ep );
-  update_context incoming_response( std::shared_ptr<ss::kademlia::message> msg, ip::udp::endpoint &ep );
+  update_context incoming_request( std::shared_ptr<ss::kademlia::k_message> msg, ip::udp::endpoint &ep );
+  update_context incoming_response( std::shared_ptr<ss::kademlia::k_message> msg, ip::udp::endpoint &ep );
   void handle_msg( json &k_msg );
 
 private:

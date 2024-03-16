@@ -41,14 +41,14 @@ public:
   };
   update_state auto_update( k_node kn );
 
-  std::vector< std::shared_ptr<k_node> > get_node_front( std::size_t count = 1 , unsigned short start_idx = 0,
-	  const std::vector<k_node*> &ignore_nodes = std::vector<k_node*>() );
-  std::vector< std::shared_ptr<k_node> > get_node_back( std::size_t count = 1 , unsigned short start_idx = 0,
-	  const std::vector<k_node*> &ignore_nodes = std::vector<k_node*>() );
+  std::vector<k_node> get_node_front( std::size_t count = 1 , unsigned short start_idx = 0,
+	  const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  std::vector<k_node> get_node_back( std::size_t count = 1 , unsigned short start_idx = 0,
+	  const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
 
   bool add_back( k_node kn );
   bool move_back( k_node &kn );
-  bool delete_node( k_node &kn );
+  bool delete_node( k_node &kn ); // 基本的に使用しない
   bool swap_node( k_node &node_src, k_node node_dest );
   bool is_exist( k_node &kn ) const;
   bool is_full() const;

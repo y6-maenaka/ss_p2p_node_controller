@@ -45,16 +45,16 @@ k_bucket::update_state k_bucket::auto_update( k_node kn )
 		));
 } */
 
-std::vector< std::shared_ptr<k_node> > k_bucket::get_node_front( std::size_t count, unsigned short start_idx, const std::vector<k_node*> &ignore_nodes )
+std::vector<k_node> k_bucket::get_node_front( std::size_t count, unsigned short start_idx, const std::vector<k_node> &ignore_nodes )
 {
-  std::vector< std::shared_ptr<k_node> > ret;
+  std::vector<k_node> ret;
   for( auto itr = _nodes.begin() + start_idx; itr != _nodes.end(); itr++ )
   {
-	if( auto iitr = std::find_if( ignore_nodes.begin(), ignore_nodes.end(), [itr]( k_node *kn ){
-			return *itr == *kn ;
+	if( auto iitr = std::find_if( ignore_nodes.begin(), ignore_nodes.end(), [itr]( const k_node &kn ){
+			return *itr == kn ;
 		  } ); iitr != ignore_nodes.end() ) continue; // ignoreに一致するものがあればスキップする
 
-	ret.push_back( std::make_shared<k_node>(*itr) );
+	ret.push_back(*itr);
 	if( ret.size() >= count ) break;
   }
   return ret;
@@ -70,16 +70,16 @@ std::vector< std::shared_ptr<k_node> > k_bucket::get_node_front( std::size_t cou
 		));
 } */
 
-std::vector< std::shared_ptr<k_node> > k_bucket::get_node_back( std::size_t count, unsigned short start_idx, const std::vector<k_node*> &ignore_nodes )
+std::vector<k_node> k_bucket::get_node_back( std::size_t count, unsigned short start_idx, const std::vector<k_node> &ignore_nodes )
 {
-  std::vector< std::shared_ptr<k_node> > ret;
+  std::vector<k_node> ret;
   for( auto itr = _nodes.rbegin() + start_idx; itr != _nodes.rend(); itr++ )
   {
-	if( auto iitr = std::find_if( ignore_nodes.begin(), ignore_nodes.end(), [itr]( k_node *kn ){
-			return *itr == *kn ;
+	if( auto iitr = std::find_if( ignore_nodes.begin(), ignore_nodes.end(), [itr]( const k_node &kn ){
+			return *itr == kn ;
 		  } ); iitr != ignore_nodes.end() ) continue; // ignoreに一致するものがあればスキップする
 
-	ret.push_back( std::make_shared<k_node>(*itr) );
+	ret.push_back(*itr);
 	if( ret.size() >= count ) break;
   }
   return ret;

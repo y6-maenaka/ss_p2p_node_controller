@@ -25,7 +25,7 @@ dht_manager::dht_manager( boost::asio::io_context &io_ctx, ip::udp::endpoint ep 
 
 void dht_manager::handle_msg( json &msg, ip::udp::endpoint &ep )
 {
-  std::shared_ptr<ss::kademlia::message> k_msg = std::make_shared<ss::kademlia::message>(msg);
+  std::shared_ptr<ss::kademlia::k_message> k_msg = std::make_shared<ss::kademlia::k_message>(msg);
 
   // 必ずメッセージは検証する
   if( bool flag = k_msg->validate(); !flag ) return;

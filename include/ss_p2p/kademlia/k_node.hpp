@@ -22,6 +22,7 @@ namespace kademlia
 class k_node 
 {
 public:
+  k_node();
   k_node( const k_node &kn );
   k_node( ip::udp::endpoint &ep );
   // k_node( ip::udp::endpoint &ep , node_id id );

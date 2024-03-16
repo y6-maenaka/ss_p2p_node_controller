@@ -16,7 +16,7 @@
 #include "./k_observer.hpp"
 #include "./k_observer_strage.hpp"
 #include "./rpc_manager.hpp"
-#include "./message.hpp"
+#include "./k_message.hpp"
 
 #include "boost/asio.hpp"
 

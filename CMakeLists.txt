@@ -19,6 +19,9 @@ set( basic_include_files
 	  include/hash.hpp
 	  include/utils.hpp
 )
+set( basic_source_files 
+	  src/utils.cpp
+)
 set( ss_p2p_include_files
     node_controller.hpp
 	peer.hpp
@@ -49,7 +52,7 @@ set( ss_p2p_kademlia_include_files
 	node_id.hpp
 	k_observer.hpp
 	k_observer_strage.hpp
-	message.hpp
+	k_message.hpp
 	rpc_manager.hpp
 	direct_routing_table_controller.hpp
 )
@@ -61,19 +64,23 @@ set( ss_p2p_kademlia_source_files
 	node_id.cpp
 	k_observer.cpp
 	k_observer_strage.cpp
-	message.cpp
+	k_message.cpp
 	rpc_manager.cpp
 	direct_routing_table_controller.cpp
 )
 set( ss_p2p_ice_agent_include_files 
+	ice_agent.hpp
 	ice_observer.hpp
 	ice_observer_strage.hpp
 	signaling_server.hpp
+	ice_message.hpp
 )
 set( ss_p2p_ice_agent_source_files 
+	ice_agent.cpp
 	ice_observer.cpp
 	ice_observer_strage.cpp
 	signaling_server.cpp
+	ice_message.cpp
 )
 
 # リスト要素にプレフィックスを付与
@@ -86,6 +93,7 @@ list(TRANSFORM ss_p2p_ice_agent_source_files PREPEND "src/ss_p2p/ice_agent/")
 
 add_library( ss_p2p # ss_p2pをライブラリとしてまとめる
 			${basic_include_files}
+			${basic_source_files}
             ${ss_p2p_include_files}
             ${ss_p2p_source_files}
 
@@ -97,7 +105,7 @@ target_include_directories( ss_p2p PUBLIC
 
 			${OPENSSL_INCLUDE_DIRS}
 			${Boost_INCLUDE_DIRS}
-			include/json.hpp # use nlohmann_json
+			# include/json.hpp # use nlohmann_json
 )
 
 # if KADEMLIA FLAG

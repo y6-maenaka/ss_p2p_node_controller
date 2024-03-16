@@ -17,7 +17,7 @@ rpc_manager::rpc_manager( node_id self_id, io_context &io_ctx, deadline_timer &d
 
 std::shared_ptr< observer<ping> > rpc_manager::ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep ) 
 {
-  ss::kademlia::message k_msg = ss::kademlia::message::request();
+  k_message k_msg = k_message::request();
   k_msg.set_param("rpc", "ping");
   const auto k_payload = k_msg.export_json();
 
@@ -26,7 +26,7 @@ std::shared_ptr< observer<ping> > rpc_manager::ping( k_node host_node, k_node sw
   // return std::make_shared< observer<ping_observer> >( *_routing_table, _io_ctx, _d_timer, host_node, swap_node );
 }
 
-rpc_manager::update_context rpc_manager::incoming_request( std::shared_ptr<ss::kademlia::message> msg, ip::udp::endpoint &ep )
+rpc_manager::update_context rpc_manager::incoming_request( std::shared_ptr<k_message> msg, ip::udp::endpoint &ep )
 {
   // 処理
   k_routing_table::update_state update_state;
@@ -36,7 +36,7 @@ rpc_manager::update_context rpc_manager::incoming_request( std::shared_ptr<ss::k
 	case (k_routing_table::update_state::overflow) :
 	{
 	  k_node host_node(ep);
-	  std::shared_ptr<k_node> swap_node = nullptr;
+	  k_node swap_node;
 	  if( auto ret = _routing_table->get_node_front( host_node ); ret.size() > 0 ) swap_node = ret.at(0);
 	  else return update_context::error();
 
@@ -52,12 +52,12 @@ rpc_manager::update_context rpc_manager::incoming_request( std::shared_ptr<ss::k
   return ret;
 }
 
-rpc_manager::update_context rpc_manager::incoming_response( std::shared_ptr<ss::kademlia::message> msg, ip::udp::endpoint &ep )
+rpc_manager::update_context rpc_manager::incoming_response( std::shared_ptr<k_message> msg, ip::udp::endpoint &ep )
 {
   update_context ret;
 
-  std::string rpc = msg->get_param("rpc");
-  base_observer::id obs_id = str_to_observer_id( msg->get_param("observer_id") );
+  std::string rpc = msg->get_param<std::string>("rpc");
+  base_observer::id obs_id = str_to_observer_id( msg->get_param<std::string>("observer_id") );
   if( rpc == "ping" ){
 	// auto obs = _obs_strage.get_observer<ping>( rpc, obs_id );
 	// obs.handle_msg( msg );
