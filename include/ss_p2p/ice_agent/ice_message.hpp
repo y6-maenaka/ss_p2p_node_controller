@@ -52,7 +52,8 @@ public:
 	sub_protocol_t sub_protocol;
 
 	signaling_message_controller( json &body );
-	void add_relay_endpoint( ip::udp::endpoint ep );
+
+	void add_relay_endpoint( ip::udp::endpoint ep ); // 中継したノード(endpoint)を追加
 	std::vector< ip::udp::endpoint > get_relay_endpoints();
 	ip::udp::endpoint get_dest_endpoint() const;
 	void set_sub_protocol( signaling_message_controller::sub_protocol_t t ); // request, response, relay

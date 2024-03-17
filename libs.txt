@@ -1,2 +1,5 @@
 boost/asio
 boost/uuid
+
+
+signaling_server -> マルチキャスト時にrelay_observerのinitが意味なく複数回呼び出される

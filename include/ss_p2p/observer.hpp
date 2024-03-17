@@ -38,14 +38,13 @@ public:
   virtual void init() = 0;
 
 protected:
-  base_observer( io_context &io_ctx, deadline_timer &d_timer );
+  base_observer( io_context &io_ctx );
 
   void destruct_self(); // 本オブザーバーの破棄を許可する
   void extend_expire_at( std::time_t t = DEFAULT_EXPIRE_TIME_s );
   std::time_t _expire_at; // このオブザーバーを破棄する時間
   
   io_context &_io_ctx;
-  deadline_timer &_d_timer;
   const id _id;
 };
 
@@ -62,13 +61,16 @@ public:
   observer( std::shared_ptr<T> from );
   observer(  T from );
   template < typename ... Args >
-  observer( io_context &io_ctx, deadline_timer &d_timer, Args ... args );
+  observer( io_context &io_ctx, Args ... args );
 
   void init();
   void income_message( message &msg );
+  void on_send_success( const boost::system::error_code &ec );
   bool is_expired() const;
   id get_id() const;
   void print() const;
+
+  std::shared_ptr<T> get_raw();
 
   bool operator==(const observer<T> &obs ) const;
   bool operator!=(const observer<T> &obs ) const;

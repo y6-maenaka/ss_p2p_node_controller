@@ -7,7 +7,8 @@ namespace kademlia
 {
 
 
-k_observer_strage::k_observer_strage()
+k_observer_strage::k_observer_strage( io_context &io_ctx ) : 
+  observer_strage( io_ctx )
 {
   return;
 }

@@ -5,10 +5,9 @@ namespace ss
 {
 
 
-base_observer::base_observer( io_context &io_ctx, deadline_timer &d_timer ) : 
-  _id( random_generator()() ) ,
-  _io_ctx( io_ctx ) ,
-  _d_timer( d_timer )
+base_observer::base_observer( io_context &io_ctx ) : 
+  _id( random_generator()() ) 
+  , _io_ctx( io_ctx )
 {
   return;
 }
@@ -48,9 +47,9 @@ observer<T>::observer( T from )
 
 template <typename T >
 template <typename ... Args >
-observer<T>::observer( io_context &io_ctx, deadline_timer &d_timer, Args ... args )
+observer<T>::observer( io_context &io_ctx, Args ... args )
 {
-  _body = std::make_shared<T>( io_ctx, d_timer, std::forward<Args>(args)... );
+  _body = std::make_shared<T>( io_ctx, std::forward<Args>(args)... );
 }
 
 template < typename T >
@@ -63,6 +62,12 @@ template < typename T >
 void observer<T>::income_message( ss::message &msg )
 {
   return _body->income_msg(msg);
+}
+
+template < typename T >
+void observer<T>::on_send_success( const boost::system::error_code &ec ) 
+{
+  return _body->on_send_success( ec );
 }
 
 template < typename T >
@@ -81,6 +86,12 @@ template < typename T >
 void observer<T>::print() const
 {
   return _body->print();
+}
+
+template < typename T >
+std::shared_ptr<T> observer<T>::get_raw()
+{
+  return _body;
 }
 
 template < typename T >

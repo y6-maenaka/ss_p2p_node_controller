@@ -48,7 +48,7 @@ private:
   union_observer_strage<ping, find_node> _strage;
 
 public:
-  k_observer_strage();
+  k_observer_strage( io_context &io_ctx );
 };
 
 

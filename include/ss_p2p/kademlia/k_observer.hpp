@@ -33,7 +33,7 @@ constexpr unsigned int DEFAULT_PING_RESPONSE_TIMEOUT_s = 5; // デフォルト�
 class k_observer : public base_observer
 {
 public:
-  k_observer( io_context &io_ctx, deadline_timer &d_timer, k_routing_table &routing_table );
+  k_observer( io_context &io_ctx, k_routing_table &routing_table );
 
 protected:
   k_routing_table &_routing_table;
@@ -43,7 +43,7 @@ protected:
 class ping : public k_observer
 {
 public:
-  ping( k_routing_table &routing_table, io_context &io_ctx, deadline_timer &d_timer, k_node host_node, k_node swap_node );
+  ping( k_routing_table &routing_table, io_context &io_ctx, k_node host_node, k_node swap_node );
 
   void update_observer( k_routing_table &routing_table );
   void handle_response( std::shared_ptr<k_message> msg ); // このメソッドをタイマーセットしてio_ctxにポスト
@@ -52,6 +52,7 @@ public:
 
 private:
   bool _is_pong_arrived;
+  deadline_timer _d_timer;
 
   k_node _host_node;
   k_node _swap_node;
@@ -60,7 +61,7 @@ private:
 class find_node : public k_observer
 {
 public:
-  find_node( k_routing_table &routing_table, io_context &io_ctx, deadline_timer &d_timer );
+  find_node( k_routing_table &routing_table, io_context &io_ctx );
   void init();
   void handle_response( std::shared_ptr<k_message> msg );
 };

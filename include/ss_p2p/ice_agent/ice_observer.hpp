@@ -30,7 +30,7 @@ constexpr unsigned short DEFAULT_SIGNALING_OPEN_TTL = 5;
 class ice_observer : public ss::base_observer
 {
 public:
-  ice_observer( io_context &io_ctx, deadline_timer &d_timer, ice_agent::ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
+  ice_observer( io_context &io_ctx, ice_agent::ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
   virtual void init() = 0;
 protected:
   ss::kademlia::direct_routing_table_controller &_d_routing_table_controller;
@@ -40,47 +40,33 @@ protected:
 class signaling_request : public ice_observer
 {
 public:
-  void init( ip::udp::endpoint &glob_self_ep ); 
+  void init( ip::udp::endpoint &dest_ep, std::string parma, json payload );
   void timeout();
   void income_message( ss::message &msg );
-  void on_traversal_done( const boost::system::error_code &ec );
 
   struct msg_cache
   {
-	ip::udp::endpoint &ep;
+	ip::udp::endpoint ep;
 	std::string param;
 	json payload;
 
-	msg_cache( ip::udp::endpoint &ep, std::string param, std::span<char> payload );
   } _msg_cache;
 
-  signaling_request( io_context &io_ctx
-	  , deadline_timer &d_timer
-	  , ice_agent::ice_sender &ice_sender
-	  , direct_routing_table_controller &d_routing_table_controller
-	  // , ip::udp::endpoint &glob_self_ep
-	  , ip::udp::endpoint &dest_ep
-	  , std::string param 
-	  , std::span<char> payload );
+  signaling_request( io_context &io_ctx, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller );
 private:
   json format_request_msg( ip::udp::endpoint &src_ep, ip::udp::endpoint &dest_ep ); // リクエストメッセージのフォーマット
 
-  const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _send_func;
+  void on_send_success( const boost::system::error_code &ec );
+  void on_traversal_done( const boost::system::error_code &ec );
   // const ip::udp::endpoint &_glob_self_ep;
-
-  enum state_t
-  {
-	requestes
-	, responsed
-	, relayed
-  };
-  state_t _state;
+  
+  bool _done = false;
 };
 
 class signaling_response : public ice_observer
 {
 public:
-  signaling_response( io_context &io_ctx, deadline_timer &d_timer, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller );
+  signaling_response( io_context &io_ctx, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller );
   void init(); // 有効期限を設定する
   void income_message( ss::message &msg );
 };
@@ -88,7 +74,7 @@ public:
 class signaling_relay : public ice_observer
 {
 public:
-  signaling_relay( io_context &io_ctx, deadline_timer &d_timer, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller );
+  signaling_relay( io_context &io_ctx, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller );
   void init();
   void income_message( ss::message &msg );
 };

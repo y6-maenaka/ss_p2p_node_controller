@@ -19,7 +19,7 @@ ice_agent::ice_agent( io_context &io_ctx, deadline_timer d_timer, udp_socket_man
   , _app_id( id )
   , _ice_sender( sock_manager, glob_self_ep, id )
 {
-  _obs_strage = std::make_shared<ice_observer_strage>();
+  _obs_strage = std::make_shared<ice_observer_strage>( io_ctx );
   return;
 }
 

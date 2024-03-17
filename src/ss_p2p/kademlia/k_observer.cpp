@@ -7,18 +7,19 @@ namespace kademlia
 {
 
 
-k_observer::k_observer( io_context &io_ctx, deadline_timer &d_timer, k_routing_table &routing_table )
-  : base_observer( io_ctx, d_timer ) ,
+k_observer::k_observer( io_context &io_ctx, k_routing_table &routing_table )
+  : base_observer( io_ctx ) ,
   _routing_table( routing_table )
 {
   return;
 }
 
 
-ping::ping( k_routing_table &routing_table, io_context &io_ctx, deadline_timer &d_timer, k_node host_node, k_node swap_node ) : 
-  k_observer( io_ctx, d_timer, routing_table ) ,
-  _host_node( host_node ) ,
-  _swap_node( swap_node )
+ping::ping( k_routing_table &routing_table, io_context &io_ctx, k_node host_node, k_node swap_node ) : 
+  k_observer( io_ctx, routing_table ) 
+  , _d_timer( deadline_timer(_io_ctx) )
+  , _host_node( host_node )
+  , _swap_node( swap_node )
 {
   _is_pong_arrived = false;
 }
@@ -48,8 +49,8 @@ void ping::handle_response( std::shared_ptr<k_message> msg )
 }
 
 
-find_node::find_node( k_routing_table &routing_table, io_context &io_ctx, deadline_timer &d_timer ) :
-  k_observer( io_ctx, d_timer, routing_table )
+find_node::find_node( k_routing_table &routing_table, io_context &io_ctx ) :
+  k_observer( io_ctx, routing_table )
 {
   return; 
 }

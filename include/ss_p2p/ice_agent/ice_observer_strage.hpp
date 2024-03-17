@@ -12,6 +12,11 @@
 #include <ss_p2p/observer_strage.hpp>
 #include "./ice_observer.hpp"
 
+#include "boost/asio.hpp"
+
+
+using namespace boost::asio;
+
 
 namespace ss
 {
@@ -25,7 +30,7 @@ private:
   union_observer_strage< signaling_request, signaling_response, signaling_relay, stun > _strage;
 
 public:
-  ice_observer_strage();
+  ice_observer_strage( io_context &io_ctx );
 };
 
 
