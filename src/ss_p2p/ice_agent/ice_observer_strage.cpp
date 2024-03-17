@@ -6,22 +6,11 @@ namespace ss
 namespace ice
 {
 
-template <typename T>
-std::optional< observer<T> >& ice_observer_strage::find_observer( base_observer::id id )
+
+ice_observer_strage::ice_observer_strage()
 {
-  return std::nullopt;
+  return;  
 }
-
-template < typename T >
-void ice_observer_strage::add_observer( observer<T> obs )
-{
-    return;
-}
-
-
-
-
-
 
 
 };

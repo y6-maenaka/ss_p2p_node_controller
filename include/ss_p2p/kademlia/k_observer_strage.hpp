@@ -11,6 +11,7 @@
 #include <optional>
 
 #include <ss_p2p/observer.hpp>
+#include <ss_p2p/observer_strage.hpp>
 #include "./k_observer.hpp"
 
 #include "boost/asio.hpp"
@@ -41,25 +42,13 @@ namespace kademlia
 {
 
 
-class k_observer_strage
+class k_observer_strage : public ss::observer_strage
 {
 private:
-  using ping_observer_strage = std::unordered_set< observer<ping>, observer<ping>::Hash >;
-  using find_node_observer_strage = std::unordered_set< observer<find_node>, observer<find_node>::Hash >;
-
-  using observer_strage_idv = std::variant< ping_observer_strage, find_node_observer_strage >;
-  using union_observer_strage = std::map< std::string, observer_strage_idv >;
-  
-  union_observer_strage _strage;
+  union_observer_strage<ping, find_node> _strage;
 
 public:
   k_observer_strage();
-
-  template < typename T >
-  std::optional< observer<T> >& find_observer( base_observer::id id );
-
-  template < typename T >
-  void add_observer( observer<T> obs );
 };
 
 

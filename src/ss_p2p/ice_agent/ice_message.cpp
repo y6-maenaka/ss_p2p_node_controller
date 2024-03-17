@@ -10,12 +10,22 @@ namespace ice
 
 ice_message::signaling_message_controller::signaling_message_controller( json &body ) : _body(body)
 {
-  return;
+  sub_protocol = _body["sub_protocol"];
 }
 
 void ice_message::signaling_message_controller::add_relay_endpoint( ip::udp::endpoint ep )
 {
   _body["relay_eps"].push_back( endpoint_to_str(ep) );
+}
+
+void ice_message::signaling_message_controller::set_sub_protocol( signaling_message_controller::sub_protocol_t p )
+{
+  _body["sub_protocol"] = p;
+}
+
+ice_message::signaling_message_controller::sub_protocol_t ice_message::signaling_message_controller::get_sub_protocol()
+{
+  return _body["sub_protocol"];
 }
 
 std::vector<ip::udp::endpoint> ice_message::signaling_message_controller::get_relay_endpoints()
@@ -28,17 +38,32 @@ std::vector<ip::udp::endpoint> ice_message::signaling_message_controller::get_re
   return ret;
 }
 
+ip::udp::endpoint ice_message::signaling_message_controller::get_dest_endpoint() const
+{
+  std::string dest_ip = _body["dest_ip"];
+  unsigned short dest_port = _body["dest_port"];
+
+  return ss::addr_pair_to_endpoint( dest_ip, dest_port );
+}
+
+int ice_message::signaling_message_controller::get_ttl() const
+{
+  return _body["ttl"].get<int>();
+}
+
+void ice_message::signaling_message_controller::decrement_ttl()
+{
+  _body["tt"] = _body["ttl"].get<int>() - 1;
+}
+
 
 ice_message::ice_message( std::string protocol )
 {
-  if( protocol == "signaling_open" ){
-	protocol = protocol_t::req_signaling_open;
+  if( protocol == "signaling" ){
+	protocol = protocol_t::signaling;
   }
-  else if( protocol == "stun_request" ){
-	protocol = protocol_t::req_stun;
-  }
-  else if( protocol == "stun_response" ){
-	protocol = protocol_t::res_stun;
+  else if( protocol == "stun" ){
+	protocol = protocol_t::stun;
   }
   else{
 	protocol = protocol_t::none;
@@ -50,21 +75,15 @@ ice_message::ice_message( std::string protocol )
   _body["relay_eps"] = relay_eps;
 }
 
-ice_message ice_message::_signaling_open_()
+ice_message ice_message::_signaling_()
 {
-  ice_message ret("signaling_open");
+  ice_message ret("signaling");
   return ret;
 }
 
-ice_message ice_message::_stun_request_()
+ice_message ice_message::_stun_()
 {
-  ice_message ret("stun_request");
-  return ret;
-}
-
-ice_message ice_message::_stun_response_()
-{
-  ice_message ret("stun_response");
+  ice_message ret("stun");
   return ret;
 }
 
@@ -72,7 +91,9 @@ ice_message::ice_message( json &from )
 {
   _body = from;
 
-  if( _body["protocol"] == "signaling_open" ) protocol = protocol_t::req_signaling_open;
+  if( _body["protocol"] == "signaling" ) protocol = protocol_t::signaling;
+  else if( _body["protocol"] == "stun" ) protocol = protocol_t::stun;
+  else protocol = protocol_t::none;
 }
 
 ice_message::protocol_t ice_message::get_protocol() const

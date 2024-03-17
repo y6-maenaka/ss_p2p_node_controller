@@ -3,8 +3,14 @@
 
 
 #include <optional>
+#include <unordered_map>
+#include <unordered_set>
+#include <tuple>
+#include <functional>
 
 #include <ss_p2p/observer.hpp>
+#include <ss_p2p/observer_strage.hpp>
+#include "./ice_observer.hpp"
 
 
 namespace ss
@@ -13,29 +19,19 @@ namespace ice
 {
 
 
-class ice_observer_strage
+class ice_observer_strage : public ss::observer_strage
 {
 private:
-  /*
-  using ping_observer_strage = std::unordered_set< observer<ping>, observer<ping>::Hash >;
-  using find_node_observer_strage = std::unordered_set< observer<find_node>, observer<find_node>::Hash >;
+  union_observer_strage< signaling_request, signaling_response, signaling_relay, stun > _strage;
 
-  using observer_strage_idv = std::variant< ping_observer_strage, find_node_observer_strage >;
-  using union_observer_strage = std::map< std::string, observer_strage_idv >;
-  union_observer_strage _strage;
-  */
 public:
-  template < typename T >
-  std::optional< observer<T> >& find_observer( observer_id id );
-
-  template < typename T >
-  void add_observer( observer<T> obs );
-
+  ice_observer_strage();
 };
 
 
 };
 };
+
 
 #endif 
 

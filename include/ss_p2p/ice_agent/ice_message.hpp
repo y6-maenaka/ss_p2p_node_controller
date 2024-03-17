@@ -31,23 +31,34 @@ public:
   
   enum protocol_t
   {
-	req_signaling_open 
-	, req_stun
-	, res_stun
+	signaling
+	, stun
 	, none
   };
   protocol_t protocol;
 
-  static ice_message (_stun_request_)();
-  static ice_message (_stun_response_)();
-  static ice_message (_signaling_open_)();
+  static ice_message (_stun_)();
+  static ice_message (_signaling_)();
 
   protocol_t get_protocol() const;
   struct signaling_message_controller
   {
+	enum sub_protocol_t
+	{
+		request
+	  , response
+	  , relay
+	};
+	sub_protocol_t sub_protocol;
+
 	signaling_message_controller( json &body );
 	void add_relay_endpoint( ip::udp::endpoint ep );
 	std::vector< ip::udp::endpoint > get_relay_endpoints();
+	ip::udp::endpoint get_dest_endpoint() const;
+	void set_sub_protocol( signaling_message_controller::sub_protocol_t t ); // request, response, relay
+	sub_protocol_t get_sub_protocol();
+	int get_ttl() const;
+	void decrement_ttl();
 	private:		
 	  json &_body;
   };

@@ -1,4 +1,5 @@
 #include <ss_p2p/kademlia/rpc_manager.hpp>
+#include <ss_p2p/kademlia/k_observer_strage.hpp>
 
 
 namespace ss
@@ -13,6 +14,7 @@ rpc_manager::rpc_manager( node_id self_id, io_context &io_ctx, deadline_timer &d
   _d_timer( d_timer )
 {
   _routing_table = std::make_shared<k_routing_table>( self_id );
+  _obs_strage = std::make_shared<k_observer_strage>();
 }
 
 std::shared_ptr< observer<ping> > rpc_manager::ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep ) 

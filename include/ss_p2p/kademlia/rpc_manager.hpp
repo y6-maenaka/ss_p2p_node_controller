@@ -10,7 +10,6 @@
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/observer.hpp>
 #include "./k_observer.hpp"
-#include "./k_observer_strage.hpp"
 #include "./k_message.hpp"
 #include "./node_id.hpp"
 #include "./k_routing_table.hpp"
@@ -26,6 +25,9 @@ namespace ss
 namespace kademlia
 {
 
+
+class k_observer_strage;
+  
 
 class rpc_manager
 {
@@ -74,7 +76,7 @@ private:
   node_id _self_id;
   io_context &_io_ctx;
   deadline_timer &_d_timer;
-  k_observer_strage _obs_strage;
+  std::shared_ptr<k_observer_strage> _obs_strage;
 };
 
 

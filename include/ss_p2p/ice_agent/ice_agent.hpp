@@ -9,7 +9,6 @@
 #include <ss_p2p/kademlia/direct_routing_table_controller.hpp>
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/socket_manager.hpp>
-#include "./ice_observer_strage.hpp"
 #include "./ice_message.hpp"
 
 #include "boost/asio.hpp"
@@ -25,6 +24,7 @@ namespace ice
 
 
 class signaling_server;
+class ice_observer_strage;
 
 
 class ice_agent
@@ -39,10 +39,14 @@ public:
   {
 	public:
 	  template < typename SuccessHandler >
-	  void ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg, SuccessHandler handler );
+	  void ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg, SuccessHandler handler ); // iceメッセージに乗せて送信
+	  template < typename SuccessHandler > 
+	  void send( ip::udp::endpoint &dest_ep, std::string param, json &payload, SuccessHandler handler ); // 指定したパラメータに乗せて送信
+
+	  void send_done( const boost::system::error_code &ec );
 
 	  ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id );
-	  ip::udp::endpoint &get_host_endpoint() const; 
+	  ip::udp::endpoint &get_self_endpoint() const; 
 	private:
 	  udp_socket_manager &_sock_manager;
 	  ip::udp::endpoint &_glob_self_ep;
@@ -57,7 +61,7 @@ private:
   message::app_id _app_id;
 
   std::shared_ptr<signaling_server> _sgnl_server;
-  ice_observer_strage _obs_strage;
+  std::shared_ptr<ice_observer_strage> _obs_strage;
 };
 
 
