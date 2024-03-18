@@ -74,6 +74,7 @@ set( ss_p2p_ice_agent_include_files
 	ice_observer_strage.hpp
 	signaling_server.hpp
 	ice_message.hpp
+	ice_sender.hpp
 )
 set( ss_p2p_ice_agent_source_files 
 	ice_agent.cpp
@@ -81,6 +82,7 @@ set( ss_p2p_ice_agent_source_files
 	ice_observer_strage.cpp
 	signaling_server.cpp
 	ice_message.cpp
+	ice_sender.cpp
 )
 
 # リスト要素にプレフィックスを付与

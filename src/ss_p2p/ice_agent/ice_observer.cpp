@@ -1,4 +1,5 @@
 #include <ss_p2p/ice_agent/ice_observer.hpp>
+#include <ss_p2p/ice_agent/ice_agent.hpp>
 
 
 namespace ss
@@ -7,7 +8,7 @@ namespace ice
 {
 
 
-ice_observer::ice_observer( io_context &io_ctx, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
+ice_observer::ice_observer( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
   base_observer( io_ctx )
   , _ice_sender(ice_sender)
   , _d_routing_table_controller( d_routing_table_controller )
@@ -16,7 +17,7 @@ ice_observer::ice_observer( io_context &io_ctx, ice_agent::ice_sender &ice_sende
 }
 
 
-signaling_request::signaling_request( io_context &io_ctx, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
+signaling_request::signaling_request( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
   ice_observer( io_ctx, ice_sender, d_routing_table_controller )
 {
   return;
@@ -43,7 +44,7 @@ void signaling_request::init( ip::udp::endpoint &dest_ep, std::string param, jso
   for( auto itr : forward_eps )
   {
 	_ice_sender.ice_send( itr, ice_msg
-	  , std::bind( &observer<signaling_request>::on_send_success
+	  , std::bind( &signaling_request::on_send_success
 		, this
 		, std::placeholders::_1 ) 
 	  );
@@ -52,6 +53,11 @@ void signaling_request::init( ip::udp::endpoint &dest_ep, std::string param, jso
   #if SS_VERBOSE
   std::cout << "(init observer) signaling_request" << "\n";
   #endif
+}
+
+void signaling_request::on_send_success( const boost::system::error_code &ec )
+{
+  return;
 }
 
 void signaling_request::on_traversal_done( const boost::system::error_code &ec )
@@ -106,7 +112,7 @@ void signaling_request::income_message( message &msg )
 }
 
 
-signaling_response::signaling_response( io_context &io_ctx, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
+signaling_response::signaling_response( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
   ice_observer( io_ctx, ice_sender, d_routing_table_controller )
 {
   return;
@@ -128,7 +134,7 @@ void signaling_response::income_message( ss::message &msg )
 }
 
 
-signaling_relay::signaling_relay( io_context &io_ctx, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
+signaling_relay::signaling_relay( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
   ice_observer( io_ctx, ice_sender, d_routing_table_controller )
 {
   return;

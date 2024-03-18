@@ -6,12 +6,15 @@
 
 #include <json.hpp>
 #include <utils.hpp>
+#include <ss_p2p/observer.hpp>
 
 #include "boost/asio.hpp"
+#include "boost/uuid/uuid.hpp"
 
 
 using json = nlohmann::json;
 using namespace boost::asio;
+using namespace boost::uuids;
 
 
 namespace ss
@@ -66,7 +69,17 @@ public:
   signaling_message_controller get_sgnl_msg_controller();
 
   template <typename T>
-  T get_param( std::string key );
+  T get_param( std::string key )
+  {
+	
+	auto value = _body[key];
+	if constexpr (std::is_same_v<T, observer_id>)
+	{
+	  return str_to_observer_id( value.get<std::string>() );
+	}
+	
+	return T{};
+  }
 
   const json encode();
 };

@@ -3,19 +3,16 @@
 
 
 #include <memory>
-#include <string>
-#include <variant>
-
-#include "boost/asio.hpp"
-#include "boost/uuid/uuid.hpp"
-#include "boost/uuid/uuid_io.hpp"
-#include "boost/uuid/uuid_generators.hpp"
-#include "boost/lexical_cast.hpp"
+#include <functional>
 
 #include <ss_p2p/observer.hpp>
+#include <ss_p2p/message.hpp>
+#include <utils.hpp>
+#include "./k_message.hpp"
 #include "./k_node.hpp"
 #include "./k_routing_table.hpp"
-#include "./k_message.hpp"
+
+#include "boost/asio.hpp"
 
 
 using namespace boost::asio;
@@ -30,7 +27,7 @@ namespace kademlia
 constexpr unsigned int DEFAULT_PING_RESPONSE_TIMEOUT_s = 5; // デフォルトのpong待機時間 
 
 
-class k_observer : public base_observer
+class k_observer : public ss::base_observer
 {
 public:
   k_observer( io_context &io_ctx, k_routing_table &routing_table );

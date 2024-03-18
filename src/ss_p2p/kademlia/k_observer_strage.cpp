@@ -7,57 +7,28 @@ namespace kademlia
 {
 
 
-k_observer_strage::k_observer_strage( io_context &io_ctx ) : 
+k_observer_strage::k_observer_strage( io_context &io_ctx ) :
   observer_strage( io_ctx )
+  , _d_timer( deadline_timer(io_ctx) )
 {
   return;
 }
 
-/*
-template <typename T>
-std::optional< observer<T> >& k_observer_strage::find_observer( base_observer::id id )
+void k_observer_strage::refresh_tick( const boost::system::error_code &ec )
 {
-  observer<T> ret = _strage.end();
+  std::apply([this](auto &... args)
+	  {
+		  ((delete_expires_observer(args)), ...);
+	  }, _strage );
 
-  if constexpr (std::is_same_v<T, ping>)
-  {
-	observer_strage_idv &strage_entry_v = _strage["ping"];
-	ping_observer_strage &strage_entry = std::get<observer<T>>(strage_entry_v);
-	for( auto &itr : strage_entry ){
-	  if( itr.get_id() == id ) return itr;
-	}
-  }
-
-  if constexpr (std::is_same_v<T, find_node>)
-  {
-	observer_strage_idv &strage_entry_v = _strage["find_node"];
-	find_node_observer_strage &strage_entry = std::get<observer<T>>(strage_entry_v);
-	for( auto &itr : strage_entry ){
-	  if( itr.get_id() == id ) return itr;
-	}
-  }
-
-  return std::nullopt;
+  this->call_tick(); // 循環的に呼び出し
 }
 
-template < typename T >
-void k_observer_strage::add_observer( observer<T> obs )
+void k_observer_strage::call_tick( std::time_t tick_time_s )
 {
-  if constexpr (std::is_same_v<T, ping>)
-  {
-	observer_strage_idv &strage_entry_v = _strage["ping"];
-	ping_observer_strage &strage_entry = std::get<observer<T>>(strage_entry_v);
-	strage_entry.insert(obs); // 要素の追加
-  }
-  if constexpr (std::is_same_v<T, find_node>)
-  {
-	observer_strage_idv &strage_entry_v= _strage["find_node"];
-	find_node_observer_strage &strage_entry = std::get<observer<T>>(strage_entry_v);
-	strage_entry.insert(obs); 
-  }
-  return;
+  _d_timer.expires_from_now(boost::posix_time::seconds( tick_time_s ));
+  _d_timer.async_wait( std::bind( &k_observer_strage::refresh_tick, this , std::placeholders::_1 ) );
 }
-*/
 
 
 };

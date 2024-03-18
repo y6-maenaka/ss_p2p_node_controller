@@ -7,10 +7,8 @@
 #include <string>
 
 #include <hash.hpp>
-#include <ss_p2p/message.hpp>
 #include <ss_p2p/observer.hpp>
 #include "./k_observer.hpp"
-#include "./k_message.hpp"
 #include "./node_id.hpp"
 #include "./k_routing_table.hpp"
 

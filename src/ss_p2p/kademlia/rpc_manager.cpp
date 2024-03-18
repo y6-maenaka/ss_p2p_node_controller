@@ -1,5 +1,7 @@
 #include <ss_p2p/kademlia/rpc_manager.hpp>
 #include <ss_p2p/kademlia/k_observer_strage.hpp>
+#include <ss_p2p/kademlia/k_message.hpp>
+#include <utils.hpp>
 
 
 namespace ss
@@ -26,6 +28,11 @@ std::shared_ptr< observer<ping> > rpc_manager::ping( k_node host_node, k_node sw
   _send_func( ep , "kademlia", k_payload );
   return nullptr;
   // return std::make_shared< observer<ping_observer> >( *_routing_table, _io_ctx, _d_timer, host_node, swap_node );
+}
+
+rpc_manager::update_context::update_context()
+{
+  return;
 }
 
 rpc_manager::update_context rpc_manager::incoming_request( std::shared_ptr<k_message> msg, ip::udp::endpoint &ep )
@@ -58,8 +65,8 @@ rpc_manager::update_context rpc_manager::incoming_response( std::shared_ptr<k_me
 {
   update_context ret;
 
-  std::string rpc = msg->get_param<std::string>("rpc");
-  base_observer::id obs_id = str_to_observer_id( msg->get_param<std::string>("observer_id") );
+  std::string rpc; // = msg->get_param<std::string>("rpc");
+  // base_observer::id obs_id = str_to_observer_id( msg->get_param<std::string>("observer_id") );
   if( rpc == "ping" ){
 	// auto obs = _obs_strage.get_observer<ping>( rpc, obs_id );
 	// obs.handle_msg( msg );

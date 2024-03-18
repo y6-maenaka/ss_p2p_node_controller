@@ -11,11 +11,11 @@
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/observer.hpp>
 #include <ss_p2p/socket_manager.hpp>
-#include <ss_p2p/ice_agent/ice_agent.hpp>
 #include <ss_p2p/kademlia/k_routing_table.hpp>
 #include <ss_p2p/kademlia/direct_routing_table_controller.hpp>
 #include <json.hpp>
-#include "./ice_observer.hpp"
+
+#include "./ice_message.hpp"
 
 #include "boost/asio.hpp"
 
@@ -31,22 +31,25 @@ namespace ice
 {
 
 
+class ice_sender;
+class ice_observer_strage;
+
+
 class signaling_server
 {
 private:
   void signaling_send( ip::udp::endpoint &dest_ep, std::string root_param, json payload );
-  void set_signaling_open_observer( const boost::system::error_code &ec );
-  void set_signaling_relay_observer( const boost::system::error_code &ec );
 
   void async_hello( const boost::system::error_code &ec ); // debug
   void send_done( const boost::system::error_code &ec );
+  void on_send_done( const boost::system::error_code &ec );
   ice_message format_relay_msg( ice_message &base_msg );
 
 public:
   using s_send_func = std::function<void(ip::udp::endpoint &dest_ep, std::string, const json payload, const boost::system::error_code &ec )>;
   s_send_func get_signaling_send_func();
 
-  signaling_server( io_context &io_ctx, ice_agent::ice_sender& ice_sender, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage *obs_strage );
+  signaling_server( io_context &io_ctx, ice_sender& ice_sender, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage *obs_strage );
 
   void income_message( std::shared_ptr<ss::message> msg );
 
@@ -56,7 +59,7 @@ public:
   // members
   io_context &_io_ctx;
   direct_routing_table_controller &_d_routing_table_controller;
-  ice_agent::ice_sender &_ice_sender;
+  ice_sender &_ice_sender;
   ice_observer_strage *_obs_strage;
 };
 

@@ -10,6 +10,7 @@
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/socket_manager.hpp>
 #include "./ice_message.hpp"
+#include "./ice_sender.hpp"
 
 #include "boost/asio.hpp"
 
@@ -30,29 +31,12 @@ class ice_observer_strage;
 class ice_agent
 {
 public:
-  ice_agent( io_context &io_ctx, deadline_timer d_timer, udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
+  ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
   void hello();
 
   void income_msg( std::shared_ptr<message> msg ); // メッセージ受信
 
-  class ice_sender
-  {
-	public:
-	  template < typename SuccessHandler >
-	  void ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg, SuccessHandler handler ); // iceメッセージに乗せて送信
-	  template < typename SuccessHandler > 
-	  void send( ip::udp::endpoint &dest_ep, std::string param, json &payload, SuccessHandler handler ); // 指定したパラメータに乗せて送信
-
-	  void send_done( const boost::system::error_code &ec );
-
-	  ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id );
-	  ip::udp::endpoint &get_self_endpoint() const; 
-	private:
-	  udp_socket_manager &_sock_manager;
-	  ip::udp::endpoint &_glob_self_ep;
-	  message::app_id _app_id;
-  } _ice_sender;
-
+  ice_sender _ice_sender;
   ice_sender& get_ice_sender();
 
 private:

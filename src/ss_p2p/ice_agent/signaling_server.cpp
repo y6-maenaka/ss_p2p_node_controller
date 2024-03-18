@@ -1,5 +1,7 @@
 #include <ss_p2p/ice_agent/signaling_server.hpp>
+#include <ss_p2p/ice_agent/ice_observer.hpp>
 #include <ss_p2p/ice_agent/ice_observer_strage.hpp>
+#include <ss_p2p/ice_agent/ice_agent.hpp>
 
 
 namespace ss
@@ -8,24 +10,11 @@ namespace ice
 {
 
 
-signaling_server::signaling_server( io_context &io_ctx, ice_agent::ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage *obs_strage ) : 
+signaling_server::signaling_server( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage *obs_strage ) : 
    _io_ctx( io_ctx ) 
   , _ice_sender( ice_sender )
   , _d_routing_table_controller( d_routing_table_controller )
   , _obs_strage( obs_strage )
-{
-  return;
-}
-
-void signaling_server::set_signaling_open_observer( const boost::system::error_code &ec )
-{
-  // signaling_open s_org_obs( _io_ctx, _d_timer, _d_routing_table_controller );
-  // observer<signaling_open> s_obs( s_org_obs );
-  observer<signaling_open> s_obs( _io_ctx, _d_routing_table_controller );
-  return;
-}
-
-void signaling_server::set_signaling_relay_observer( const boost::system::error_code &ec )
 {
   return;
 }
@@ -92,6 +81,11 @@ void signaling_server::income_message( std::shared_ptr<message> msg )
   return;
 }
 
+void signaling_server::on_send_done( const boost::system::error_code &ec )
+{
+  return;
+}
+
 ice_message signaling_server::format_relay_msg( ice_message &base_msg )
 {
   auto msg_controller = base_msg.get_sgnl_msg_controller();
@@ -110,12 +104,12 @@ void signaling_server::signaling_send( ip::udp::endpoint &dest_ep, std::string r
   if( _d_routing_table_controller.is_exist(dest_ep) )
   {
 	_ice_sender.send( dest_ep, root_param, payload
-		, std::bind( &signaling_server::send_done, this, std::placeholders::_1)
+		, std::bind( &signaling_server::on_send_done, this, std::placeholders::_1)
 	  );
 	return;
   }
 
-  observer<signaling_request> sgnl_req_obs( _io_ctx, &_ice_sender, _d_routing_table_controller );
+  observer<signaling_request> sgnl_req_obs( _io_ctx, _ice_sender, _d_routing_table_controller );
   sgnl_req_obs.get_raw()->init( dest_ep, root_param, payload ); // 納得いかない
 
   _obs_strage->add_observer<signaling_request>( sgnl_req_obs ); // store

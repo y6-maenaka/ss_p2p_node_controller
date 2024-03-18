@@ -35,15 +35,13 @@ public:
   uuid get_id() const;
   bool is_expired() const;
 
-  virtual void init() = 0;
-
 protected:
   base_observer( io_context &io_ctx );
 
   void destruct_self(); // 本オブザーバーの破棄を許可する
   void extend_expire_at( std::time_t t = DEFAULT_EXPIRE_TIME_s );
+
   std::time_t _expire_at; // このオブザーバーを破棄する時間
-  
   io_context &_io_ctx;
   const id _id;
 };
@@ -58,28 +56,66 @@ private:
 public:
   using id = base_observer::id;
 
-  observer( std::shared_ptr<T> from );
-  observer(  T from );
+  observer( std::shared_ptr<T> from )
+  {
+	_body = from;
+  }
+  observer( T from )
+  {
+	_body = std::make_shared<T>(from);
+  }
+
   template < typename ... Args >
-  observer( io_context &io_ctx, Args ... args );
+  observer( io_context &io_ctx, Args&& ... args )
+  {
+	_body = std::make_shared<T>(io_ctx, std::forward<Args>(args)...);
+  }
 
-  void init();
-  void income_message( message &msg );
-  void on_send_success( const boost::system::error_code &ec );
-  bool is_expired() const;
-  id get_id() const;
-  void print() const;
-
-  std::shared_ptr<T> get_raw();
-
-  bool operator==(const observer<T> &obs ) const;
-  bool operator!=(const observer<T> &obs ) const;
+  void init()
+  {
+	return _body->init();
+  }
+  void income_message( message &msg )
+  {
+	return _body->income_message(msg);
+  }
+  void on_send_success( const boost::system::error_code &ec )
+  {
+	return _body->on_send_success( ec );
+  }
+  bool is_expired() const
+  {
+	return _body->is_expired();
+  }
+  id get_id() const
+  {
+	return _body->get_id();
+  }
+  void print() const
+  {
+	return _body->print();
+  }
+  std::shared_ptr<T> get_raw()
+  {
+	return _body;
+  }
+  bool operator==(const observer<T> &obs ) const
+  {
+	return _body->get_id() == obs.get_id();
+  }
+  bool operator!=(const observer<T> &obs ) const
+  {
+	return _body->get_id() != obs.get_id();
+  }
   struct Hash;
 };
 template < typename T >
 struct observer<T>::Hash
 {
-  std::size_t operator()( const observer<T> &obs ) const;
+  std::size_t operator()( const observer<T> &obs ) const
+  {
+	return std::hash<std::string>()( boost::uuids::to_string(obs.get_id()) );
+  }
 };
 
 using observer_id = base_observer::id;

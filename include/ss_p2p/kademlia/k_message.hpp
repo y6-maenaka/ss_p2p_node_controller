@@ -34,7 +34,17 @@ public:
 
   bool set_param( std::string key, std::string value );
   template < typename T > 
-  T get_param( std::string key );
+  T get_param( std::string key )
+  {
+	auto value = _body[key];
+	if constexpr (std::is_same_v<T, std::string>){
+	  return value.get<std::string>();
+	}
+	else if constexpr (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>){
+	  return value.get<T>;
+	}
+	return T{};
+  }
 
   static k_message (request)();
   static k_message (response)();

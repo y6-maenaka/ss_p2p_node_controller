@@ -24,12 +24,47 @@ namespace ice
 {
 
 
+constexpr unsigned short DEFAULT_OBSERVER_STRAGE_TICK_TIME_s = 60/*[seconds]*/;
+
+
 class ice_observer_strage : public ss::observer_strage
 {
-private:
+protected:
   union_observer_strage< signaling_request, signaling_response, signaling_relay, stun > _strage;
 
+  deadline_timer _d_timer;
+
+  template < typename T >
+  void delete_expires_observer( observer_strage_entry<T> &entry )
+  {
+	for( auto itr = entry.begin(); itr != entry.end(); )
+	{
+	  if( (*itr).is_expired() ) itr = entry.erase(itr) ;
+	}
+	return;
+  }
+
+  void refresh_tick( const boost::system::error_code &ec );
+  void call_tick( std::time_t tick_time_s = DEFAULT_OBSERVER_STRAGE_TICK_TIME_s );
+
 public:
+  template < typename T >
+  std::optional< observer<T> > find_observer( observer_id id ) // 検索・取得メソッド
+  {
+   auto &s_entry = std::get< observer_strage_entry<T> >(_strage);
+	for( auto &itr : s_entry )
+	  if( itr.get_id() == id ) return itr;
+
+	return std::nullopt;
+  }
+
+  template < typename T >
+  void add_observer( observer<T> obs ) // 追加メソッド
+  {
+	auto &s_entry = std::get< observer_strage_entry<T> >(_strage);
+	s_entry.insert(obs);
+  }
+
   ice_observer_strage( io_context &io_ctx );
 };
 

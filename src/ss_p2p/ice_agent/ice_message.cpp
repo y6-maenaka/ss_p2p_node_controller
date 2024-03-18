@@ -106,26 +106,6 @@ ice_message::signaling_message_controller ice_message::get_sgnl_msg_controller()
   return ice_message::signaling_message_controller(_body);
 }
 
-template <typename T>
-T ice_message::get_param( std::string key )
-{
-  auto value = _body[key];
-  return value.get<T>();
-
-  if constexpr (std::is_same_v<T, std::string>){
-	return value.get<std::string>();
-  }
-  else if constexpr (std::is_same_v<T, observer_id>)
-  {
-	return str_to_observer_id( value.get<std::string>() );
-  }
-  else if constexpr (std::is_arithmetic_v<T> && !std::is_same_v<T, bool> )
-  {
-	return value.get<T>();
-  }
-  return T{};
-}
-
 const json ice_message::encode()
 {
   return _body;

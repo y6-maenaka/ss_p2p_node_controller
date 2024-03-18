@@ -32,20 +32,9 @@ protected:
   union_observer_strage<> _strage;
 
   io_context &_io_ctx;
-  deadline_timer _d_timer;
 
-  template < typename T >
-  void delete_expires_observer( const observer_strage_entry<T> &entry );
-  void refresh_tick( const boost::system::error_code &ec );
-  void call_tick( std::time_t tick_time_s = DEFAULT_OBSERVER_STRAGE_TICK_TIME_s );
 public:
-  template < typename T >
-  std::optional< observer<T> >& find_observer( observer_id id );
-
-  template < typename T >
-  void add_observer( observer<T> obs );
-  
-  observer_strage( io_context &io_ctx );
+   observer_strage( io_context &io_ctx );
 };
 
 

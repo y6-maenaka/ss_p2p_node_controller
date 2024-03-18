@@ -15,6 +15,7 @@
 #include "../test/setup_peer.cpp"
 #include "../test/setup_k_routing_table.cpp"
 #include "../test/setup_ice_observer.cpp"
+#include "../test/setup_ice_agent.cpp"
 
 using boost::asio::ip::udp;
 
@@ -22,7 +23,8 @@ int main()
 {
   std::cout << "Hello" << "\n";
 
-  setup_ice_observer();
+  setup_ice_agent();
+  // setup_ice_observer();
   // setup_k_routing_table();
   // setup_peer();
   // dummy_message();
