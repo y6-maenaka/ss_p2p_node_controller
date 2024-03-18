@@ -24,17 +24,6 @@
 using namespace boost::asio;
 using namespace boost::uuids;
 
-/*
-namespace std
-{
-  template<>
-  struct hash<boost::uuids::uuid> {
-	std::size_t operator()(const boost::uuids::uuid &uuid) const {
-	  return std::hash<std::string>()(boost::uuids::to_string(uuid));
-	}
-  };
-}; // namespace std
-*/
 
 namespace ss
 {
@@ -50,7 +39,7 @@ class k_observer_strage : public ss::observer_strage
 protected:
   union_observer_strage< ping, find_node > _strage;
 
-  deadline_timer _d_timer;
+  deadline_timer _refresh_tick_timer;
 
   template < typename T >
   void delete_expires_observer( observer_strage_entry<T> &entry )
@@ -84,6 +73,11 @@ public:
   }
   
   k_observer_strage( io_context &io_ctx );
+
+  #if SS_DEBUG
+  deadline_timer _debug_timer;
+  void show_state();
+  #endif
 };
 
 

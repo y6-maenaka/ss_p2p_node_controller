@@ -60,7 +60,7 @@ private:
 
   std::shared_ptr<kademlia::dht_manager> const _dht_manager;
   std::shared_ptr<io_context> _core_io_ctx;
-  boost::asio::deadline_timer _d_timer;
+  boost::asio::deadline_timer _tick_timer;
 
   message_pool _msg_pool;
 };

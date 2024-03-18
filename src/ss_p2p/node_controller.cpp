@@ -8,7 +8,7 @@ namespace ss
 node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io_context> io_ctx ) :
   _core_io_ctx( io_ctx ) ,
   _u_sock_manager( self_ep, std::ref(*io_ctx) ) ,
-  _d_timer( *io_ctx ) ,
+  _tick_timer( *io_ctx ) ,
   _msg_pool( *io_ctx, true )
 {
   const std::function<void(std::span<char>, ip::udp::endpoint&)> recv_handler = std::bind(
@@ -66,8 +66,8 @@ void node_controller::tick( const boost::system::error_code& ec )
 
 void node_controller::call_tick()
 {
-  _d_timer.expires_from_now(boost::posix_time::seconds(DEFAULT_NODE_CONTROLLER_TICK_TIME_S));
-  _d_timer.async_wait( std::bind(&node_controller::tick, this , std::placeholders::_1) ); // node_controller::tickの起動
+  _tick_timer.expires_from_now(boost::posix_time::seconds(DEFAULT_NODE_CONTROLLER_TICK_TIME_S));
+  _tick_timer.async_wait( std::bind(&node_controller::tick, this , std::placeholders::_1) ); // node_controller::tickの起動
 }
 
 void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpoint &ep )

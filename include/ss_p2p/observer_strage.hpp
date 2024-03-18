@@ -32,9 +32,10 @@ protected:
   union_observer_strage<> _strage;
 
   io_context &_io_ctx;
+  // deadline_timer _d_timer;
 
 public:
-   observer_strage( io_context &io_ctx );
+  observer_strage( io_context &io_ctx );
 };
 
 

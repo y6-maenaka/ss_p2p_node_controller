@@ -50,7 +50,7 @@ std::size_t message_peer_entry::calc_id( ip::udp::endpoint &ep )
 
 message_pool::message_pool( io_context &io_ctx,  bool requires_refresh ) :
   _io_ctx( io_ctx ) ,
-  _d_timer( io_ctx ) ,
+  _refresh_tick_timer( io_ctx ) ,
   _requires_refresh( requires_refresh )
 {
   #if SS_VERBOSE
@@ -88,8 +88,8 @@ void message_pool::requires_refresh( bool b )
 
 void message_pool::call_refresh_tick()
 {
-  _d_timer.expires_from_now(boost::posix_time::seconds(DEFAULT_MEMPOOL_REFRESH_TICK_TIME_S));
-  _d_timer.async_wait( std::bind(&message_pool::refresh_tick, this , std::placeholders::_1) ); // node_controller::tickの起動
+  _refresh_tick_timer.expires_from_now(boost::posix_time::seconds(DEFAULT_MEMPOOL_REFRESH_TICK_TIME_S));
+  _refresh_tick_timer.async_wait( std::bind(&message_pool::refresh_tick, this , std::placeholders::_1) ); // node_controller::tickの起動
 }
 
 void message_pool::refresh_tick( const boost::system::error_code &ec )

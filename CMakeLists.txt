@@ -126,7 +126,7 @@ endif()
 
 if( _BUILD_TEST )
   add_executable( run_0 ./run/run_0.cpp )
-  target_link_libraries( run_0 PRIVATE
+   target_link_libraries( run_0 PRIVATE
                         ss_p2p
 						${OPENSSL_LIBRARIES}
    )

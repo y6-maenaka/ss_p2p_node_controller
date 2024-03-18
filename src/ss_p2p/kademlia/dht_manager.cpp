@@ -10,10 +10,10 @@ namespace kademlia
 dht_manager::dht_manager( boost::asio::io_context &io_ctx, ip::udp::endpoint ep ) :
   _io_ctx(io_ctx) , 
   _self_ep(ep) ,
-  _d_timer(io_ctx)
+  _tick_timer(io_ctx)
 {
   _self_id = calc_node_id( ep );
-  _rpc_manager = std::make_shared<rpc_manager>( _self_id, _io_ctx, _d_timer );
+  _rpc_manager = std::make_shared<rpc_manager>( _self_id, _io_ctx );
 
   #if SS_VERBOSE 
   std::cout << "[\x1b[32m start \x1b[39m] dht manager" << "\n";

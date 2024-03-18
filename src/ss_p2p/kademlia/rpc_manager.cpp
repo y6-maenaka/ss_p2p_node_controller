@@ -10,13 +10,13 @@ namespace kademlia
 {
 
 
-rpc_manager::rpc_manager( node_id self_id, io_context &io_ctx, deadline_timer &d_timer ) :
-  _self_id( self_id ) ,
-  _io_ctx( io_ctx ) ,
-  _d_timer( d_timer )
+rpc_manager::rpc_manager( node_id self_id, io_context &io_ctx ) :
+  _self_id( self_id )  
+  , _io_ctx( io_ctx ) 
+  , _tick_timer( io_ctx )
+  ,  _obs_strage( io_ctx )
 {
   _routing_table = std::make_shared<k_routing_table>( self_id );
-  _obs_strage = std::make_shared<k_observer_strage>( io_ctx );
 }
 
 std::shared_ptr< observer<ping> > rpc_manager::ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep ) 
@@ -27,7 +27,6 @@ std::shared_ptr< observer<ping> > rpc_manager::ping( k_node host_node, k_node sw
 
   _send_func( ep , "kademlia", k_payload );
   return nullptr;
-  // return std::make_shared< observer<ping_observer> >( *_routing_table, _io_ctx, _d_timer, host_node, swap_node );
 }
 
 rpc_manager::update_context::update_context()

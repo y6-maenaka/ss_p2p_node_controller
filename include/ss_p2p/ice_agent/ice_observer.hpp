@@ -41,6 +41,7 @@ public:
   void init( ip::udp::endpoint &dest_ep, std::string parma, json payload );
   void timeout();
   void income_message( ss::message &msg );
+  void print() const;
 
   struct msg_cache
   {
@@ -68,6 +69,7 @@ public:
   void init(); // 有効期限を設定する
   void income_message( message &msg );
   void on_send_success( const boost::system::error_code &ec );
+  void print() const;
 };
 
 class signaling_relay : public ice_observer
@@ -77,6 +79,7 @@ public:
   void init();
   void income_message( message &msg );
   void on_send_success( const boost::system::error_code &ec );
+  void print() const;
 };
 
 class stun : public ice_observer
@@ -84,6 +87,7 @@ class stun : public ice_observer
 public:
   void init( ip::udp::endpoint &glob_self_ep );
   void income_message( message &msg );
+  void print() const;
 };
 
 

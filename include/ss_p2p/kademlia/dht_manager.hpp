@@ -49,7 +49,7 @@ public:
 
 private:
   io_context &_io_ctx;
-  deadline_timer _d_timer;
+  deadline_timer _tick_timer;
   ip::udp::endpoint _self_ep;
   node_id _self_id;
   std::shared_ptr<rpc_manager> _rpc_manager;

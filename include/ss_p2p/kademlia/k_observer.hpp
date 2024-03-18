@@ -46,10 +46,11 @@ public:
   void handle_response( std::shared_ptr<k_message> msg ); // このメソッドをタイマーセットしてio_ctxにポスト
   void timeout( const boost::system::error_code &ec );
   void init();
+  void print() const;
 
 private:
   bool _is_pong_arrived;
-  deadline_timer _d_timer;
+  deadline_timer _timer; // 固有のものを作らないとエラーになる可能性が高い
 
   k_node _host_node;
   k_node _swap_node;
@@ -61,6 +62,7 @@ public:
   find_node( k_routing_table &routing_table, io_context &io_ctx );
   void init();
   void handle_response( std::shared_ptr<k_message> msg );
+  void print() const;
 };
 
 

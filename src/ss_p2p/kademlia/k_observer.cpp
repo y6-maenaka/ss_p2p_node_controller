@@ -17,7 +17,7 @@ k_observer::k_observer( io_context &io_ctx, k_routing_table &routing_table )
 
 ping::ping( k_routing_table &routing_table, io_context &io_ctx, k_node host_node, k_node swap_node ) : 
   k_observer( io_ctx, routing_table ) 
-  , _d_timer( deadline_timer(_io_ctx) )
+  , _timer( _io_ctx )
   , _host_node( host_node )
   , _swap_node( swap_node )
 {
@@ -30,8 +30,8 @@ void ping::init()
   std::cout << "(init observer) ping" << "\n";
   #endif
 
-  _d_timer.expires_from_now( boost::posix_time::seconds(DEFAULT_PING_RESPONSE_TIMEOUT_s) );
-  _d_timer.async_wait( std::bind( &ping::timeout, this, std::placeholders::_1 ) );
+  _timer.expires_from_now( boost::posix_time::seconds(DEFAULT_PING_RESPONSE_TIMEOUT_s) );
+  _timer.async_wait( std::bind( &ping::timeout, this, std::placeholders::_1 ) );
   // 指定時間経過後にpongが到着していなければswapする
 }
 
@@ -46,6 +46,11 @@ void ping::timeout( const boost::system::error_code &ec )
 void ping::handle_response( std::shared_ptr<k_message> msg )
 {
   _is_pong_arrived = true;
+}
+
+void ping::print() const
+{
+  std::cout << "[observer] (ping) " << "<" << _id << ">" << "\n";
 }
 
 
@@ -65,6 +70,11 @@ void find_node::init()
 void find_node::handle_response( std::shared_ptr<k_message> msg )
 {
   return;
+}
+
+void find_node::print() const
+{
+  std::cout << "[observer] (find_node) " << "<" << _id << ">" << "\n";
 }
 
 

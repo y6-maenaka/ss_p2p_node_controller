@@ -9,6 +9,7 @@
 #include <hash.hpp>
 #include <ss_p2p/observer.hpp>
 #include "./k_observer.hpp"
+#include "./k_observer_strage.hpp"
 #include "./node_id.hpp"
 #include "./k_routing_table.hpp"
 
@@ -30,7 +31,7 @@ class k_observer_strage;
 class rpc_manager
 {
 public:
-  rpc_manager( node_id self_id, io_context &io_ctx, deadline_timer &d_timer );
+  rpc_manager( node_id self_id, io_context &io_ctx );
 
   struct update_context
   {
@@ -73,8 +74,8 @@ private:
 
   node_id _self_id;
   io_context &_io_ctx;
-  deadline_timer &_d_timer;
-  std::shared_ptr<k_observer_strage> _obs_strage;
+  deadline_timer _tick_timer;
+  k_observer_strage _obs_strage;
 };
 
 

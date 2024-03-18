@@ -111,6 +111,11 @@ void signaling_request::income_message( message &msg )
   return;
 }
 
+void signaling_request::print() const
+{
+  std::cout << "[observer] (signaling-request) " << "<" << _id << ">" << "\n";
+}
+
 
 signaling_response::signaling_response( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
   ice_observer( io_ctx, ice_sender, d_routing_table_controller )
@@ -133,6 +138,11 @@ void signaling_response::income_message( ss::message &msg )
   extend_expire_at( 20 ); 
 }
 
+void signaling_response::print() const
+{
+  std::cout << "[observer] (signaling-response) " << "<" << _id << ">" << "\n";
+}
+
 
 signaling_relay::signaling_relay( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
   ice_observer( io_ctx, ice_sender, d_routing_table_controller )
@@ -153,6 +163,17 @@ void signaling_relay::income_message( message &msg )
 {
   // 一度処理しているため特に処理しない
   extend_expire_at( 20 );
+}
+
+void signaling_relay::print() const
+{
+  std::cout << "[observer] (signaling-relay) " << "<" << _id << ">" << "\n";
+}
+
+
+void stun::print() const
+{
+  std::cout << "[observer] (stun) " << "<" << _id << ">" << "\n";
 }
 
 

@@ -24,7 +24,8 @@ namespace ice
 {
 
 
-constexpr unsigned short DEFAULT_OBSERVER_STRAGE_TICK_TIME_s = 60/*[seconds]*/;
+constexpr unsigned short DEFAULT_OBSERVER_STRAGE_TICK_TIME_s = 5/*[seconds]*/;
+constexpr unsigned short DEFAULT_OBSERVER_STRAGE_SHOW_STATE_TIME_s = 2/*[seconds]*/;
 
 
 class ice_observer_strage : public ss::observer_strage
@@ -32,7 +33,6 @@ class ice_observer_strage : public ss::observer_strage
 protected:
   union_observer_strage< signaling_request, signaling_response, signaling_relay, stun > _strage;
 
-  deadline_timer _d_timer;
 
   template < typename T >
   void delete_expires_observer( observer_strage_entry<T> &entry )
@@ -44,8 +44,24 @@ protected:
 	return;
   }
 
+  template < typename T >
+  void print_entry_state( observer_strage_entry<T> &entry )
+  {
+	unsigned int count = 0;
+	std::cout << "-------------------------------------------" << "\n";
+	for( auto &itr : entry )
+	{
+	  std::cout << "("<< count << ")";
+	  itr.print();
+	  count++;
+	}
+	return;
+  }
+
   void refresh_tick( const boost::system::error_code &ec );
-  void call_tick( std::time_t tick_time_s = DEFAULT_OBSERVER_STRAGE_TICK_TIME_s );
+  void call_tick();
+
+  deadline_timer _refresh_tick_timer;
 
 public:
   template < typename T >
@@ -66,6 +82,12 @@ public:
   }
 
   ice_observer_strage( io_context &io_ctx );
+
+  #if SS_DEBUG
+  deadline_timer _debug_tick_timer;
+  void show_state( const boost::system::error_code &ec );
+  #endif
+
 };
 
 

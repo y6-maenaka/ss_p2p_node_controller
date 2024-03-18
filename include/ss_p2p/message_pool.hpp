@@ -62,7 +62,7 @@ private:
   pool _pool;
 
   io_context& _io_ctx;
-  deadline_timer _d_timer;
+  deadline_timer _refresh_tick_timer;
   bool _requires_refresh;
 
   void call_refresh_tick();

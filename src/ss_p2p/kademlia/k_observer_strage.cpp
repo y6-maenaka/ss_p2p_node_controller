@@ -9,7 +9,10 @@ namespace kademlia
 
 k_observer_strage::k_observer_strage( io_context &io_ctx ) :
   observer_strage( io_ctx )
-  , _d_timer( deadline_timer(io_ctx) )
+  , _refresh_tick_timer( io_ctx )
+  #if SS_DEBUG
+  , _debug_timer( io_ctx )
+  #endif
 {
   return;
 }
@@ -26,8 +29,8 @@ void k_observer_strage::refresh_tick( const boost::system::error_code &ec )
 
 void k_observer_strage::call_tick( std::time_t tick_time_s )
 {
-  _d_timer.expires_from_now(boost::posix_time::seconds( tick_time_s ));
-  _d_timer.async_wait( std::bind( &k_observer_strage::refresh_tick, this , std::placeholders::_1 ) );
+  _refresh_tick_timer.expires_from_now(boost::posix_time::seconds( tick_time_s ));
+  _refresh_tick_timer.async_wait( std::bind( &k_observer_strage::refresh_tick, this , std::placeholders::_1 ) );
 }
 
 

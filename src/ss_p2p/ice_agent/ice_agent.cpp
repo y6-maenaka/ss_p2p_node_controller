@@ -18,8 +18,8 @@ ice_agent::ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::
   , _glob_self_ep( glob_self_ep )
   , _app_id( id )
   , _ice_sender( sock_manager, glob_self_ep, id )
+  , _obs_strage( io_ctx )
 {
-  _obs_strage = std::make_shared<ice_observer_strage>( io_ctx );
   return;
 }
 
@@ -38,14 +38,14 @@ void ice_agent::income_msg( std::shared_ptr<message> msg )
   {
 	observer_id obs_id = ice_msg.get_param<observer_id>("observer_id");
 
-	if( std::optional<observer<signaling_relay>> obs = _obs_strage->find_observer<signaling_relay>(obs_id); obs != std::nullopt ){
+	if( std::optional<observer<signaling_relay>> obs = _obs_strage.find_observer<signaling_relay>(obs_id); obs != std::nullopt ){
 	  return call_observer_income_message(*obs); // relay_observerの検索
 	}
-	if( std::optional<observer<signaling_request>> obs = _obs_strage->find_observer<signaling_request>(obs_id); obs != std::nullopt ){
+	if( std::optional<observer<signaling_request>> obs = _obs_strage.find_observer<signaling_request>(obs_id); obs != std::nullopt ){
 	  // request_observerの検索
 	  return call_observer_income_message(*obs); // relay_observerの検索
 	}
-	if( std::optional<observer<signaling_response>> obs = _obs_strage->find_observer<signaling_response>(obs_id); obs != std::nullopt ){
+	if( std::optional<observer<signaling_response>> obs = _obs_strage.find_observer<signaling_response>(obs_id); obs != std::nullopt ){
 	  // response_observerの検索
 	  return call_observer_income_message(*obs); // relay_observerの検索
 	}
@@ -65,6 +65,13 @@ ice_sender& ice_agent::get_ice_sender()
 {
   return _ice_sender;
 }
+
+#if SS_DEBUG
+ice_observer_strage &ice_agent::get_observer_strage()
+{
+  return _obs_strage;
+}
+#endif
 
 
 };
