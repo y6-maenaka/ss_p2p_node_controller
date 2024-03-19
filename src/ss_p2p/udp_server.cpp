@@ -24,7 +24,9 @@ bool udp_server::start()
 	  );
 
  #if SS_VERBOSE
+  std::cout << "\n";
   std::cout << "[\x1b[32m start \x1b[39m] udp server" << "\n";
+  std::cout << "\n";
   #endif 
 
   return true;

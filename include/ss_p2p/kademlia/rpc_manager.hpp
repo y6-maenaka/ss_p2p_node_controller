@@ -56,9 +56,10 @@ public:
 	};
 	update_context();
   };
-  update_context incoming_request( std::shared_ptr<ss::kademlia::k_message> msg, ip::udp::endpoint &ep );
-  update_context incoming_response( std::shared_ptr<ss::kademlia::k_message> msg, ip::udp::endpoint &ep );
+  update_context income_request( std::shared_ptr<ss::kademlia::k_message> msg, ip::udp::endpoint &ep );
+  update_context income_response( std::shared_ptr<ss::kademlia::k_message> msg, ip::udp::endpoint &ep );
   void handle_msg( json &k_msg );
+  k_routing_table &get_routing_table();
 
 private:
   void set_triger_observer();

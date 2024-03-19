@@ -125,8 +125,14 @@ if( _BUILD_SS )
 endif()
 
 if( _BUILD_TEST )
-  add_executable( run_0 ./run/run_0.cpp )
-   target_link_libraries( run_0 PRIVATE
+  add_executable( node_0 ./run/node_0.cpp )
+   target_link_libraries( node_0 PRIVATE
+                        ss_p2p
+						${OPENSSL_LIBRARIES}
+   )
+
+  add_executable( node_1 ./run/node_1.cpp )
+   target_link_libraries( node_1 PRIVATE
                         ss_p2p
 						${OPENSSL_LIBRARIES}
    )

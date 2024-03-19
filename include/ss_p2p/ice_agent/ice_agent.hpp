@@ -32,7 +32,7 @@ public:
   ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
   void hello();
 
-  void income_msg( std::shared_ptr<message> msg ); // メッセージ受信
+  void income_message( std::shared_ptr<message> msg ); // メッセージ受信
   
   signaling_server::s_send_func get_signaling_send_func();
 

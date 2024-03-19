@@ -8,17 +8,18 @@ namespace ice
 {
 
 
-ice_observer::ice_observer( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+ice_observer::ice_observer( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
   base_observer( io_ctx )
   , _ice_sender(ice_sender)
+  , _glob_self_ep( glob_self_ep )
   , _d_routing_table_controller( d_routing_table_controller )
 {
   return;
 }
 
 
-signaling_request::signaling_request( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
-  ice_observer( io_ctx, ice_sender, d_routing_table_controller )
+signaling_request::signaling_request( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+  ice_observer( io_ctx, ice_sender, glob_self_ep, d_routing_table_controller )
 {
   return;
 }
@@ -37,9 +38,12 @@ void signaling_request::init( ip::udp::endpoint &dest_ep, std::string param, jso
   _msg_cache.payload = payload;
 
   ice_message ice_msg = ice_message::_signaling_(); // シグナリングメッセージの作成
+  ice_msg.set_param("observer_id", ice_observer::get_id_str() ); 
   auto msg_controller = ice_msg.get_sgnl_msg_controller(); // ice_messageからsignaling_mes_controllerを取得
   msg_controller.set_sub_protocol( ice_message::signaling_message_controller::sub_protocol_t::request ); // サブプロトコルの設定 
- 
+  msg_controller.set_dest_endpoint( dest_ep );
+  msg_controller.set_src_endpoint( _glob_self_ep );
+
   std::vector<ip::udp::endpoint> forward_eps = _d_routing_table_controller.collect_node( dest_ep, 3/*適当*/ );
   for( auto itr : forward_eps )
   {
@@ -122,8 +126,8 @@ void signaling_request::print() const
 }
 
 
-signaling_response::signaling_response( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
-  ice_observer( io_ctx, ice_sender, d_routing_table_controller )
+signaling_response::signaling_response( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller ) :
+  ice_observer( io_ctx, ice_sender, glob_self_ep, d_routing_table_controller )
 {
   return;
 }
@@ -149,8 +153,8 @@ void signaling_response::print() const
 }
 
 
-signaling_relay::signaling_relay( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller ) :
-  ice_observer( io_ctx, ice_sender, d_routing_table_controller )
+signaling_relay::signaling_relay( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller ) :
+  ice_observer( io_ctx, ice_sender, glob_self_ep, d_routing_table_controller )
 {
   return;
 }

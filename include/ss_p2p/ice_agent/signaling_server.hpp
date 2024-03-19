@@ -49,7 +49,7 @@ public:
   using s_send_func = std::function<void(ip::udp::endpoint &dest_ep, std::string, const json payload, const boost::system::error_code &ec )>;
   s_send_func get_signaling_send_func();
 
-  signaling_server( io_context &io_ctx, ice_sender& ice_sender, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage );
+  signaling_server( io_context &io_ctx, ice_sender& ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage );
 
   void income_message( std::shared_ptr<ss::message> msg );
 
@@ -61,6 +61,7 @@ public:
   direct_routing_table_controller &_d_routing_table_controller;
   ice_sender &_ice_sender;
   ice_observer_strage &_obs_strage;
+  ip::udp::endpoint &_glob_self_ep;
 };
 
 

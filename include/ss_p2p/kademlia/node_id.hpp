@@ -47,9 +47,7 @@ node_id calc_node_id( T* ep_bin, std::size_t ep_bin_len )
 {
   unsigned char in[ep_bin_len]; std::memcpy( in, ep_bin, ep_bin_len );
   std::vector<unsigned char> ep_md = sha1_hash( in, ep_bin_len );
-
-  auto ret = node_id( ep_md );
-  return ret;
+  return node_id( ep_md );
 }
 
 node_id calc_node_id( ip::udp::endpoint &ep );

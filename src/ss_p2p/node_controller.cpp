@@ -6,10 +6,11 @@ namespace ss
 
 
 node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io_context> io_ctx ) :
-  _core_io_ctx( io_ctx ) ,
-  _u_sock_manager( self_ep, std::ref(*io_ctx) ) ,
-  _tick_timer( *io_ctx ) ,
-  _msg_pool( *io_ctx, true )
+   _self_ep(self_ep)
+  , _core_io_ctx( io_ctx ) 
+  , _u_sock_manager( self_ep, std::ref(*io_ctx) ) 
+  , _tick_timer( *io_ctx ) 
+  , _msg_pool( *io_ctx, true )
 {
   const std::function<void(std::span<char>, ip::udp::endpoint&)> recv_handler = std::bind(
 	  &node_controller::on_receive_packet,
@@ -18,12 +19,30 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
 	  std::placeholders::_2
 	  );
   _udp_server = std::make_shared<udp_server>( _u_sock_manager, *_core_io_ctx, recv_handler );
-  return;
+  _dht_manager = std::make_shared<dht_manager>( *io_ctx, _self_ep );
+
+  _d_routing_table_controller = std::make_shared<kademlia::direct_routing_table_controller>( get_routing_table() );
+  _ice_agent = std::make_shared<ice::ice_agent>( *_core_io_ctx, _u_sock_manager, self_ep/*一旦*/, _id, *_d_routing_table_controller );
 }
 
 udp_socket_manager &node_controller::get_socket_manager()
 {
   return _u_sock_manager;
+}
+
+ice::ice_agent &node_controller::get_ice_agent()
+{
+  return *_ice_agent;
+}
+
+kademlia::dht_manager &node_controller::get_dht_manager()
+{
+  return *_dht_manager;
+}
+
+kademlia::k_routing_table &node_controller::get_routing_table()
+{
+  return _dht_manager->get_routing_table();
 }
 
 void node_controller::start()
@@ -77,7 +96,7 @@ void node_controller::call_tick()
 
 void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpoint &ep )
 {
-  std::shared_ptr<message> msg = std::make_shared<message>(raw_msg);
+  std::shared_ptr<message> msg = std::make_shared<message>( message::decode(raw_msg) );
   if( msg == nullptr ) return;
 
   if( msg->is_contain_param("kademlia") )
@@ -87,7 +106,7 @@ void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpo
 
   if( msg->is_contain_param("ice_agent") )
   {
-	// _ice_manager->handle( msg , peer );
+	_ice_agent->income_message( msg );
   }
   
   _msg_pool.store( msg, ep ); // メッセージの保存

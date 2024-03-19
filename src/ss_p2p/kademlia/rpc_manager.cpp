@@ -34,7 +34,7 @@ rpc_manager::update_context::update_context()
   return;
 }
 
-rpc_manager::update_context rpc_manager::incoming_request( std::shared_ptr<k_message> msg, ip::udp::endpoint &ep )
+rpc_manager::update_context rpc_manager::income_request( std::shared_ptr<k_message> msg, ip::udp::endpoint &ep )
 {
   // 処理
   k_routing_table::update_state update_state;
@@ -60,7 +60,7 @@ rpc_manager::update_context rpc_manager::incoming_request( std::shared_ptr<k_mes
   return ret;
 }
 
-rpc_manager::update_context rpc_manager::incoming_response( std::shared_ptr<k_message> msg, ip::udp::endpoint &ep )
+rpc_manager::update_context rpc_manager::income_response( std::shared_ptr<k_message> msg, ip::udp::endpoint &ep )
 {
   update_context ret;
 
@@ -77,6 +77,11 @@ rpc_manager::update_context rpc_manager::incoming_response( std::shared_ptr<k_me
 
 
   return ret;
+}
+
+k_routing_table &rpc_manager::get_routing_table()
+{
+  return *_routing_table;
 }
 
 

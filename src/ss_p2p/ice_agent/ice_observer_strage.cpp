@@ -11,7 +11,7 @@ ice_observer_strage::ice_observer_strage( io_context &io_ctx ) :
   observer_strage( io_ctx )
   , _refresh_tick_timer( io_ctx )
   #if SS_DEBUG
-  , _debug_tick_timer( io_ctx ) 
+  , _debug_tick_timer( io_ctx )
   #endif
 {
   this->call_tick();
@@ -19,8 +19,6 @@ ice_observer_strage::ice_observer_strage( io_context &io_ctx ) :
 
 void ice_observer_strage::refresh_tick( const boost::system::error_code &ec )
 {
-  std::cout << "refresh tick :: ";
-  std::cout << ec.message() << "\n";
   std::apply([this](auto &... args)
 	  {
 		  ((delete_expires_observer(args)), ...);
@@ -42,8 +40,6 @@ void ice_observer_strage::call_tick()
 #if SS_DEBUG
 void ice_observer_strage::show_state( const boost::system::error_code &ec )
 {
-  std::cout << "debug tick :: ";
-  std::cout << ec.message() << "\n";
   std::apply([this](auto &... args)
 	{
 		((print_entry_state(args)), ...);
@@ -52,7 +48,7 @@ void ice_observer_strage::show_state( const boost::system::error_code &ec )
   _debug_tick_timer.expires_from_now(boost::posix_time::seconds( DEFAULT_OBSERVER_STRAGE_SHOW_STATE_TIME_s ));
   _debug_tick_timer.async_wait( std::bind( &ice_observer_strage::show_state, this , std::placeholders::_1 ) );
 }
-#endif 
+#endif
 
 
 };

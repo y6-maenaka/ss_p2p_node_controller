@@ -19,12 +19,6 @@ namespace ss
 {
 
 
-namespace ice
-{
-  class signaling_open;
-};
-
-
 constexpr unsigned short DEFAULT_EXPIRE_TIME_s = 20/*[seconds]*/;
 
 
@@ -33,6 +27,7 @@ class base_observer
 public:
   using id = uuid;
   uuid get_id() const;
+  std::string get_id_str() const;
   bool is_expired() const;
 
 protected:

@@ -23,6 +23,11 @@ base_observer::id base_observer::get_id() const
   return _id;
 }
 
+std::string base_observer::get_id_str() const
+{
+  return boost::uuids::to_string( _id );
+}
+
 void base_observer::destruct_self()
 {
   _expire_at = 0;

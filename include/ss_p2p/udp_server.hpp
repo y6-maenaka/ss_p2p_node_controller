@@ -8,6 +8,7 @@
 #include <span>
 #include <string>
 #include <chrono>
+#include <vector>
 
 #include "./socket_manager.hpp"
 

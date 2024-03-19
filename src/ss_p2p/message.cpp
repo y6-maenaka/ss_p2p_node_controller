@@ -42,12 +42,10 @@ message message::request( app_id &id )
   return ret;
 }
 
-std::span<char> message::encode( const message &from )
+std::vector<std::uint8_t> message::encode( const message &from )
 {
-  std::vector<std::uint8_t> u8_bson;
-  u8_bson = nlohmann::json::to_bson(from._body);
-
-  std::span<char> ret( reinterpret_cast<char*>(u8_bson.data()), u8_bson.size() );
+  std::vector<std::uint8_t> ret;
+  ret = nlohmann::json::to_bson(from._body);
   return ret;
 }
 

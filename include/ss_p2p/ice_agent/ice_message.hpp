@@ -29,6 +29,7 @@ private:
   json _body;
 
 public:
+  void print() const;
   ice_message( std::string protocol ); // ホスト作成
   ice_message( json &from );
   
@@ -38,12 +39,13 @@ public:
 	, stun
 	, none
   };
-  protocol_t protocol;
+  protocol_t _protocol;
 
   static ice_message (_stun_)();
   static ice_message (_signaling_)();
 
   protocol_t get_protocol() const;
+  void set_protocol( protocol_t p );
   struct signaling_message_controller
   {
 	friend ice_message;
@@ -58,6 +60,8 @@ public:
 	signaling_message_controller( json &body );
 	signaling_message_controller( ice_message *from );
 
+	void set_dest_endpoint( ip::udp::endpoint &ep ); // nat到達先アドレスのセット
+	void set_src_endpoint( ip::udp::endpoint &ep ); // 自身(リクエスト元)アドレスのセット
 	void add_relay_endpoint( ip::udp::endpoint ep ); // 中継したノード(endpoint)を追加
 	std::vector< ip::udp::endpoint > get_relay_endpoints();
 	ip::udp::endpoint get_dest_endpoint() const;
@@ -83,7 +87,8 @@ public:
 	
 	return T{};
   }
-
+  
+  void set_param( std::string key, std::string value );
   const json encode();
 };
 

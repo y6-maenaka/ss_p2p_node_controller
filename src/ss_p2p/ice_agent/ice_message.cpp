@@ -8,33 +8,40 @@ namespace ice
 {
 
 
+void ice_message::print() const
+{
+  std::cout << _body << "\n";
+}
+
 ice_message::ice_message( std::string protocol )
 {
   if( protocol == "signaling" ){
-	protocol = protocol_t::signaling;
+	set_protocol( protocol_t::signaling );
   }
   else if( protocol == "stun" ){
-	protocol = protocol_t::stun;
+	set_protocol( protocol_t::stun );
   }
   else{
-	protocol = protocol_t::none;
+	set_protocol( protocol_t::none );
   }
-
 
   // 必須項目
   json relay_eps = json::array();
   _body["relay_eps"] = relay_eps;
+  _body["ttl"] = 5;
 }
 
 ice_message ice_message::_signaling_()
 {
   ice_message ret("signaling");
+  ret.set_protocol( protocol_t::signaling );
   return ret;
 }
 
 ice_message ice_message::_stun_()
 {
   ice_message ret("stun");
+  ret.set_protocol( protocol_t::stun );
   return ret;
 }
 
@@ -42,14 +49,38 @@ ice_message::ice_message( json &from )
 {
   _body = from;
 
-  if( _body["protocol"] == "signaling" ) protocol = protocol_t::signaling;
-  else if( _body["protocol"] == "stun" ) protocol = protocol_t::stun;
-  else protocol = protocol_t::none;
+  if( _body["protocol"] == "signaling" ) _protocol = protocol_t::signaling;
+  else if( _body["protocol"] == "stun" ) _protocol = protocol_t::stun;
+  else _protocol = protocol_t::none;
 }
 
 ice_message::protocol_t ice_message::get_protocol() const
 {
-  return protocol;
+  return _protocol;
+}
+
+void ice_message::set_protocol( protocol_t p )
+{
+  switch( p )
+  {
+	case protocol_t::signaling :
+	  {
+		_body["protocol"] = "signaling";
+		_protocol = p;
+		break;
+	  }
+	case protocol_t::stun :
+	  {
+		_body["protocol"] = "stun";
+		_protocol = p;
+		break;
+	  }
+	default :
+	  {
+		_body["protocol"] = "none";
+		_protocol = p;
+	  }
+  }
 }
 
 ice_message::signaling_message_controller ice_message::get_sgnl_msg_controller()
@@ -62,6 +93,11 @@ const json ice_message::encode()
   return _body;
 }
 
+void ice_message::set_param( std::string key, std::string value )
+{
+  _body[key] = value;
+}
+
 
 ice_message::signaling_message_controller::signaling_message_controller( json &body ) : _body(body)
 {
@@ -72,6 +108,18 @@ ice_message::signaling_message_controller::signaling_message_controller( ice_mes
   _body( from->_body )
 {
   return;
+}
+
+void ice_message::signaling_message_controller::set_dest_endpoint( ip::udp::endpoint &ep )
+{
+  _body["dest_ip"] = ep.address().to_string();
+  _body["dest_port"] = ep.port();
+}
+
+void ice_message::signaling_message_controller::set_src_endpoint( ip::udp::endpoint &ep )
+{
+  _body["src_ip"] = ep.address().to_string();
+  _body["src_port"] = ep.port();
 }
 
 void ice_message::signaling_message_controller::add_relay_endpoint( ip::udp::endpoint ep )
@@ -114,7 +162,7 @@ int ice_message::signaling_message_controller::get_ttl() const
 
 void ice_message::signaling_message_controller::decrement_ttl()
 {
-  _body["tt"] = _body["ttl"].get<int>() - 1;
+  _body["ttl"] = _body["ttl"].get<int>() - 1;
 }
 
 void ice_message::signaling_message_controller::print() const

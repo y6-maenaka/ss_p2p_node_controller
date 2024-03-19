@@ -31,9 +31,9 @@ public:
   void send( ip::udp::endpoint &dest_ep, std::string param, json &payload, SuccessHandler handler ) // 指定したパラメータに乗せて送信
   {
 	message msg = message::request(_app_id);
-	msg.set_param("ice_agent", payload );
+	msg.set_param(param, payload );
 
-	std::span<char> enc_msg = message::encode( msg );
+	auto enc_msg = message::encode( msg );
 
 	_sock_manager.self_sock().async_send_to(
 		  boost::asio::buffer( enc_msg )
@@ -49,7 +49,8 @@ public:
 	message msg = message::request(_app_id);
 	msg.set_param("ice_agent", ice_msg.encode() );
 
-	std::span<char> enc_msg = message::encode( msg );
+	// std::span<char> enc_msg = message::encode( msg );
+	auto enc_msg = message::encode( msg );
   
 	_sock_manager.self_sock().async_send_to
 	  (

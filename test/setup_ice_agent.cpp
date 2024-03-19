@@ -44,8 +44,6 @@ int setup_ice_agent()
 {
   #if SS_DEBUG
 
-  
-
 
   ss::message::app_id id = {'a','b','c','d','e','f','g','h'};
 
@@ -65,12 +63,15 @@ int setup_ice_agent()
 
 
   // ダミーのピアをルーティングテーブルに追加
-  for( int i=0; i<20; i++ )
+  /* for( int i=0; i<20; i++ )
   {
 	ip::udp::endpoint dummy_ep = ss::generate_random_endpoint();
 	ss::kademlia::k_node dummy_k_node(dummy_ep);
 	routing_table.auto_update( dummy_k_node );
-  }
+  } */
+
+  ip::udp::endpoint test_relay_endpoint( ip::address::from_string("127.0.0.1") , 8500 ); // ルーティングテーブルに存在するアドレスを仮定
+  routing_table.auto_update( test_relay_endpoint );
 
 
   // ice_agentのセットアップ

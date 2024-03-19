@@ -18,12 +18,12 @@ ice_agent::ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::
   , _app_id( id )
   , _ice_sender( sock_manager, glob_self_ep, id )
   , _obs_strage( io_ctx )
-  , _sgnl_server( io_ctx, _ice_sender, d_routing_table_controller, _obs_strage )
+  , _sgnl_server( io_ctx, _ice_sender, glob_self_ep, d_routing_table_controller, _obs_strage )
 {
   return;
 }
 
-void ice_agent::income_msg( std::shared_ptr<message> msg )
+void ice_agent::income_message( std::shared_ptr<message> msg )
 {
   if( auto ice_param = msg->get_param("ice_agent"); ice_param == nullptr ) return; // 上レイヤで処理されているため,恐らくreturnされることはない
   ice_message ice_msg( *(msg->get_param("ice_agent")) );
@@ -49,6 +49,10 @@ void ice_agent::income_msg( std::shared_ptr<message> msg )
 	  // response_observerの検索
 	  return call_observer_income_message(*obs); // relay_observerの検索
 	}
+
+	#if SS_DEBUG
+	std::cout << "(ice_observer_strage) signaling observer not found." << "\n";
+	#endif
 
 	_sgnl_server.income_message( msg ); // シグナリングサーバに処理を投げる
   }

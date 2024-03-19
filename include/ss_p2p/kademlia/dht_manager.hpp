@@ -34,7 +34,7 @@ namespace kademlia
 class dht_manager
 {
 public:
-  dht_manager( boost::asio::io_context &io_ctx , ip::udp::endpoint ep );
+  dht_manager( boost::asio::io_context &io_ctx , ip::udp::endpoint &ep );
 
   enum update_state_t{
 	added,
@@ -46,11 +46,12 @@ public:
   void invoke_msg( std::shared_ptr<message> msg ); // メッセージ送信
   void bootstrap();
   void handle_msg( json &msg, ip::udp::endpoint &ep );
+  k_routing_table &get_routing_table();
 
 private:
   io_context &_io_ctx;
   deadline_timer _tick_timer;
-  ip::udp::endpoint _self_ep;
+  ip::udp::endpoint &_self_ep;
   node_id _self_id;
   std::shared_ptr<rpc_manager> _rpc_manager;
 
