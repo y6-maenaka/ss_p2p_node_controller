@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <ss_p2p/kademlia/k_bucket.hpp>
 
 
@@ -45,10 +46,10 @@ k_bucket::update_state k_bucket::auto_update( k_node kn )
 		));
 } */
 
-std::vector<k_node> k_bucket::get_node_front( std::size_t count, unsigned short start_idx, const std::vector<k_node> &ignore_nodes )
+std::vector<k_node> k_bucket::get_node_front( std::size_t count, const std::vector<k_node> &ignore_nodes )
 {
-  std::vector<k_node> ret;
-  for( auto itr = _nodes.begin() + start_idx; itr != _nodes.end(); itr++ )
+  std::vector<k_node> ret = std::vector<k_node>();
+  for( auto itr = _nodes.begin(); itr != _nodes.end(); itr++ )
   {
 	if( auto iitr = std::find_if( ignore_nodes.begin(), ignore_nodes.end(), [itr]( const k_node &kn ){
 			return *itr == kn ;
@@ -70,10 +71,10 @@ std::vector<k_node> k_bucket::get_node_front( std::size_t count, unsigned short 
 		));
 } */
 
-std::vector<k_node> k_bucket::get_node_back( std::size_t count, unsigned short start_idx, const std::vector<k_node> &ignore_nodes )
+std::vector<k_node> k_bucket::get_node_back( std::size_t count, const std::vector<k_node> &ignore_nodes )
 {
-  std::vector<k_node> ret;
-  for( auto itr = _nodes.rbegin() + start_idx; itr != _nodes.rend(); itr++ )
+  std::vector<k_node> ret = std::vector<k_node>();
+  for( auto itr = _nodes.rbegin(); itr != _nodes.rend(); ++itr )
   {
 	if( auto iitr = std::find_if( ignore_nodes.begin(), ignore_nodes.end(), [itr]( const k_node &kn ){
 			return *itr == kn ;
@@ -157,11 +158,31 @@ std::size_t k_bucket::count() const
   return _nodes.size();
 }
 
-void k_bucket::print() const
+void k_bucket::print_vertical() const
 {
   for( int i=0; i<_nodes.size(); i++ ){
 	std::cout << "node (" << i << ") ";
 	_nodes.at(i).print(); std::cout << "\n";
+  } std::cout << "\n";
+}
+
+void k_bucket::print_horizontal() const
+{
+  for( int i=0; i<_nodes.size(); i++ )
+  {
+	 std::cout << "|" << std::setw(15) << i+1 << " | ";
+  }  std::cout << "\n";
+
+  for( auto itr : _nodes )
+  {
+	std::size_t ip_str_width = std::max( (std::size_t)0, itr.get_endpoint().address().to_string().length() );
+	std::cout << "|" << std::setw(15) << itr.get_endpoint().address().to_string() << " | ";
+  } std::cout << "\n";
+
+  for( auto itr : _nodes )
+  {
+	std::size_t port_str_width = std::max( (std::size_t)0, std::to_string(itr.get_endpoint().port()).length() );
+	std::cout << "|" << std::setw(15) << std::to_string(itr.get_endpoint().port()) << " | ";
   } std::cout << "\n";
 }
 

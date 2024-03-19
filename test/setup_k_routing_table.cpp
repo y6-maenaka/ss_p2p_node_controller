@@ -26,6 +26,7 @@ using namespace boost::uuids;
 int setup_k_routing_table()
 {
   ip::udp::endpoint self_endpoint( ip::udp::v4(), 8100 );
+  ss::kademlia::k_node self_k_node( self_endpoint );
   // std::vector< ss::kademlia::k_node > nodes;
 
   ip::udp::endpoint peer_endpoint_1( ip::address::from_string("127.0.0.1"), 8090 );
@@ -42,27 +43,49 @@ int setup_k_routing_table()
   ss::kademlia::node_id self_id = ss::kademlia::calc_node_id( self_endpoint );
   ss::kademlia::k_routing_table routing_table( self_id );
 
+  /*
   routing_table.calc_branch_index( k_node_1 );
   routing_table.calc_branch_index( k_node_2 );
   routing_table.calc_branch_index( k_node_3 );
   routing_table.calc_branch_index( k_node_4 );
   routing_table.calc_branch_index( k_node_5 );
-
-
-  routing_table.auto_update( k_node_1 );
+  */
+  
   /*
+  routing_table.auto_update( k_node_1 );
   routing_table.auto_update( k_node_2 );
   routing_table.auto_update( k_node_3 );
   routing_table.auto_update( k_node_4 );
   routing_table.auto_update( k_node_5 );
   */
 
+  
+  std::vector<ss::kademlia::k_node> ignore_nodes;
+  for( int i=0; i<100; i++ )
+  {
+	ip::udp::endpoint _ep = ss::generate_random_endpoint();
+	ss::kademlia::k_node _k_node( _ep );
+	routing_table.auto_update( _k_node );
+  }
+
+  routing_table.print();
+
+
+  auto nodes = routing_table.collect_node( self_k_node, 5, ignore_nodes );
+  for( auto itr : nodes )
+  {
+	std::cout << itr.get_endpoint() << "\n";
+  }
+
+  return 0;
+
+
   auto &bucket = routing_table.get_bucket( k_node_1 );
-  bucket.print();
+  bucket.print_vertical();
   std::cout << "---------------------------" << "\n";
   std::cout << bucket.swap_node( k_node_1, k_node_5 ) << "\n";
   std::cout << "---------------------------" << "\n";
-  bucket.print();
+  bucket.print_vertical();
 
 
   k_node_1 = k_node_2;

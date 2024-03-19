@@ -5,6 +5,8 @@
 #include <string>
 #include <mutex>
 #include <condition_variable>
+#include <iostream>
+#include <random>
 
 #include "boost/asio.hpp"
 
@@ -21,7 +23,9 @@ std::string endpoint_to_str( ip::udp::endpoint &ep ); // encode endpoint
 ip::udp::endpoint str_to_endpoint( std::string &ep_str ); // decode endpoint
 std::pair<std::string, std::uint16_t> extract_endpoint( ip::udp::endpoint &ep );
 ip::udp::endpoint addr_pair_to_endpoint( std::string ip, std::uint16_t port );
+ip::udp::endpoint generate_random_endpoint();
 
+std::size_t get_console_width();
 
 }; // namespace ss
 

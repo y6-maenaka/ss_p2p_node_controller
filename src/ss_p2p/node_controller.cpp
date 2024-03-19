@@ -21,6 +21,11 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
   return;
 }
 
+udp_socket_manager &node_controller::get_socket_manager()
+{
+  return _u_sock_manager;
+}
+
 void node_controller::start()
 {
   std::thread daemon([&]()

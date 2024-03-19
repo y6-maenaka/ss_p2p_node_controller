@@ -1,4 +1,5 @@
 #include <utils.hpp>
+#include <sys/ioctl.h>
 
 
 namespace ss
@@ -40,6 +41,31 @@ std::pair<std::string, std::uint16_t> extract_endpoint( ip::udp::endpoint &ep )
 ip::udp::endpoint addr_pair_to_endpoint( std::string ip, std::uint16_t port )
 {
   return ip::udp::endpoint( ip::address::from_string(ip), port );
+}
+
+ip::udp::endpoint generate_random_endpoint()
+{
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis_ip(1, 255);
+  std::uniform_int_distribution<> dis_port(1024, 65535);
+
+  std::uint8_t byte_1 = dis_ip(gen);
+  std::uint8_t byte_2 = dis_ip(gen);
+  std::uint8_t byte_3 = dis_ip(gen);
+  std::uint8_t byte_4 = dis_ip(gen);
+
+  boost::asio::ip::address_v4 random_ip((byte_1 << 24) | (byte_2 << 16) | (byte_3 << 8) | byte_4);
+  unsigned short random_port = dis_port(gen);
+
+  return ip::udp::endpoint( random_ip, random_port );
+}
+
+std::size_t get_console_width()
+{
+  struct winsize ws;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
+  return ws.ws_col;
 }
 
 

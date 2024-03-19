@@ -1,7 +1,6 @@
 #include <optional>
 
 #include <ss_p2p/ice_agent/ice_agent.hpp>
-#include <ss_p2p/ice_agent/signaling_server.hpp>
 #include <ss_p2p/ice_agent/ice_observer_strage.hpp>
 #include <ss_p2p/observer.hpp>
 
@@ -19,6 +18,7 @@ ice_agent::ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::
   , _app_id( id )
   , _ice_sender( sock_manager, glob_self_ep, id )
   , _obs_strage( io_ctx )
+  , _sgnl_server( io_ctx, _ice_sender, d_routing_table_controller, _obs_strage )
 {
   return;
 }
@@ -50,7 +50,7 @@ void ice_agent::income_msg( std::shared_ptr<message> msg )
 	  return call_observer_income_message(*obs); // relay_observerの検索
 	}
 
-	_sgnl_server->income_message( msg ); // シグナリングサーバに処理を投げる
+	_sgnl_server.income_message( msg ); // シグナリングサーバに処理を投げる
   }
 
   else if( protocol == ice_message::protocol_t::stun )
@@ -59,6 +59,11 @@ void ice_agent::income_msg( std::shared_ptr<message> msg )
   }
 
   return;
+}
+
+signaling_server::s_send_func ice_agent::get_signaling_send_func()
+{
+  return _sgnl_server.get_signaling_send_func();
 }
 
 ice_sender& ice_agent::get_ice_sender()

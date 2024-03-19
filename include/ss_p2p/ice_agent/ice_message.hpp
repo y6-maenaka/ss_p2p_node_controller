@@ -46,6 +46,7 @@ public:
   protocol_t get_protocol() const;
   struct signaling_message_controller
   {
+	friend ice_message;
 	enum sub_protocol_t
 	{
 		request
@@ -55,6 +56,7 @@ public:
 	sub_protocol_t sub_protocol;
 
 	signaling_message_controller( json &body );
+	signaling_message_controller( ice_message *from );
 
 	void add_relay_endpoint( ip::udp::endpoint ep ); // 中継したノード(endpoint)を追加
 	std::vector< ip::udp::endpoint > get_relay_endpoints();
@@ -63,6 +65,7 @@ public:
 	sub_protocol_t get_sub_protocol();
 	int get_ttl() const;
 	void decrement_ttl();
+	void print() const;
 	private:		
 	  json &_body;
   };

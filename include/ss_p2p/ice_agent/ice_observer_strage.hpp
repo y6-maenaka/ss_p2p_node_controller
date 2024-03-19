@@ -8,9 +8,11 @@
 #include <tuple>
 #include <functional>
 
+#include <utils.hpp>
 #include <ss_p2p/observer.hpp>
 #include <ss_p2p/observer_strage.hpp>
 #include "./ice_observer.hpp"
+#include "./ice_observer_strage.hpp"
 
 #include "boost/asio.hpp"
 
@@ -40,6 +42,7 @@ protected:
 	for( auto itr = entry.begin(); itr != entry.end(); )
 	{
 	  if( (*itr).is_expired() ) itr = entry.erase(itr) ;
+	  else itr++;
 	}
 	return;
   }
@@ -47,15 +50,23 @@ protected:
   template < typename T >
   void print_entry_state( observer_strage_entry<T> &entry )
   {
+	for( int i=0; i<get_console_width()/2; i++ ){ printf("="); } std::cout << "\n";
+	if constexpr (std::is_same_v<T, signaling_request>) std::cout << "| signaling_request" << "\n";
+	else if constexpr (std::is_same_v<T, signaling_relay>) std::cout << "| signaling_response" << "\n";
+	else if constexpr (std::is_same_v<T, signaling_response>) std::cout << "| signaling_response" << "\n";
+	else if constexpr (std::is_same_v<T, signaling_response>) std::cout << "| stun" << "\n";
+	else std::cout << "| undefine" << "\n";
+
 	unsigned int count = 0;
-	std::cout << "-------------------------------------------" << "\n";
+	for( int i=0; i<get_console_width()/2; i++ ){ printf("-"); } std::cout << "\n";
+	std::cout << "\x1b[32m";
 	for( auto &itr : entry )
 	{
-	  std::cout << "("<< count << ")";
+	  std::cout << "| ("<< count << ") ";
 	  itr.print();
 	  count++;
 	}
-	return;
+	std::cout << "\x1b[39m" << "\n";
   }
 
   void refresh_tick( const boost::system::error_code &ec );

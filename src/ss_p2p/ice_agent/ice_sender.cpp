@@ -6,6 +6,7 @@ namespace ss
 namespace ice
 {
 
+
 ice_sender::ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id ) :
   _sock_manager( sock_manager )
   , _glob_self_ep( glob_self_ep )
@@ -14,10 +15,11 @@ ice_sender::ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glo
   return;
 }
 
-void ice_sender::send_done( const boost::system::error_code &ec )
+void ice_sender::on_send_done( const boost::system::error_code &ec )
 {
   #if SS_VERBOSE
-  std::cout << "nat traversal send done" << "\n";
+  if( !ec ) std::cout << "ice_sender::send success" << "\n";
+  else std::cout << "ice_sender::send error" << "\n";
   #endif
 }
 

@@ -1,6 +1,5 @@
 #include <ss_p2p/ice_agent/signaling_server.hpp>
 #include <ss_p2p/ice_agent/ice_observer.hpp>
-#include <ss_p2p/ice_agent/ice_observer_strage.hpp>
 #include <ss_p2p/ice_agent/ice_agent.hpp>
 
 
@@ -10,7 +9,7 @@ namespace ice
 {
 
 
-signaling_server::signaling_server( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage *obs_strage ) : 
+signaling_server::signaling_server( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage ) : 
    _io_ctx( io_ctx ) 
   , _ice_sender( ice_sender )
   , _d_routing_table_controller( d_routing_table_controller )
@@ -37,12 +36,15 @@ void signaling_server::income_message( std::shared_ptr<message> msg )
 
 	observer<signaling_response> sgnl_response_obs( _io_ctx, _ice_sender, _d_routing_table_controller );
 
+	std::cout << "このさき危険" << "\n";
 	_ice_sender.ice_send( dest_ep, ice_res_mes // レスポンスの送信
-		, std::bind(&observer<signaling_response>::init
-		, sgnl_response_obs ) 
+		, std::bind( &signaling_response::init
+		, *(sgnl_response_obs.get_raw())
+		, std::placeholders::_1 
+		) 
 	  );
-  
-	_obs_strage->add_observer<signaling_response>( sgnl_response_obs ); // ストレージに追加する
+
+	_obs_strage.add_observer<signaling_response>( sgnl_response_obs ); // ストレージに追加する
 	return;
   }
 
@@ -51,10 +53,12 @@ void signaling_server::income_message( std::shared_ptr<message> msg )
 
   if( _d_routing_table_controller.is_exist(dest_ep) )  // signaling転送先が自身のルーティングテーブルに存在する場合
   {
+	/*
 	_ice_sender.ice_send( dest_ep, ice_msg, // 直接相手アドレスに転送する
-		std::bind( &observer<signaling_relay>::init
+		std::bind( &signaling_relay::init
 		  , sgnl_relay_obs ) 
 		);
+	*/
 	return;
   }
 
@@ -64,7 +68,7 @@ void signaling_server::income_message( std::shared_ptr<message> msg )
   int ttl = sgnl_msg_controller.get_ttl();
   if( ttl <= 0 ) return; // ttlが0以下だったらメッセージを破棄する
 	
-  auto forward_eps = _d_routing_table_controller.collect_nodes( dest_ep, 3, relay_eps ); // 転送先
+  auto forward_eps = _d_routing_table_controller.collect_node( dest_ep, 3, relay_eps ); // 転送先
   for( auto itr : forward_eps )	
 	sgnl_msg_controller.add_relay_endpoint(itr); // 転送先をリレーノードとして追加する
   sgnl_msg_controller.add_relay_endpoint( _ice_sender.get_self_endpoint() ); // 自身も中継ノードに追加する
@@ -72,10 +76,12 @@ void signaling_server::income_message( std::shared_ptr<message> msg )
   // 転送s
   for( auto itr : forward_eps )
   {
+	/*
 	_ice_sender.ice_send( itr, ice_msg
-	  , std::bind( &observer<signaling_relay>::init
+	  , std::bind( &signaling_relay::init
 		, sgnl_relay_obs ) 
 	  );
+	*/
   }
 
   return;
@@ -103,6 +109,7 @@ void signaling_server::signaling_send( ip::udp::endpoint &dest_ep, std::string r
 {
   if( _d_routing_table_controller.is_exist(dest_ep) )
   {
+	std::cout << "-- ** --" << "\n";
 	_ice_sender.send( dest_ep, root_param, payload
 		, std::bind( &signaling_server::on_send_done, this, std::placeholders::_1)
 	  );
@@ -110,9 +117,9 @@ void signaling_server::signaling_send( ip::udp::endpoint &dest_ep, std::string r
   }
 
   observer<signaling_request> sgnl_req_obs( _io_ctx, _ice_sender, _d_routing_table_controller );
-  sgnl_req_obs.get_raw()->init( dest_ep, root_param, payload ); // 納得いかない
+  sgnl_req_obs.init( dest_ep, root_param, payload );
 
-  _obs_strage->add_observer<signaling_request>( sgnl_req_obs ); // store
+  _obs_strage.add_observer<signaling_request>( sgnl_req_obs ); // store
 }
 
 signaling_server::s_send_func signaling_server::get_signaling_send_func()

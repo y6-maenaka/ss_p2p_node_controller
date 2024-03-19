@@ -60,7 +60,7 @@ public:
 	return;
   }
 
-  void send_done( const boost::system::error_code &ec );
+  void on_send_done( const boost::system::error_code &ec );
 
   ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id );
   ip::udp::endpoint &get_self_endpoint() const; 

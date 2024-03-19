@@ -17,7 +17,7 @@ namespace kademlia
 {
 
 
-constexpr unsigned short DEFAULT_K = 2;
+constexpr unsigned short DEFAULT_K = 4;
 
 
 class k_bucket
@@ -41,10 +41,8 @@ public:
   };
   update_state auto_update( k_node kn );
 
-  std::vector<k_node> get_node_front( std::size_t count = 1 , unsigned short start_idx = 0,
-	  const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
-  std::vector<k_node> get_node_back( std::size_t count = 1 , unsigned short start_idx = 0,
-	  const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  std::vector<k_node> get_node_front( std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  std::vector<k_node> get_node_back( std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
 
   bool add_back( k_node kn );
   bool move_back( k_node &kn );
@@ -54,7 +52,8 @@ public:
   bool is_full() const;
   std::size_t count() const;
 
-  void print() const;
+  void print_vertical() const; // 縦表示
+  void print_horizontal() const; // 横表示
 };
 
   

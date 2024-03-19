@@ -25,7 +25,7 @@ namespace ice
 };
 
 
-constexpr unsigned short DEFAULT_EXPIRE_TIME_s = 10/*[seconds]*/;
+constexpr unsigned short DEFAULT_EXPIRE_TIME_s = 20/*[seconds]*/;
 
 
 class base_observer
@@ -40,6 +40,7 @@ protected:
 
   void destruct_self(); // 本オブザーバーの破棄を許可する
   void extend_expire_at( std::time_t t = DEFAULT_EXPIRE_TIME_s );
+  std::time_t get_expire_time_left() const;
 
   std::time_t _expire_at; // このオブザーバーを破棄する時間
   io_context &_io_ctx;
@@ -71,17 +72,18 @@ public:
 	_body = std::make_shared<T>(io_ctx, std::forward<Args>(args)...);
   }
 
-  void init()
+  template < typename ... Args >
+  void init( Args&& ... args )
   {
-	return _body->init();
+	return _body->init( std::forward<Args>(args)... );
   }
   void income_message( message &msg )
   {
 	return _body->income_message(msg);
   }
-  void on_send_success( const boost::system::error_code &ec )
+  void on_send_done( const boost::system::error_code &ec )
   {
-	return _body->on_send_success( ec );
+	return _body->on_send_done( ec );
   }
   bool is_expired() const
   {
@@ -98,6 +100,10 @@ public:
   std::shared_ptr<T> get_raw()
   {
 	return _body;
+  }
+  std::time_t get_expire_time_left() const
+  {
+	return std::dynamic_pointer_cast<base_observer>(_body)->get_expire_time_left();
   }
   bool operator==(const observer<T> &obs ) const
   {

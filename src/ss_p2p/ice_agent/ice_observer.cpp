@@ -25,39 +25,43 @@ signaling_request::signaling_request( io_context &io_ctx, ice_sender &ice_sender
 
 void signaling_request::init( ip::udp::endpoint &dest_ep, std::string param, json payload ) // ホスト->ピア方向へのNatを開通させるためのダミーメッセージを送信する
 {
-  // nat開通用にダミーメッセージを送信する
   std::string dummy_msg_str = "signaling dummy"; json dummy_msg_json = dummy_msg_str;
-  _ice_sender.send( _msg_cache.ep, "dummy", dummy_msg_json
-		, std::bind( &signaling_request::on_send_success, this, std::placeholders::_1 )
-	);
 
+  _ice_sender.send( dest_ep, "dummy", dummy_msg_json
+	  , std::bind( &signaling_request::on_send_done, this, std::placeholders::_1 )
+  ); // nat開通用にダミーメッセージを送信する
+
+  // キャッシュの登録
   _msg_cache.ep = dest_ep;
   _msg_cache.param = param;
   _msg_cache.payload = payload;
 
-
-  ice_message ice_msg = ice_message::_signaling_();
-  auto msg_controller = ice_msg.get_sgnl_msg_controller();
-  msg_controller.set_sub_protocol( ice_message::signaling_message_controller::sub_protocol_t::request );
-
-  std::vector<ip::udp::endpoint> forward_eps = _d_routing_table_controller.collect_nodes( dest_ep, 3/*適当*/ );
+  ice_message ice_msg = ice_message::_signaling_(); // シグナリングメッセージの作成
+  auto msg_controller = ice_msg.get_sgnl_msg_controller(); // ice_messageからsignaling_mes_controllerを取得
+  msg_controller.set_sub_protocol( ice_message::signaling_message_controller::sub_protocol_t::request ); // サブプロトコルの設定 
+ 
+  std::vector<ip::udp::endpoint> forward_eps = _d_routing_table_controller.collect_node( dest_ep, 3/*適当*/ );
   for( auto itr : forward_eps )
   {
 	_ice_sender.ice_send( itr, ice_msg
-	  , std::bind( &signaling_request::on_send_success
+	  , std::bind( &signaling_request::on_send_done
 		, this
 		, std::placeholders::_1 ) 
 	  );
-  }
 
-  #if SS_VERBOSE
-  std::cout << "(init observer) signaling_request" << "\n";
-  #endif
+	#if SS_VERBOSE
+	std::cout << "(init observer)[signaling request] send -> " << itr << "\n";
+	#endif
+  }
+  return;
 }
 
-void signaling_request::on_send_success( const boost::system::error_code &ec )
+void signaling_request::on_send_done( const boost::system::error_code &ec )
 {
-  return;
+  #if SS_VERBOSE
+  if( !ec ) std::cout << "signaling_request::send success" << "\n";
+  else std::cout << "signaling_request::send error" << "\n";
+  #endif 
 }
 
 void signaling_request::on_traversal_done( const boost::system::error_code &ec )
@@ -93,6 +97,7 @@ void signaling_request::income_message( message &msg )
 
   if( msg_controller.get_sub_protocol() == ice_message::signaling_message_controller::sub_protocol_t::response ) // シグナリング成功レスポンスの場合
   {
+	
 	_ice_sender.send( _msg_cache.ep, _msg_cache.param, _msg_cache.payload
 		, std::bind( &signaling_request::on_traversal_done, this, std::placeholders::_1) ); // 疎通後メッセージを送信する
   }
@@ -108,12 +113,12 @@ void signaling_request::income_message( message &msg )
   _ice_sender.send( _msg_cache.ep, _msg_cache.param,_msg_cache.payload
 	  , std::bind( &signaling_request::on_traversal_done, this , std::placeholders::_1 )
 	);
-  return;
 }
 
 void signaling_request::print() const
 {
-  std::cout << "[observer] (signaling-request) " << "<" << _id << ">" << "\n";
+  std::cout << "[observer] (signaling-request) " << "<" << _id << ">";
+  std::cout << " [ at: "<< ice_observer::get_expire_time_left() <<" ]";
 }
 
 
@@ -123,7 +128,7 @@ signaling_response::signaling_response( io_context &io_ctx, ice_sender &ice_send
   return;
 }
 
-void signaling_response::init()
+void signaling_response::init( const boost::system::error_code &ec )
 {
   #if SS_VERBOSE
   std::cout << "(init observer) signaling_response" << "\n";

@@ -49,6 +49,7 @@ public:
   void stop();
   peer get_peer( ip::udp::endpoint &ep );
   node_controller( ip::udp::endpoint &self_ep , std::shared_ptr<io_context> io_ctx = std::make_shared<boost::asio::io_context>() );
+  udp_socket_manager& get_socket_manager();
 
 protected:
   void tick( const boost::system::error_code &ec ); // 未使用ピアノ削除, on_tickのセット, 新しいpeerへの接続要求

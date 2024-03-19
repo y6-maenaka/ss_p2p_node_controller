@@ -1,6 +1,7 @@
 #include <ss_p2p/node_controller.hpp>
 #include <ss_p2p/message.hpp>
 #include <hash.hpp>
+#include <utils.hpp>
 
 #include "boost/asio.hpp"
 
@@ -15,6 +16,8 @@
 
 int setup_peer()
 {
+
+
   ip::udp::endpoint self_endpoint( ip::udp::v4(), 8100 );
   ss::node_controller node_controller( self_endpoint );
   node_controller.start();

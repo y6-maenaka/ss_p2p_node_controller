@@ -12,6 +12,7 @@
 #include "./ice_message.hpp"
 #include "./ice_sender.hpp"
 #include "./ice_observer_strage.hpp"
+#include "./signaling_server.hpp"
 
 #include "boost/asio.hpp"
 
@@ -25,10 +26,6 @@ namespace ice
 {
 
 
-class signaling_server;
-class ice_observer_strage;
-
-
 class ice_agent
 {
 public:
@@ -36,9 +33,8 @@ public:
   void hello();
 
   void income_msg( std::shared_ptr<message> msg ); // メッセージ受信
-
-  ice_sender _ice_sender;
-  ice_sender& get_ice_sender();
+  
+  signaling_server::s_send_func get_signaling_send_func();
 
   #if SS_DEBUG
   ice_observer_strage &get_observer_strage();
@@ -49,8 +45,11 @@ private:
   ip::udp::endpoint &_glob_self_ep; // グローバルendpoing
   message::app_id _app_id;
 
-  std::shared_ptr<signaling_server> _sgnl_server;
+  signaling_server _sgnl_server;
   ice_observer_strage _obs_strage;
+
+  ice_sender _ice_sender;
+  ice_sender& get_ice_sender();
 };
 
 

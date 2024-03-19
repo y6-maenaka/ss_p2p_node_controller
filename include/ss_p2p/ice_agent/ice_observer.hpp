@@ -52,7 +52,7 @@ public:
   } _msg_cache;
 
   signaling_request( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
-  void on_send_success( const boost::system::error_code &ec );
+  void on_send_done( const boost::system::error_code &ec );
 private:
   json format_request_msg( ip::udp::endpoint &src_ep, ip::udp::endpoint &dest_ep ); // リクエストメッセージのフォーマット
 
@@ -66,9 +66,9 @@ class signaling_response : public ice_observer
 {
 public:
   signaling_response( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller );
-  void init(); // 有効期限を設定する
+  void init( const boost::system::error_code &ec ); // 有効期限を設定する
   void income_message( message &msg );
-  void on_send_success( const boost::system::error_code &ec );
+  void on_send_done( const boost::system::error_code &ec );
   void print() const;
 };
 
@@ -78,7 +78,7 @@ public:
   signaling_relay( io_context &io_ctx, ice_sender &ice_sender, direct_routing_table_controller &d_routing_table_controller );
   void init();
   void income_message( message &msg );
-  void on_send_success( const boost::system::error_code &ec );
+  void on_send_done( const boost::system::error_code &ec );
   void print() const;
 };
 

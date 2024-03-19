@@ -8,8 +8,14 @@ namespace ss
 base_observer::base_observer( io_context &io_ctx ) : 
   _id( random_generator()() ) 
   , _io_ctx( io_ctx )
+  , _expire_at(std::time(nullptr) + DEFAULT_EXPIRE_TIME_s)
 {
   return;
+}
+
+std::time_t base_observer::get_expire_time_left() const
+{
+  return _expire_at - std::time(nullptr);
 }
 
 base_observer::id base_observer::get_id() const

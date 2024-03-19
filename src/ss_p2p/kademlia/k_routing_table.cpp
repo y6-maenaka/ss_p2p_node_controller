@@ -60,16 +60,16 @@ k_bucket::update_state k_routing_table::auto_update( k_node kn )
   return ret;
 }
 
-std::vector<k_node> k_routing_table::get_node_front( k_node& root_node, std::size_t count, unsigned short short_idx, const std::vector<k_node> &ignore_nodes )
+std::vector<k_node> k_routing_table::get_node_front( k_node& root_node, std::size_t count, const std::vector<k_node> &ignore_nodes )
 {
    k_bucket &target_bucket = this->get_bucket( root_node );
-  return target_bucket.get_node_front( count, short_idx, ignore_nodes );
+  return target_bucket.get_node_front( count, ignore_nodes );
 }
 
-std::vector<k_node> k_routing_table::get_node_back( k_node& root_node, std::size_t count, unsigned short short_idx, const std::vector<k_node> &ignore_nodes )
+std::vector<k_node> k_routing_table::get_node_back( k_node& root_node, std::size_t count, const std::vector<k_node> &ignore_nodes )
 {
    k_bucket &target_bucket = this->get_bucket( root_node );
-  return target_bucket.get_node_back( count, short_idx, ignore_nodes );
+  return target_bucket.get_node_back( count, ignore_nodes );
 }
 
 
@@ -79,43 +79,46 @@ bool k_routing_table::is_exist( k_node &kn )
   return target_bucket.is_exist(kn);
 }
 
-std::vector<k_node> k_routing_table::collect_nodes( k_node& root_node, std::size_t max_count, const std::vector<k_node> &ignore_nodes )
+std::vector<k_node> k_routing_table::collect_node( k_node& root_node, std::size_t max_count, const std::vector<k_node> &ignore_nodes )
 {
-  std::vector<k_node> ret;
+  std::vector<k_node> ret = std::vector<k_node>();
 
-  unsigned int root_bucket_idx = this->calc_branch_index(root_node);
+  int root_branch = this->calc_branch(root_node);
   std::size_t remaining_nodes_count = max_count - ret.size();
-  routing_table::iterator root_bucket_itr = _table.begin() + root_bucket_idx;
+  auto &root_bucket = this->get_bucket(root_branch);
 
   // センター(ルート)バケットの処理
-  auto geted_nodes = root_bucket_itr->get_node_back( remaining_nodes_count, 0, ignore_nodes );
-  ret.insert( ret.end(), geted_nodes.begin(), geted_nodes.end() );
+  auto nodes = root_bucket.get_node_back( remaining_nodes_count, ignore_nodes );
+  ret.insert( ret.end(), nodes.begin(), nodes.end() );
 
-  routing_table::iterator upper_bucket_itr = _table.end();
-  routing_table::iterator lower_bucket_itr = _table.end();
   bool upper_flag = false ;
   bool lower_flag = false;
   unsigned short count = 1;
 
   // 上下バケットの処理
-  while( max_count > ret.size() && !(upper_flag) && !(lower_flag) )
+  while( max_count > ret.size() && !((upper_flag) && (lower_flag)) )
   {
-	if( upper_bucket_itr != _table.end() )
+	if( (root_branch-count) >= 1 )
 	{
 	  remaining_nodes_count = max_count - ret.size(); // 残りノード数の再計算
-	  geted_nodes = upper_bucket_itr->get_node_back( remaining_nodes_count, 0, ignore_nodes );
-	  ret.insert( ret.end(), geted_nodes.begin(), geted_nodes.end() );
+	  auto& upper_bucket = this->get_bucket( root_branch - count );
+	  nodes = upper_bucket.get_node_back( remaining_nodes_count, ignore_nodes );
+	  ret.insert( ret.end(), nodes.begin(), nodes.end() );
 	}
-	if( lower_bucket_itr != _table.end() )
+	else{
+	  upper_flag = true;
+	}
+
+	if( (root_branch+count) <= 160 )
 	{
 	  remaining_nodes_count = max_count - ret.size(); // 残りノード数の再計算
-	  geted_nodes = lower_bucket_itr->get_node_back( remaining_nodes_count, 0, ignore_nodes );
-	  ret.insert( ret.end(), geted_nodes.begin(), geted_nodes.end() );
+	  auto& lower_bucket = this->get_bucket( root_branch + count );
+	  nodes = lower_bucket.get_node_back( remaining_nodes_count, ignore_nodes );
+	  ret.insert( ret.end(), nodes.begin(), nodes.end() );
 	}
-
-	if( upper_bucket_itr = std::prev( root_bucket_itr, count ); upper_bucket_itr == _table.end() ) upper_flag = true;
-	if( lower_bucket_itr = std::prev( root_bucket_itr, -count ); lower_bucket_itr == _table.end() ) lower_flag = true;
-
+	else{
+	  lower_flag = true;
+	}
 	count++;
   }
 
@@ -125,12 +128,6 @@ std::vector<k_node> k_routing_table::collect_nodes( k_node& root_node, std::size
 unsigned short k_routing_table::calc_branch_index( k_node &kn )
 {
   const auto branch = this->calc_branch(kn);
-  /*
-  #if SS_VERBOSE
-  std::cout << "branch *index* :: ";
-  std::cout << " \x1b[32m(" << std::max(branch-1, 0) << ")\x1b[39m" << "\n";
-  #endif 
-  */
   return std::max( branch -1 , 0 );
 }
 
@@ -144,6 +141,22 @@ k_bucket& k_routing_table::get_bucket( unsigned short branch )
 {
   return _table[ std::max(branch-1,0) ];
 }
+
+#if SS_DEBUG
+void k_routing_table::print()
+{
+  for( int i=1; i<=_table.size(); i++ )
+  {
+	auto &target_bucket = this->get_bucket(i);
+	for( int i=0; i< get_console_width(); i++ ) printf("=");
+	std::cout << "| k-bucket (" << i << ") ";
+	std::cout << "| c: " << target_bucket.count() << " |" << "\n";
+	for( int i=0; i<get_console_width(); i++ ) printf("-");
+	target_bucket.print_horizontal();
+	std::cout << "\n";
+  }
+}
+#endif 
 
 
 std::vector<k_node> eps_to_k_nodds( std::vector<ip::udp::endpoint> eps )
