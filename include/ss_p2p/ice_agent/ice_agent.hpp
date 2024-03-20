@@ -32,9 +32,10 @@ public:
   ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
   void hello();
 
-  void income_message( std::shared_ptr<message> msg ); // メッセージ受信
+  int income_message( std::shared_ptr<message> msg ); // メッセージ受信
   
   signaling_server::s_send_func get_signaling_send_func();
+  void update_global_self_endpoint( ip::udp::endpoint &ep );
 
   #if SS_DEBUG
   ice_observer_strage &get_observer_strage();

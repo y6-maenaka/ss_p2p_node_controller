@@ -155,6 +155,14 @@ ip::udp::endpoint ice_message::signaling_message_controller::get_dest_endpoint()
   return ss::addr_pair_to_endpoint( dest_ip, dest_port );
 }
 
+ip::udp::endpoint ice_message::signaling_message_controller::get_src_endpoint() const
+{
+  std::string src_ip = _body["src_ip"];
+  unsigned short src_port = _body["src_port"];
+  
+  return ss::addr_pair_to_endpoint( src_ip, src_port );
+}
+
 int ice_message::signaling_message_controller::get_ttl() const
 {
   return _body["ttl"].get<int>();

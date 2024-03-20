@@ -92,23 +92,24 @@ json signaling_request::format_request_msg( ip::udp::endpoint &src_ep, ip::udp::
   return ret;
 }
 
-void signaling_request::income_message( message &msg )
+int signaling_request::income_message( message &msg )
 {
-  if( _done ) return; // 処理済みであれば特に何もしない
+  if( _done ) return 0; // 処理済みであれば特に何もしない
 
   ice_message ice_msg( *(msg.get_param("ice_agent")) ); // ここでエラーが発生することは多分ない
   auto msg_controller = ice_msg.get_sgnl_msg_controller();
 
   if( msg_controller.get_sub_protocol() == ice_message::signaling_message_controller::sub_protocol_t::response ) // シグナリング成功レスポンスの場合
   {
-	
+	std::cout << "nat traversal response" << "\n";
 	_ice_sender.send( _msg_cache.ep, _msg_cache.param, _msg_cache.payload
 		, std::bind( &signaling_request::on_traversal_done, this, std::placeholders::_1) ); // 疎通後メッセージを送信する
+	return 0; 
   }
 
   // ice_messageからip, portの取得
   ip::udp::endpoint dest_ep = msg_controller.get_dest_endpoint(); 
-  if( dest_ep != _ice_sender.get_self_endpoint() ) return; // 最終検証 恐らくここで相違が発生することはない
+  if( dest_ep != _ice_sender.get_self_endpoint() ) return 0; // 最終検証 恐らくここで相違が発生することはない
   
   ice_message ice_res_msg = ice_message::_signaling_();
   auto msg_res_controller = ice_res_msg.get_sgnl_msg_controller();
@@ -117,6 +118,7 @@ void signaling_request::income_message( message &msg )
   _ice_sender.send( _msg_cache.ep, _msg_cache.param,_msg_cache.payload
 	  , std::bind( &signaling_request::on_traversal_done, this , std::placeholders::_1 )
 	);
+  return 0;
 }
 
 void signaling_request::print() const
@@ -135,21 +137,24 @@ signaling_response::signaling_response( io_context &io_ctx, ice_sender &ice_send
 void signaling_response::init( const boost::system::error_code &ec )
 {
   #if SS_VERBOSE
-  std::cout << "(init observer) signaling_response" << "\n";
+  if( !ec ) std::cout << "signaling_response::init success" << "\n";
+  else std::cout << "signaling_response::init error" << "\n";
   #endif
-  
-  extend_expire_at( 30 ); // 有効期限を30秒延長する
+ 
+  if( !ec ) extend_expire_at( 30 ); // 有効期限を30秒延長する
 }
 
-void signaling_response::income_message( ss::message &msg )
+int signaling_response::income_message( ss::message &msg )
 {
   // 一度処理しているため特に処理しない
   extend_expire_at( 20 ); 
+  return 0;
 }
 
 void signaling_response::print() const
 {
-  std::cout << "[observer] (signaling-response) " << "<" << _id << ">" << "\n";
+  std::cout << "[observer] (signaling-response) " << "<" << _id << ">";
+  std::cout << " [ at: "<< ice_observer::get_expire_time_left() <<" ]";
 }
 
 
@@ -168,15 +173,17 @@ void signaling_relay::init()
   extend_expire_at( 20 );
 }
 
-void signaling_relay::income_message( message &msg )
+int signaling_relay::income_message( message &msg )
 {
   // 一度処理しているため特に処理しない
   extend_expire_at( 20 );
+  return 0;
 }
 
 void signaling_relay::print() const
 {
-  std::cout << "[observer] (signaling-relay) " << "<" << _id << ">" << "\n";
+  std::cout << "[observer] (signaling-relay) " << "<" << _id << ">";
+  std::cout << " [ at: "<< ice_observer::get_expire_time_left() <<" ]";
 }
 
 

@@ -63,7 +63,7 @@ protected:
 	for( auto &itr : entry )
 	{
 	  std::cout << "| ("<< count << ") ";
-	  itr.print();
+	  itr.print(); std::cout << "\n";
 	  count++;
 	}
 	std::cout << "\x1b[39m" << "\n";

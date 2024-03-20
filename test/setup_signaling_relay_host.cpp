@@ -34,11 +34,9 @@ int setup_signaling_relay_host()
   }
 
   // nat到達先ノードを追加( 検証用 )
-  /*
   ip::udp::endpoint nat_dest_ep( ip::address::from_string("127.0.0.1"), 8100 ); // nat目標ep
   k_node nat_dest_k_node(nat_dest_ep);
   routing_table.auto_update( nat_dest_k_node );
-  */
 
 
   std::this_thread::sleep_for( std::chrono::seconds(1) );

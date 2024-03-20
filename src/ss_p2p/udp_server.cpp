@@ -35,16 +35,11 @@ bool udp_server::start()
 void udp_server::on_sock_read( const boost::system::error_code& ec, std::size_t bytes_transferred )
 {
    std::span<char> raw_msg( _recv_buff.data(), bytes_transferred );
-  _io_ctx.post([this, raw_msg]() // node_contollerに転送
+   std::cout << "src ep -> " << _src_ep << "\n";
+   _io_ctx.post([this, raw_msg]() // node_contollerに転送
 	  {
 		this->_recv_handler( raw_msg, this->_src_ep );
-	  });
-
-   #if SS_CAPTURE_PACKET
-	std::cout << _src_ep << " : ";
-	for( auto itr : raw_msg ) std::cout << itr;
-	std::cout << "\n";
-   #endif
+	  }); 
 
   _sock_manager.self_sock().async_receive_from( // 再び受信を行う
 		boost::asio::buffer( _recv_buff ),

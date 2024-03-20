@@ -19,7 +19,7 @@ signaling_server::signaling_server( io_context &io_ctx, ice_sender &ice_sender, 
   return;
 }
 
-void signaling_server::income_message( std::shared_ptr<message> msg )
+int signaling_server::income_message( std::shared_ptr<message> msg )
 {
   ice_message ice_msg( *(msg->get_param("ice_agent")) );
   auto sgnl_msg_controller = ice_msg.get_sgnl_msg_controller();
@@ -29,29 +29,38 @@ void signaling_server::income_message( std::shared_ptr<message> msg )
 
   if( dest_ep == _ice_sender.get_self_endpoint() )
   {
+	ip::udp::endpoint src_ep = sgnl_msg_controller.get_src_endpoint();
+
 	// signaling_responseメッセージを送信する
-	ice_message ice_res_mes = ice_message::_signaling_();
-	auto msg_controller = ice_res_mes.get_sgnl_msg_controller();
+	auto msg_controller = ice_msg.get_sgnl_msg_controller();
 	msg_controller.set_sub_protocol( ice_message::signaling_message_controller::sub_protocol_t::response );
 
 	observer<signaling_response> sgnl_response_obs( _io_ctx, _ice_sender, _glob_self_ep, _d_routing_table_controller );
 
-	std::cout << "このさき危険" << "\n";
-	_ice_sender.ice_send( dest_ep, ice_res_mes // レスポンスの送信
+	ip::address_v4 temp_v4 = ip::address_v4::from_string("127.0.0.1");
+	src_ep.address(temp_v4);
+  
+	_ice_sender.ice_send( src_ep, ice_msg // レスポンスの送信
 		, std::bind( &signaling_response::init
 		, *(sgnl_response_obs.get_raw())
-		, std::placeholders::_1 
-		) 
+		, std::placeholders::_1 ) 
 	  );
 
+	#if SS_VERBOSE
+	std::cout << "(init observer)[signaling response] send -> " << src_ep << "\n";
+	#endif
+
+	std::cout << "-- 1" << "\n";
 	_obs_strage.add_observer<signaling_response>( sgnl_response_obs ); // ストレージに追加する
-	return;
+	std::cout << "-- 2" << "\n"	;
+	return 0;
   }
 
   /* この先転送系の処理 */
 
   observer<signaling_relay> sgnl_relay_obs( _io_ctx, _ice_sender, _glob_self_ep, _d_routing_table_controller ); // relayオブザーバーの作成
   sgnl_msg_controller.add_relay_endpoint( _ice_sender.get_self_endpoint() ); // 自身も中継ノードに追加する
+  sgnl_msg_controller.set_sub_protocol( ice_message::signaling_message_controller::sub_protocol_t::relay );
 
   // 自身のルーティングテーブルにdest_epがあれば,特に他ノードには転送させず,直接送信する
   if( _d_routing_table_controller.is_exist(dest_ep) )  // signaling転送先が自身のルーティングテーブルに存在する場合
@@ -66,14 +75,14 @@ void signaling_server::income_message( std::shared_ptr<message> msg )
 	#endif
   
 	_obs_strage.add_observer<signaling_relay>( sgnl_relay_obs );
-	return;
+	return 0;
   }
 
   std::vector<ip::udp::endpoint> relay_eps = sgnl_msg_controller.get_relay_endpoints(); // リレーしたノードを無視するようにする
 
   // 2. destが自身でなく,ttlが有効であれば他ノードに転送してobserverをセットする
   int ttl = sgnl_msg_controller.get_ttl();
-  if( ttl <= 0 ) return; // ttlが0以下だったらメッセージを破棄する
+  if( ttl <= 0 ) return 0; // ttlが0以下だったらメッセージを破棄する
 	
   auto forward_eps = _d_routing_table_controller.collect_node( dest_ep, 3, relay_eps ); // 転送先
   for( auto itr : forward_eps )	
@@ -93,11 +102,15 @@ void signaling_server::income_message( std::shared_ptr<message> msg )
   }
   
   _obs_strage.add_observer<signaling_relay>( sgnl_relay_obs );
+  return 0;
 }
 
 void signaling_server::on_send_done( const boost::system::error_code &ec )
 {
-  return;
+  #if SS_VERBOSE
+  if( !ec ) std::cout << "(signaling_server) send done" << "\n";
+  else std::cout << "(signaling_server) send error" << "\n";
+  #endif
 }
 
 ice_message signaling_server::format_relay_msg( ice_message &base_msg )

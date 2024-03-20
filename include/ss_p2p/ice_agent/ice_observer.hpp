@@ -41,7 +41,7 @@ class signaling_request : public ice_observer
 public:
   void init( ip::udp::endpoint &dest_ep, std::string parma, json payload );
   void timeout();
-  void income_message( ss::message &msg );
+  int income_message( ss::message &msg );
   void print() const;
 
   struct msg_cache
@@ -68,7 +68,7 @@ class signaling_response : public ice_observer
 public:
   signaling_response( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller );
   void init( const boost::system::error_code &ec ); // 有効期限を設定する
-  void income_message( message &msg );
+  int income_message( message &msg );
   void on_send_done( const boost::system::error_code &ec );
   void print() const;
 };
@@ -78,7 +78,7 @@ class signaling_relay : public ice_observer
 public:
   signaling_relay( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller );
   void init();
-  void income_message( message &msg );
+  int income_message( message &msg );
   void on_send_done( const boost::system::error_code &ec );
   void print() const;
 };
@@ -87,7 +87,7 @@ class stun : public ice_observer
 {
 public:
   void init( ip::udp::endpoint &glob_self_ep );
-  void income_message( message &msg );
+  int income_message( message &msg );
   void print() const;
 };
 

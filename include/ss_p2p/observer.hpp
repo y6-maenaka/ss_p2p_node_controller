@@ -72,7 +72,7 @@ public:
   {
 	return _body->init( std::forward<Args>(args)... );
   }
-  void income_message( message &msg )
+  int income_message( message &msg )
   {
 	return _body->income_message(msg);
   }

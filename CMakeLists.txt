@@ -136,6 +136,13 @@ if( _BUILD_TEST )
                         ss_p2p
 						${OPENSSL_LIBRARIES}
    )
+
+  add_executable( node_2 ./run/node_2.cpp )
+   target_link_libraries( node_2 PRIVATE
+                        ss_p2p
+						${OPENSSL_LIBRARIES}
+   )
+
 endif()
 
 

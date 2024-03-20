@@ -49,17 +49,15 @@ int setup_ice_agent()
 
   std::shared_ptr<io_context> io_ctx = std::make_shared<io_context>();
   ip::udp::endpoint self_endpoint( ip::udp::v4(), 8090 );
-  ss::udp_socket_manager sock_manager( self_endpoint, *io_ctx );
 
-  // 受信用サーバ スタート
-  ss::udp_server udp_server( sock_manager, *io_ctx, show_buff );
-  udp_server.start();
+
+  ss::node_controller n_controller( self_endpoint, io_ctx );
+  n_controller.start();
 
 
   // ルーティングテーブルのセットアップ
-  ss::kademlia::k_node self_k_node( self_endpoint );
-  ss::kademlia::k_routing_table routing_table( self_k_node.get_id() );
-  ss::kademlia::direct_routing_table_controller routing_table_controller( routing_table );
+  auto &routing_table = n_controller.get_routing_table();
+  auto &ice_agent = n_controller.get_ice_agent();
 
 
   // ダミーのピアをルーティングテーブルに追加
@@ -75,15 +73,13 @@ int setup_ice_agent()
 
 
   // ice_agentのセットアップ
-  ss::ice::ice_agent i_agent( *io_ctx, sock_manager, self_endpoint, id, routing_table_controller );
-  auto s_send_func = i_agent.get_signaling_send_func();
+  auto s_send_func = ice_agent.get_signaling_send_func();
   
   ip::udp::endpoint local_dest_ep( ip::address::from_string("127.0.0.1"), 8100 );
   json payload; payload["greet"] = "Hello World";
   s_send_func( local_dest_ep, "body", payload, boost::system::error_code{} );
 
-  auto& ice_observer_strage = i_agent.get_observer_strage();
-  ice_observer_strage.show_state( boost::system::error_code{} );
+  // ice_observer_strage.show_state( boost::system::error_code{} );
 
 
   io_ctx->run();
