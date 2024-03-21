@@ -121,6 +121,7 @@ struct observer<T>::Hash
 
 using observer_id = base_observer::id;
 base_observer::id str_to_observer_id( std::string from );
+std::string observer_id_to_str( const observer_id &from );
 
 };
 

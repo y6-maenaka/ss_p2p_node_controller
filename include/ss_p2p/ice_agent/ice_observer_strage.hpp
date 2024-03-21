@@ -33,7 +33,7 @@ constexpr unsigned short DEFAULT_OBSERVER_STRAGE_SHOW_STATE_TIME_s = 2/*[seconds
 class ice_observer_strage : public ss::observer_strage
 {
 protected:
-  union_observer_strage< signaling_request, signaling_response, signaling_relay, stun > _strage;
+  union_observer_strage< signaling_request, signaling_response, signaling_relay, binding_request > _strage;
 
 
   template < typename T >
@@ -54,7 +54,7 @@ protected:
 	if constexpr (std::is_same_v<T, signaling_request>) std::cout << "| signaling_request" << "\n";
 	else if constexpr (std::is_same_v<T, signaling_relay>) std::cout << "| signaling_relay" << "\n";
 	else if constexpr (std::is_same_v<T, signaling_response>) std::cout << "| signaling_response" << "\n";
-	else if constexpr (std::is_same_v<T, signaling_response>) std::cout << "| stun" << "\n";
+	else if constexpr (std::is_same_v<T, binding_request>) std::cout << "| binding_request" << "\n";
 	else std::cout << "| undefine" << "\n";
 
 	unsigned int count = 0;

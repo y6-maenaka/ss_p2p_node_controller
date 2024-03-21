@@ -1,10 +1,13 @@
 #include <ss_p2p/ice_agent/ice_agent.hpp>
+#include <ss_p2p/message.hpp>
 #include <utils.hpp>
 
 #include <mutex>
 #include <condition_variable>
 #include <thread>
 #include <chrono>
+#include <iostream>
+#include <memory>
 
 #include "boost/asio.hpp"
 
@@ -33,7 +36,15 @@ int setup_signaling_response_host()
   std::cout << "updated global self endpoint" << "\n";
   
   auto &ice_observer_strage = ice_agent.get_observer_strage();
-  ice_observer_strage.show_state( boost::system::error_code{} );
+  // ice_observer_strage.show_state( boost::system::error_code{} );
+
+  ip::udp::endpoint nat_peer( ip::address::from_string("127.0.0.1"), 8090 );
+  auto peer = n_controller.get_peer( nat_peer );
+  for( ;; )
+  {
+	auto received_msg = peer.receive();
+	received_msg->print();
+  }
 
   std::mutex mtx;
   std::condition_variable cv;

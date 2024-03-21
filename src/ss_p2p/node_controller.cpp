@@ -96,8 +96,7 @@ void node_controller::call_tick()
 
 void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpoint &ep )
 {
-  std::cout << "(node controller) 受信しました" << "\n";
-  int flag = 0;
+  int flag = 1;
   std::shared_ptr<message> msg = std::make_shared<message>( message::decode(raw_msg) );
   if( msg == nullptr ) return;
 
@@ -108,18 +107,12 @@ void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpo
 
   if( msg->is_contain_param("ice_agent") )
   {
-	flag = _ice_agent->income_message( msg );
+	flag = _ice_agent->income_message( msg, ep );
   }
  
   if( flag == 1 ){
-	std::cout << "メッセージが保存されます" << "\n";
 	_msg_pool.store( msg, ep ); // メッセージの保存
   }
-
-  #if SS_DEBUG
-  std::cout << "handle flag :: " << flag << "\n";
-  std::cout << "node_controller::on_receive_packet returned" << "\n";
-  #endif
 }
 
 

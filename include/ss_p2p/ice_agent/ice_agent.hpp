@@ -13,6 +13,7 @@
 #include "./ice_sender.hpp"
 #include "./ice_observer_strage.hpp"
 #include "./signaling_server.hpp"
+#include "./stun_server.hpp"
 
 #include "boost/asio.hpp"
 
@@ -32,13 +33,14 @@ public:
   ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
   void hello();
 
-  int income_message( std::shared_ptr<message> msg ); // メッセージ受信
+  int income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep /*original_src_ep*/ ); // メッセージ受信
   
   signaling_server::s_send_func get_signaling_send_func();
   void update_global_self_endpoint( ip::udp::endpoint &ep );
 
   #if SS_DEBUG
   ice_observer_strage &get_observer_strage();
+  stun_server &get_stun_server();
   #endif
 
 private:
@@ -47,6 +49,7 @@ private:
   message::app_id _app_id;
 
   signaling_server _sgnl_server;
+  stun_server _stun_server;
   ice_observer_strage _obs_strage;
 
   ice_sender _ice_sender;

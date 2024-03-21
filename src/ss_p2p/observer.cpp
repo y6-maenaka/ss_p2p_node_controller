@@ -50,5 +50,10 @@ base_observer::id str_to_observer_id( std::string id_str )
   return gen( id_str );
 }
 
+std::string observer_id_to_str( const observer_id &from )
+{
+  return boost::uuids::to_string( from );
+}
+
 
 };

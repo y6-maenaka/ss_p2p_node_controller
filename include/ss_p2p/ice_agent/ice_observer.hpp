@@ -10,6 +10,7 @@
 #include <ss_p2p/message.hpp>
 #include <utils.hpp>
 #include "./ice_message.hpp"
+#include "./stun_server.hpp"
 
 #include "boost/asio.hpp"
 
@@ -22,21 +23,23 @@ namespace ss
 namespace ice
 {
 
+
 class ice_sender;
 constexpr unsigned short DEFAULT_SIGNALING_OPEN_TTL = 5;
+constexpr unsigned short MAXIMUM_BINDING_REQUEST_RELIABILITY = 100;
 
 
-class ice_observer : public ss::base_observer
+class signaling_observer : public ss::base_observer
 {
 public:
-  ice_observer( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
+  signaling_observer( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
 protected:
   ss::kademlia::direct_routing_table_controller &_d_routing_table_controller;
   ice_sender &_ice_sender;
   ip::udp::endpoint &_glob_self_ep;
 };
 
-class signaling_request : public ice_observer
+class signaling_request : public signaling_observer
 {
 public:
   void init( ip::udp::endpoint &dest_ep, std::string parma, json payload );
@@ -63,7 +66,7 @@ private:
   bool _done = false;
 };
 
-class signaling_response : public ice_observer
+class signaling_response : public signaling_observer
 {
 public:
   signaling_response( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller );
@@ -73,7 +76,7 @@ public:
   void print() const;
 };
 
-class signaling_relay : public ice_observer
+class signaling_relay : public signaling_observer
 {
 public:
   signaling_relay( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller );
@@ -83,13 +86,44 @@ public:
   void print() const;
 };
 
-class stun : public ice_observer
+
+class stun_observer : public ss::base_observer
 {
 public:
   void init( ip::udp::endpoint &glob_self_ep );
   int income_message( message &msg );
   void print() const;
+  
+  stun_observer( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &_d_routing_table_controller );
+private:
+  ice_sender &_ice_sender;
+  ss::kademlia::direct_routing_table_controller &_d_routing_table_controller;
 };
+
+class binding_request : public stun_observer
+{
+public:
+  void init( stun_server::sr_object &sr );
+  void timeout();
+  void on_timeout();
+  void print() const;
+  int income_message( message &msg );
+  binding_request( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &_d_routing_table_controller );
+  int _reliability;
+
+  void add_requested_ep( ip::udp::endpoint ep );
+  void add_response( ip::udp::endpoint &src_ep, ip::udp::endpoint response_ep/*レスポンス*/ );
+
+private:
+  deadline_timer _timer; // for notice timeout
+  std::vector <std::pair<ip::udp::endpoint/*問い合わせ先*/, ip::udp::endpoint/*問い合わせ結果*/> > _responses; // stun_requestを送信したノード一覧
+  stun_server::sr_object *_sr;
+  unsigned short _timeout_count;
+};
+
+/*class binding_response // 使わないかも(単にstun_serverがレスポンスする)
+{
+}; */
 
 
 }; // namespace ice

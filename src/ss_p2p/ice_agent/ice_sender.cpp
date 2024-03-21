@@ -15,6 +15,40 @@ ice_sender::ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glo
   return;
 }
 
+bool ice_sender::sync_send( ip::udp::endpoint &dest_ep, std::string param, json &payload )
+{
+  message msg = message::request(_app_id);
+  msg.set_param( param, payload );
+
+  auto enc_msg = message::encode( msg );
+  boost::system::error_code ec;
+
+  _sock_manager.self_sock().send_to( boost::asio::buffer(enc_msg)
+	  , dest_ep
+	  , 0
+	  , ec );
+
+  if( !ec ) return true;
+  return false;
+}
+
+bool ice_sender::sync_ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg )
+{
+  message msg = message::request(_app_id);
+  msg.set_param("ice_agent", ice_msg.encode() );
+
+  auto enc_msg = message::encode( msg );
+  boost::system::error_code ec;
+
+  _sock_manager.self_sock().send_to( boost::asio::buffer(enc_msg)
+	  , dest_ep
+	  , 0
+	  , ec );
+
+  if( !ec ) return true;
+  return false;
+}
+
 void ice_sender::on_send_done( const boost::system::error_code &ec )
 {
   #if SS_VERBOSE

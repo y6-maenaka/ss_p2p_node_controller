@@ -121,6 +121,11 @@ bool message_pool::store( std::shared_ptr<message> msg, ip::udp::endpoint &ep )
 	std::shared_ptr<message_peer_entry> new_entry = std::make_shared<message_peer_entry>();
 	if( entry = this->allocate_entry( ep ); entry == _pool.end() ) return false; // 失敗
   }
+  
+  #if SS_VERBOSE
+  std::cout << "(message pool) new message store" << "\n";
+  #endif
+
   return entry->second->push( msg ); // データの追加
 }
 

@@ -81,12 +81,10 @@ int setup_ice_agent()
 
   // ice_observer_strage.show_state( boost::system::error_code{} );
 
-
-  io_ctx->run();
+  
 
   #endif
 
-  std::cout << "done" << "\n";
   
   std::mutex mtx;
   std::condition_variable cv;

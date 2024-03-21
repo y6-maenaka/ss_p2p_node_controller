@@ -46,16 +46,45 @@ public:
 
   protocol_t get_protocol() const;
   void set_protocol( protocol_t p );
+
+  struct stun
+  {
+	enum sub_protocol_t
+	{
+	  binding_request
+		, binding_response
+	};
+  };
+  struct signaling
+  {
+	enum sub_protocol_t
+	{
+	  request
+		, response
+		, relay
+	};
+  };
+
+  struct stun_message_controller
+  {
+	friend ice_message;
+	ice_message::stun::sub_protocol_t sub_protocol;
+	void set_sub_protocol( ice_message::stun::sub_protocol_t p );
+	ice_message::stun::sub_protocol_t get_sub_protocol();
+	ip::udp::endpoint get_global_ep();
+	stun_message_controller( json &body );
+	stun_message_controller( ice_message *from );
+	void set_global_ep( ip::udp::endpoint &ep ); // リクエスト元の(グローバル)アドレスを格納する
+	void print() const;
+
+	private:
+	  json &_body;
+  };
+
   struct signaling_message_controller
   {
 	friend ice_message;
-	enum sub_protocol_t
-	{
-		request
-	  , response
-	  , relay
-	};
-	sub_protocol_t sub_protocol;
+	ice_message::signaling::sub_protocol_t sub_protocol;
 
 	signaling_message_controller( json &body );
 	signaling_message_controller( ice_message *from );
@@ -66,15 +95,17 @@ public:
 	std::vector< ip::udp::endpoint > get_relay_endpoints();
 	ip::udp::endpoint get_dest_endpoint() const;
 	ip::udp::endpoint get_src_endpoint() const;
-	void set_sub_protocol( signaling_message_controller::sub_protocol_t t ); // request, response, relay
-	sub_protocol_t get_sub_protocol();
+	void set_sub_protocol( ice_message::signaling::sub_protocol_t p ); // request, response, relay
+	ice_message::signaling::sub_protocol_t get_sub_protocol();
 	int get_ttl() const;
 	void decrement_ttl();
 	void print() const;
+
 	private:		
 	  json &_body;
   };
-  signaling_message_controller get_sgnl_msg_controller();
+  signaling_message_controller get_signaling_message_controller();
+  stun_message_controller get_stun_message_controller();
 
   template <typename T>
   T get_param( std::string key )
@@ -90,6 +121,8 @@ public:
   }
   
   void set_param( std::string key, std::string value );
+  void set_observer_id( const observer_id &id );
+  observer_id get_observer_id();
   const json encode();
 };
 

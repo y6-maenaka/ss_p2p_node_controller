@@ -19,13 +19,13 @@ ice_agent::ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::
   , _ice_sender( sock_manager, glob_self_ep, id )
   , _obs_strage( io_ctx )
   , _sgnl_server( io_ctx, _ice_sender, glob_self_ep, d_routing_table_controller, _obs_strage )
+  , _stun_server( io_ctx, _ice_sender, d_routing_table_controller, _obs_strage )
 {
   return;
 }
 
-int ice_agent::income_message( std::shared_ptr<message> msg )
+int ice_agent::income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep )
 {
-  std::cout << "受信しました" << "\n";
   if( auto ice_param = msg->get_param("ice_agent"); ice_param == nullptr ) return 0; // 上レイヤで処理されているため,恐らくreturnされることはない
   ice_message ice_msg( *(msg->get_param("ice_agent")) );
 
@@ -37,7 +37,7 @@ int ice_agent::income_message( std::shared_ptr<message> msg )
   const auto protocol = ice_msg.get_protocol();
   if( protocol == ice_message::protocol_t::signaling )
   {
-	observer_id obs_id = ice_msg.get_param<observer_id>("observer_id");
+	observer_id obs_id = ice_msg.get_observer_id();
 
 	if( std::optional<observer<signaling_relay>> obs = _obs_strage.find_observer<signaling_relay>(obs_id); obs != std::nullopt ){
 	  std::cout << "\x1b[33m" << "<ice observer strage> signaling_relay found." << "\n" << "\x1b[39m";
@@ -58,11 +58,19 @@ int ice_agent::income_message( std::shared_ptr<message> msg )
 	std::cout << "\x1b[31m" << "(ice_observer_strage) signaling observer not found." << "\x1b[39m" << "\n";
 	#endif
 
-	_sgnl_server.income_message( msg ); // シグナリングサーバに処理を投げる
+	_sgnl_server.income_message( msg, ep ); // シグナリングサーバに処理を投げる
   }
 
   else if( protocol == ice_message::protocol_t::stun )
   {
+	observer_id obs_id = ice_msg.get_observer_id();
+
+	if( std::optional<observer<binding_request>> obs = _obs_strage.find_observer<binding_request>(obs_id); obs != std::nullopt ){
+	  std::cout << "\x1b[33m" << "<stun observer strage> binding_request found." << "\n" << "\x1b[39m";
+	  return call_observer_income_message (*obs);
+	}
+
+	_stun_server.income_message( msg, ep );
 	return 0;
   }
 
@@ -88,6 +96,10 @@ ice_sender& ice_agent::get_ice_sender()
 ice_observer_strage &ice_agent::get_observer_strage()
 {
   return _obs_strage;
+}
+stun_server &ice_agent::get_stun_server()
+{
+  return _stun_server;
 }
 #endif
 

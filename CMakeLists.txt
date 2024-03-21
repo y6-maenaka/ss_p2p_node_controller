@@ -73,6 +73,7 @@ set( ss_p2p_ice_agent_include_files
 	ice_observer.hpp
 	ice_observer_strage.hpp
 	signaling_server.hpp
+	stun_server.hpp
 	ice_message.hpp
 	ice_sender.hpp
 )
@@ -81,6 +82,7 @@ set( ss_p2p_ice_agent_source_files
 	ice_observer.cpp
 	ice_observer_strage.cpp
 	signaling_server.cpp
+	stun_server.cpp
 	ice_message.cpp
 	ice_sender.cpp
 )
@@ -139,6 +141,18 @@ if( _BUILD_TEST )
 
   add_executable( node_2 ./run/node_2.cpp )
    target_link_libraries( node_2 PRIVATE
+                        ss_p2p
+						${OPENSSL_LIBRARIES}
+   )
+
+  add_executable( node_3 ./run/node_3.cpp )
+   target_link_libraries( node_3 PRIVATE
+                        ss_p2p
+						${OPENSSL_LIBRARIES}
+   )
+
+  add_executable( node_4 ./run/node_4.cpp )
+   target_link_libraries( node_4 PRIVATE
                         ss_p2p
 						${OPENSSL_LIBRARIES}
    )

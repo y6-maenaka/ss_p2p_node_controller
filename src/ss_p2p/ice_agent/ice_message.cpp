@@ -83,9 +83,14 @@ void ice_message::set_protocol( protocol_t p )
   }
 }
 
-ice_message::signaling_message_controller ice_message::get_sgnl_msg_controller()
+ice_message::signaling_message_controller ice_message::get_signaling_message_controller()
 {
   return ice_message::signaling_message_controller(this);
+}
+
+ice_message::stun_message_controller ice_message::get_stun_message_controller()
+{
+  return ice_message::stun_message_controller(this);
 }
 
 const json ice_message::encode()
@@ -98,8 +103,56 @@ void ice_message::set_param( std::string key, std::string value )
   _body[key] = value;
 }
 
+void ice_message::set_observer_id( const observer_id &id )
+{
+  this->set_param("observer_id", observer_id_to_str(id) );
+}
 
-ice_message::signaling_message_controller::signaling_message_controller( json &body ) : _body(body)
+observer_id ice_message::get_observer_id()
+{
+  return this->get_param<observer_id>("observer_id");
+}
+
+
+ice_message::stun_message_controller::stun_message_controller( json &body ) : 
+  _body( body)
+{
+  sub_protocol = _body["sub_protocol"];
+}
+
+ice_message::stun_message_controller::stun_message_controller( ice_message *from )
+  : _body(from->_body)
+{
+  return;
+}
+
+void ice_message::stun_message_controller::set_sub_protocol( ice_message::stun::sub_protocol_t p )
+{
+  _body["sub_protocol"] = p;
+}
+
+ice_message::stun::sub_protocol_t ice_message::stun_message_controller::get_sub_protocol()
+{
+  return _body["sub_protocol"];
+}
+
+ip::udp::endpoint ice_message::stun_message_controller::get_global_ep()
+{
+  std::string global_ip_str = _body["global_ip"];
+  unsigned short global_port = _body["global_port"];
+  
+  return ss::addr_pair_to_endpoint( global_ip_str, global_port );
+}
+
+void ice_message::stun_message_controller::set_global_ep( ip::udp::endpoint &ep )
+{
+  _body["global_ip"] = ep.address().to_string();
+  _body["global_port"] = ep.port();
+}
+
+
+ice_message::signaling_message_controller::signaling_message_controller( json &body ) :
+  _body(body)
 {
   sub_protocol = _body["sub_protocol"];
 }
@@ -127,12 +180,12 @@ void ice_message::signaling_message_controller::add_relay_endpoint( ip::udp::end
   _body["relay_eps"].push_back( endpoint_to_str(ep) );
 }
 
-void ice_message::signaling_message_controller::set_sub_protocol( signaling_message_controller::sub_protocol_t p )
+void ice_message::signaling_message_controller::set_sub_protocol( ice_message::signaling::sub_protocol_t p )
 {
   _body["sub_protocol"] = p;
 }
 
-ice_message::signaling_message_controller::sub_protocol_t ice_message::signaling_message_controller::get_sub_protocol()
+ice_message::signaling::sub_protocol_t ice_message::signaling_message_controller::get_sub_protocol()
 {
   return _body["sub_protocol"];
 }

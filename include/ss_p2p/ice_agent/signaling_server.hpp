@@ -51,16 +51,13 @@ public:
 
   signaling_server( io_context &io_ctx, ice_sender& ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage );
 
-  int income_message( std::shared_ptr<ss::message> msg );
+  int income_message( std::shared_ptr<ss::message> msg, ip::udp::endpoint &ep );
 
-  template < typename T >
-  void set_observer( T obs );
-  
   // members
   io_context &_io_ctx;
   direct_routing_table_controller &_d_routing_table_controller;
   ice_sender &_ice_sender;
-  ice_observer_strage &_obs_strage;
+  ice_observer_strage &_obs_strage; // add専用
   ip::udp::endpoint &_glob_self_ep;
 };
 
