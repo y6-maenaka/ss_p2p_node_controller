@@ -14,6 +14,19 @@
 using namespace boost::asio;
 
 
+#ifdef __linux__
+namespace std
+{
+  template<>
+  struct hash<boost::asio::ip::address_v4> {
+	std::size_t operator()( const boost::asio::ip::address_v4 &addr ) const {
+	  return static_cast<std::size_t>(addr.to_ulong());
+	}
+  };
+}
+#endif
+
+
 namespace ss
 {
 

@@ -65,7 +65,7 @@ public:
 private:
   void set_triger_observer();
 
-  std::shared_ptr< observer<ping> > ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep );
+  std::shared_ptr< observer<class ping> > ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep );
 
   const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _send_func;
   const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _traversal_send_func;

@@ -20,7 +20,7 @@ namespace kademlia
 {
 
 
-const std::vector<const std::string> kademlia_message_params = {"rpc","k_node"};
+const std::vector<std::string> kademlia_message_params = {"rpc","k_node"};
 
 
 class k_message

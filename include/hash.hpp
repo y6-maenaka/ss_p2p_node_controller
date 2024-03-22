@@ -21,7 +21,8 @@ template< typename T >
 static std::vector<unsigned char> sha1_hash( T* bin, std::size_t bin_len ) // 無駄なSTL変換がある
 {
   std::shared_ptr<unsigned char> in = std::shared_ptr<unsigned char>( new unsigned char[bin_len] );
-  std::memcpy( in.get(), bin, bin_len );
+  // std::memcpy( in.get(), bin, bin_len );
+  memcpy( in.get(), bin, bin_len ); // binがコンパイルエラー出す
 
   const EVP_MD *md;
   std::size_t out_len = 0;

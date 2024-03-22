@@ -1,6 +1,19 @@
 #include <ss_p2p/message_pool.hpp>
 
 
+#ifdef __LINUX__
+namespace std
+{
+  template<>
+  struct hash<boost::asio::ip::address_v4> {
+	std::size_t operator()( const boost::asio::ip::address_v4 &addr ) const {
+	  return static_cast<size_t>(addr.to_long());
+	}
+  };
+};
+#endif
+
+
 namespace ss
 {
 
