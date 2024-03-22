@@ -48,6 +48,8 @@ public:
   void handle_msg( json &msg, ip::udp::endpoint &ep );
   k_routing_table &get_routing_table();
 
+  void update_global_self_endpoint( ip::udp::endpoint &ep );
+
 private:
   io_context &_io_ctx;
   deadline_timer _tick_timer;

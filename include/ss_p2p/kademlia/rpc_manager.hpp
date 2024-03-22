@@ -31,7 +31,7 @@ class k_observer_strage;
 class rpc_manager
 {
 public:
-  rpc_manager( node_id self_id, io_context &io_ctx );
+  rpc_manager( node_id &self_id, io_context &io_ctx );
 
   struct update_context
   {
@@ -60,20 +60,19 @@ public:
   update_context income_response( std::shared_ptr<ss::kademlia::k_message> msg, ip::udp::endpoint &ep );
   void handle_msg( json &k_msg );
   k_routing_table &get_routing_table();
+  void update_self_id( node_id &id );
 
 private:
   void set_triger_observer();
 
   std::shared_ptr< observer<ping> > ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep );
-  // union_observer_ptr find_node();
-  // union_observer_ptr join();
 
   const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _send_func;
   const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _traversal_send_func;
 
   std::shared_ptr<k_routing_table> _routing_table;
 
-  node_id _self_id;
+  node_id &_self_id;
   io_context &_io_ctx;
   deadline_timer _tick_timer;
   k_observer_strage _obs_strage;

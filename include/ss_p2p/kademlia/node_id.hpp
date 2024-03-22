@@ -35,7 +35,7 @@ public:
 
   bool operator==( const node_id &nid ) const;
   id operator()() const;
-  node_id operator=( const node_id &nid ) const;
+  // node_id operator=( const node_id &nid ) const;
   unsigned char operator[](unsigned short idx) const;
   static node_id (none)() noexcept;
 

@@ -26,7 +26,7 @@ namespace ice
 {
 
 
-constexpr unsigned short DEFAULT_OBSERVER_STRAGE_TICK_TIME_s = 5/*[seconds]*/;
+constexpr unsigned short DEFAULT_OBSERVER_STRAGE_TICK_TIME_s = 10/*[seconds]*/;
 constexpr unsigned short DEFAULT_OBSERVER_STRAGE_SHOW_STATE_TIME_s = 2/*[seconds]*/;
 
 

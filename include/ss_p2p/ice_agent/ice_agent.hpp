@@ -38,11 +38,12 @@ public:
   signaling_server::s_send_func get_signaling_send_func();
   void update_global_self_endpoint( ip::udp::endpoint &ep );
 
+  stun_server &get_stun_server();
+
 private:
   #if SS_DEBUG
 public:
   ice_observer_strage &get_observer_strage();
-  stun_server &get_stun_server();
   #endif
 
   udp_socket_manager &_sock_manager;

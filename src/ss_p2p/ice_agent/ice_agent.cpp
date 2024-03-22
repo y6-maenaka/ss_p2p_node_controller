@@ -84,7 +84,20 @@ signaling_server::s_send_func ice_agent::get_signaling_send_func()
 
 void ice_agent::update_global_self_endpoint( ip::udp::endpoint &ep )
 {
+  ip::udp::endpoint __prev_global_self_ep = _glob_self_ep;
+  
   _glob_self_ep = ep;
+
+  #if SS_VERBOSE 
+  std::cout << "\x1b[33m" << "[ice_agent] update global self endpoint" << "\n" << "\x1b[39m";
+  std::cout << __prev_global_self_ep << " -> " << _glob_self_ep << "\n";
+  std::cout << "\n";
+  #endif
+}
+
+stun_server& ice_agent::get_stun_server()
+{
+  return _stun_server;
 }
 
 ice_sender& ice_agent::get_ice_sender()
@@ -96,10 +109,6 @@ ice_sender& ice_agent::get_ice_sender()
 ice_observer_strage &ice_agent::get_observer_strage()
 {
   return _obs_strage;
-}
-stun_server &ice_agent::get_stun_server()
-{
-  return _stun_server;
 }
 #endif
 

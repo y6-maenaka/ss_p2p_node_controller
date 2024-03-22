@@ -19,7 +19,8 @@ node_id::node_id( std::vector<unsigned char> id_from )
 
 node_id::node_id( const node_id &nid ) 
 {
-  std::copy( nid._id.begin(), nid._id.end(), _id.begin() );
+  _id = nid._id;
+  // std::copy( nid._id.begin(), nid._id.end(), _id.begin() );
 }
 
 bool node_id::operator ==( const node_id &nid ) const
@@ -32,10 +33,10 @@ node_id::id node_id::operator()() const
   return _id;
 }
 
-node_id node_id::operator=( const node_id &nid ) const
+/* node_id node_id::operator=( const node_id &nid ) const
 {
   return *this;
-}
+} */
 
 unsigned char node_id::operator[](unsigned short idx) const
 {

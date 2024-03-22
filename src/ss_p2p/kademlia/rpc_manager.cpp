@@ -10,7 +10,7 @@ namespace kademlia
 {
 
 
-rpc_manager::rpc_manager( node_id self_id, io_context &io_ctx ) :
+rpc_manager::rpc_manager( node_id &self_id, io_context &io_ctx ) :
   _self_id( self_id )  
   , _io_ctx( io_ctx ) 
   , _tick_timer( io_ctx )
@@ -82,6 +82,11 @@ rpc_manager::update_context rpc_manager::income_response( std::shared_ptr<k_mess
 k_routing_table &rpc_manager::get_routing_table()
 {
   return *_routing_table;
+}
+
+void rpc_manager::update_self_id( node_id &id )
+{
+  _self_id = id;
 }
 
 

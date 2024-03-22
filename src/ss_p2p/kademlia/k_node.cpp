@@ -41,10 +41,10 @@ node_id& k_node::get_id()
   return _id;
 }
 
-k_node k_node::operator=( const k_node &kn ) const
+/* k_node k_node::operator=( const k_node &kn ) const
 {
   return *this;
-}
+} */
 
 bool k_node::operator==( const k_node &kn ) const
 {

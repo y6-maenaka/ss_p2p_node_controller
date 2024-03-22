@@ -18,6 +18,9 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
 	  std::placeholders::_1,
 	  std::placeholders::_2
 	  );
+  ip::udp::endpoint init_ep( ip::address::from_string("0.0.0.0"), 0 );
+  _glob_self_ep = init_ep;
+
   _udp_server = std::make_shared<udp_server>( _u_sock_manager, *_core_io_ctx, recv_handler );
   _dht_manager = std::make_shared<dht_manager>( *io_ctx, _self_ep );
 
@@ -30,6 +33,7 @@ udp_socket_manager &node_controller::get_socket_manager()
   return _u_sock_manager;
 }
 
+#if SS_DEBUG
 ice::ice_agent &node_controller::get_ice_agent()
 {
   return *_ice_agent;
@@ -39,10 +43,35 @@ kademlia::dht_manager &node_controller::get_dht_manager()
 {
   return *_dht_manager;
 }
+#endif
+
+std::optional< ip::udp::endpoint > node_controller::sync_get_global_address( std::vector<ip::udp::endpoint> boot_nodes )
+{
+  auto &stun_server = _ice_agent->get_stun_server();
+  auto stun_reserved_obj = stun_server.binding_request( boot_nodes );
+ 
+  return stun_reserved_obj->sync_get();
+}
 
 kademlia::k_routing_table &node_controller::get_routing_table()
 {
   return _dht_manager->get_routing_table();
+}
+
+void node_controller::update_global_self_endpoint( ip::udp::endpoint ep )
+{
+  ip::udp::endpoint __prev_global_self_ep = _glob_self_ep;
+
+  _glob_self_ep = ep;
+
+  #if SS_VERBOSE
+  std::cout << "\x1b[33m" << "[node_controller] update global self endpoint" << "\n" << "\x1b[39m";
+  std::cout << __prev_global_self_ep << " -> " << _glob_self_ep << "\n";
+  std::cout << "\n";
+  #endif
+
+  _ice_agent->update_global_self_endpoint( ep );
+  _dht_manager->update_global_self_endpoint( ep );
 }
 
 void node_controller::start()

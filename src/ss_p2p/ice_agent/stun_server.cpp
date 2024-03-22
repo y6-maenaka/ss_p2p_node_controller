@@ -75,10 +75,6 @@ int stun_server::income_message( std::shared_ptr<message> msg, ip::udp::endpoint
   ice_message ice_msg( *(msg->get_param("ice_agent")));
   auto stun_message_controller = ice_msg.get_stun_message_controller();
 
-  #if SS_DEBUG
-  std::cout << "(stun_server) income message" << "\n";
-  #endif
-
   if( stun_message_controller.get_sub_protocol() == ice_message::stun::sub_protocol_t::binding_request )
   { // observerは特に作成する必要はない
 	auto msg_controller = ice_msg.get_stun_message_controller(); // リクエストメッセージをそのまま使う

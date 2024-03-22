@@ -269,14 +269,14 @@ binding_request::consensus_ctx binding_request::global_ep_consensus( bool is_for
 
   std::vector<ip::udp::endpoint> vli_global_eps; // ローカルアドレスなどを排除する
   for( auto itr : _responses ){
-	/* if( itr.second != std::nullopt  // 無効 且つ
+	if( itr.second != std::nullopt  // 無効 且つ
 		&& !((*(itr.second)).address().is_loopback() ) ) { // ループバックアドレスでない場合
 	  vli_global_eps.push_back( *(itr.second) );
-	}  */
+	}  
 
 	#if SS_DEBUG
-	std::cout << "TEST TEST" << "\n";
-  	if( itr.second != std::nullopt ) vli_global_eps.push_back(*(itr.second));
+	/* std::cout << "TEST TEST" << "\n";
+  	if( itr.second != std::nullopt ) vli_global_eps.push_back(*(itr.second)); */
 	#endif
   }
 
