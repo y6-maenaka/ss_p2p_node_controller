@@ -136,12 +136,12 @@ ice_message::stun::sub_protocol_t ice_message::stun_message_controller::get_sub_
   return _body["sub_protocol"];
 }
 
-ip::udp::endpoint ice_message::stun_message_controller::get_global_ep()
+std::optional<ip::udp::endpoint> ice_message::stun_message_controller::get_global_ep()
 {
   std::string global_ip_str = _body["global_ip"];
   unsigned short global_port = _body["global_port"];
   
-  return ss::addr_pair_to_endpoint( global_ip_str, global_port );
+  return std::optional<ip::udp::endpoint>(ss::addr_pair_to_endpoint( global_ip_str, global_port ));
 }
 
 void ice_message::stun_message_controller::set_global_ep( ip::udp::endpoint &ep )

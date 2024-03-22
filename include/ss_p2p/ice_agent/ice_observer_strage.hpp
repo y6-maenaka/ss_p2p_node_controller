@@ -88,6 +88,10 @@ public:
   template < typename T >
   void add_observer( observer<T> obs ) // 追加メソッド
   {
+	#if SS_VERBOSE
+	std::cout << "(ice observer strage) new observer store" << "\n";
+	#endif
+
 	auto &s_entry = std::get< observer_strage_entry<T> >(_strage);
 	s_entry.insert(obs);
   }

@@ -31,7 +31,7 @@ int ice_agent::income_message( std::shared_ptr<message> msg, ip::udp::endpoint &
 
   auto call_observer_income_message = [&]( auto &obs )
   {
-	return obs.income_message( *msg );
+	return obs.income_message( *msg, ep );
   };
 
   const auto protocol = ice_msg.get_protocol();
@@ -70,7 +70,7 @@ int ice_agent::income_message( std::shared_ptr<message> msg, ip::udp::endpoint &
 	  return call_observer_income_message (*obs);
 	}
 
-	_stun_server.income_message( msg, ep );
+	_stun_server.income_message( msg, ep);
 	return 0;
   }
 

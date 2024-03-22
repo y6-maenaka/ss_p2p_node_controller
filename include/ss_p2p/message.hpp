@@ -38,7 +38,7 @@ public:
   static message decode( std::span<char> from ); // 生メッセージのデコード
 
   json& operator()();
-  void print() const;
+  void print();
 private:
   json _body;
 

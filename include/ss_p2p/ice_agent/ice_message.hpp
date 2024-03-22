@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include <optional>
 
 #include <json.hpp>
 #include <utils.hpp>
@@ -71,7 +72,7 @@ public:
 	ice_message::stun::sub_protocol_t sub_protocol;
 	void set_sub_protocol( ice_message::stun::sub_protocol_t p );
 	ice_message::stun::sub_protocol_t get_sub_protocol();
-	ip::udp::endpoint get_global_ep();
+	std::optional<ip::udp::endpoint> get_global_ep();
 	stun_message_controller( json &body );
 	stun_message_controller( ice_message *from );
 	void set_global_ep( ip::udp::endpoint &ep ); // リクエスト元の(グローバル)アドレスを格納する

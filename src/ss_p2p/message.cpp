@@ -55,7 +55,7 @@ message message::decode( std::span<char> from )
   return message(ret_json);
 }
 
-void message::print() const
+void message::print() 
 {
   std::cout << _body << "\n";
 }

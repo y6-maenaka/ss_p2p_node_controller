@@ -26,7 +26,7 @@ using boost::asio::ip::udp;
 
 int main()
 {
-  std::cout << "Hello node_3" << "\n";
+  std::cout << "Hello node_4" << "\n";
 
   setup_stun_server();
 

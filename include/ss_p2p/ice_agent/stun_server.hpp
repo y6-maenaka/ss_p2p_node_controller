@@ -8,6 +8,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <optional>
+#include <thread>
+#include <chrono>
 
 #include <ss_p2p/message.hpp>
 
@@ -42,30 +44,39 @@ public:
   int income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep );
   void on_send_done( const boost::system::error_code &ec );
 
-  struct sr_object // reserved object
+  struct sr_object // stun reserved object  基本的にbinding_request observerに1つ割り当てられる
   {
+    using on_nat_traversal_success_handler = std::function<void(std::optional<ip::udp::endpoint>)>; // asyncのときに成功ハンドラとして使う
+	sr_object();
 	enum state_t
 	{
-	  done = 0
-	  , pending
-	  , notfound
+	  done = 0 // 取得完了
+	  , pending // 取得処理中
+	  , notfound // 取得失敗
 	};
-	std::pair< ip::udp::endpoint, bool > sync_get();
-	std::pair< ip::udp::endpoint, bool > async_get();
+	std::optional<ip::udp::endpoint> sync_get();  // 応答が帰ってくるまで実行スレッドをブロッキングする
+	void async_get( on_nat_traversal_success_handler handler ); // レスポンスを受信したら結果をハンドラに渡す
+	
 	static sr_object (_error_)();
 	static sr_object (_pending_)();
+
+	/* 非同期取得でのみ使用するパラメータ */
+	bool is_async() const;
+	on_nat_traversal_success_handler handler;
   
-	sr_object();
-	void update_state( state_t s, std::optional<ip::udp::endpoint> ep = std::nullopt );
 	state_t get_state() const;
+	void update_state( state_t s, std::optional<ip::udp::endpoint> ep = std::nullopt );
 	private:
 	  std::shared_ptr<std::mutex> _mtx; // ナンセンスかも
 	  std::shared_ptr<std::condition_variable> _cv; 
 	  ip::udp::endpoint _global_ep;
 	  state_t _state;
+
+	  bool _is_async:1; // 非同期取得のみ使用する
   };
-  [[nodiscard]] sr_object sync_binding_request( std::vector<ip::udp::endpoint> target_nodes = std::vector<ip::udp::endpoint>(), unsigned short rib = 50 ); // 信頼度(0-100):問い合わせるノード数が変わる // get global addr
-  // binding_request_state async_binding_request( std::time_t timeout = 10, std::vector<ip::udp::endpoint> target_nodes = std::vector<ip::udp::endpoint>(), unsigned short rib = 50 );
+
+  using sr_ptr = std::shared_ptr<sr_object>;
+  [[nodiscard]] sr_ptr binding_request( std::vector<ip::udp::endpoint> target_nodes = std::vector<ip::udp::endpoint>(), unsigned short inquire_count = 3 ); 
 
 private:
   io_context &_io_ctx;

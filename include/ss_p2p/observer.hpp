@@ -72,9 +72,9 @@ public:
   {
 	return _body->init( std::forward<Args>(args)... );
   }
-  int income_message( message &msg )
+  int income_message( message &msg, ip::udp::endpoint &ep )
   {
-	return _body->income_message(msg);
+	return _body->income_message(msg, ep);
   }
   void on_send_done( const boost::system::error_code &ec )
   {

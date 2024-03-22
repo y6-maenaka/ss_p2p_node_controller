@@ -14,7 +14,7 @@ using namespace boost::asio;
 int setup_stun_server()
 {
   std::shared_ptr<io_context> io_ctx = std::make_shared<boost::asio::io_context>();
-  ip::udp::endpoint self_ep( ip::udp::v4(), 8300 );
+  ip::udp::endpoint self_ep( ip::udp::v4(), 8600 );
 
   ss::node_controller n_controller( self_ep, io_ctx );
   n_controller.start();
