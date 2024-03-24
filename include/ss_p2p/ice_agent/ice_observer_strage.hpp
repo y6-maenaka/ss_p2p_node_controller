@@ -35,13 +35,18 @@ class ice_observer_strage : public ss::observer_strage
 protected:
   union_observer_strage< signaling_request, signaling_response, signaling_relay, binding_request > _strage;
 
-
   template < typename T >
   void delete_expires_observer( observer_strage_entry<T> &entry )
   {
 	for( auto itr = entry.begin(); itr != entry.end(); )
 	{
-	  if( (*itr).is_expired() ) itr = entry.erase(itr) ;
+	  if( (*itr).is_expired() ) 
+	  {
+		#if SS_VERBOSE
+		std::cout << "\x1b[33m" << " | (delete observer) " <<"\x1b[39m" << (*itr).get_id() << "\n";
+		#endif
+		itr = entry.erase(itr);
+	  }
 	  else itr++;
 	}
 	return;

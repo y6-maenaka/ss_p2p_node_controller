@@ -28,7 +28,7 @@ int setup_peer()
   
    for(;;)
   {
-	std::shared_ptr<ss::message> received_message = peer_1.receive();
+	// std::shared_ptr<ss::message> received_message = peer_1.receive();
   }
 
 

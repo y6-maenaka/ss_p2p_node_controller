@@ -34,6 +34,8 @@ void ping::init()
 
   _timer.expires_from_now( boost::posix_time::seconds(DEFAULT_PING_RESPONSE_TIMEOUT_s) );
   _timer.async_wait( std::bind( &ping::timeout, this, std::placeholders::_1 ) );
+
+  k_observer::extend_expire_at( DEFAULT_PING_RESPONSE_TIMEOUT_s );
   // 指定時間経過後にpongが到着していなければswapする
 } 
 
@@ -67,7 +69,8 @@ int ping::income_message( message &msg, ip::udp::endpoint &ep )
 
 void ping::print() const
 {
-  std::cout << "[observer] (ping) " << "<" << _id << ">" << "\n";
+  std::cout << "[observer] (ping) " << "<" << _id << ">";
+  std::cout << " [ at: "<< k_observer::get_expire_time_left() <<" ]";
 }
 
 
@@ -91,7 +94,8 @@ int find_node::income_message( message &msg, ip::udp::endpoint &ep )
 
 void find_node::print() const
 {
-  std::cout << "[observer] (find_node) " << "<" << _id << ">" << "\n";
+  std::cout << "[observer] (find_node) " << "<" << _id << ">";
+  std::cout << " [ at: "<< k_observer::get_expire_time_left() <<" ]";
 }
 
 

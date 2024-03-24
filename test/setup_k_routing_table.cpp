@@ -29,9 +29,20 @@ using json = nlohmann::json;
 class ping_host
 {
 public:
+  ss::kademlia::k_routing_table &_routing_table;
+  ping_host( ss::kademlia::k_routing_table &routing_table ) : 
+	_routing_table(routing_table)
+  {
+	return;
+  }
+
   void on_timeout( k_node swap_from, k_node swap_to ){
 	std::cout << "on timeout" << "\n";
 	std::cout << swap_from.get_endpoint() << " :: " << swap_to.get_endpoint() << "\n";
+	_routing_table.auto_update( swap_from );
+	_routing_table.auto_update( swap_to );
+	
+	_routing_table.print();
   }
 
   void on_pong()
@@ -80,12 +91,16 @@ int setup_k_routing_table()
 
  
 
-  ping_host ph;
+  ping_host ph(routing_table);
   rpc_manager.ping_request( ping_clinet_ep
 	  , std::bind( &ping_host::on_pong, ph  )
 	  , std::bind( &ping_host::on_timeout, ph, swap_from_k_node, swap_to_k_node ) );  
 
+
+  auto &k_observer_strage = dht_manager.get_observer_strage();
+  k_observer_strage.show_state( boost::system::error_code{} );
   std::cout << "done" << "\n";
+
 
 
   std::mutex mtx;

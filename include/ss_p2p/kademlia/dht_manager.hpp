@@ -56,6 +56,10 @@ public:
   void update_global_self_endpoint( ip::udp::endpoint &ep );
   void init( s_send_func send_func ); 
 
+  #if SS_DEBUG
+  k_observer_strage &get_observer_strage();
+  #endif
+
 private:
   io_context &_io_ctx;
   deadline_timer _tick_timer;

@@ -39,6 +39,7 @@ void rpc_manager::ping_request( ip::udp::endpoint ep, on_pong_handler pong_handl
 
   _s_send_func( ep, "kademlia", k_msg.encode() );
 
+  ping_obs.init();
   _obs_strage.add_observer( ping_obs ); // ストアする
 }
 

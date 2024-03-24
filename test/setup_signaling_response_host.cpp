@@ -43,7 +43,7 @@ int setup_signaling_response_host()
   for( ;; )
   {
 	auto received_msg = peer.receive();
-	received_msg->print();
+	std::cout << "メッセージ受信" << "\n";
   }
 
   std::mutex mtx;

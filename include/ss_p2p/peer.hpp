@@ -7,6 +7,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <span>
+#include <optional>
 #include <chrono>
 
 #include "./endpoint.hpp"
@@ -23,22 +24,24 @@ namespace ss
 class peer
 {
 public:
+  using s_send_func = std::function<void(ip::udp::endpoint&, std::string, json)>;
   ip::udp::endpoint _ep;
 
   std::time_t keep_alive = 1;
 
   bool operator ==(const peer& pr) const;
 
-  std::shared_ptr<message> receive( std::time_t timeout = -1 );
-  peer( ip::udp::endpoint &ep, message_pool::symbolic msg_pool_symbolic );
+  std::pair< std::shared_ptr<message>, std::time_t > receive( std::time_t timeout = -1 );
+  void send( const std::span<unsigned char> msg );
+  peer( ip::udp::endpoint &ep, message_pool::symbolic msg_pool_symbolic /*,s_send_func send_func*/ );
   ~peer();
   void print() const;
 private:
-  void send( const std::span<unsigned char> msg );
   message_pool::symbolic _msg_pool_symbolic;
   // -1: データが到着するまでブロッキングする
   // 0 : すぐに戻す
   // n : n秒間データの到着を待つ
+  s_send_func _s_send_func;
 };
 
 using peer_ptr = std::shared_ptr<peer>;

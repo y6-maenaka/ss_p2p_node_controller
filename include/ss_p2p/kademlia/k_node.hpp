@@ -38,6 +38,7 @@ public:
 
   std::string to_str();
   void print() const;
+
 private: 
   ip::udp::endpoint _ep;
   node_id _id;
