@@ -46,7 +46,7 @@ private:
   ice_message format_relay_msg( ice_message &base_msg );
 
 public:
-  using s_send_func = std::function<void(ip::udp::endpoint &dest_ep, std::string, const json payload, const boost::system::error_code &ec )>;
+  using s_send_func = std::function<void(ip::udp::endpoint &dest_ep, std::string, const json payload)>;
   s_send_func get_signaling_send_func();
 
   signaling_server( io_context &io_ctx, ice_sender& ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage );

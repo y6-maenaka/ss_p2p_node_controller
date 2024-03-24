@@ -89,7 +89,11 @@ public:
   void add_observer( observer<T> obs ) // 追加メソッド
   {
 	#if SS_VERBOSE
-	std::cout << "(ice observer strage) new observer store" << "\n";
+	if constexpr (std::is_same_v<T, signaling_request>) std::cout << "| (new observer) signaling_request store." << "\n";
+	else if constexpr (std::is_same_v<T, signaling_relay>) std::cout << "| (new observer) signaling_relay store." << "\n";
+	else if constexpr (std::is_same_v<T, signaling_response>) std::cout << "| (new observer) signaling_response store." << "\n";
+	else if constexpr (std::is_same_v<T, binding_request>) std::cout << "| (new observer) binding_request store." << "\n";
+	else std::cout << "| (unknown observer) store." << "\n";
 	#endif
 
 	auto &s_entry = std::get< observer_strage_entry<T> >(_strage);

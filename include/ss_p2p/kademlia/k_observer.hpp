@@ -40,28 +40,32 @@ protected:
 class ping : public k_observer
 {
 public:
-  ping( k_routing_table &routing_table, io_context &io_ctx, k_node host_node, k_node swap_node );
+  using on_pong_handler = std::function<void()>; // 引数は勝手にバイドすること
+  using on_timeout_handler = std::function<void()>; 
+  ping( io_context &io_ctx, k_routing_table &routing_table, ip::udp::endpoint ep/* 一応保持しておく*/, on_pong_handler pong_handler, on_timeout_handler timeout_handler );
 
   void update_observer( k_routing_table &routing_table );
-  void handle_response( std::shared_ptr<k_message> msg ); // このメソッドをタイマーセットしてio_ctxにポスト
+  int income_message( message &msg, ip::udp::endpoint &ep ); // このメソッドをタイマーセットしてio_ctxにポスト
   void timeout( const boost::system::error_code &ec );
   void init();
   void print() const;
 
 private:
-  bool _is_pong_arrived;
+  bool _is_pong_arrived:1;
   deadline_timer _timer; // 固有のものを作らないとエラーになる可能性が高い
 
-  k_node _host_node;
-  k_node _swap_node;
+  ip::udp::endpoint _dest_ep;
+  on_pong_handler _pong_handler;
+  on_timeout_handler  _timeout_handler;
 };
 
 class find_node : public k_observer
 {
 public:
-  find_node( k_routing_table &routing_table, io_context &io_ctx );
+  find_node( io_context &io_ctx, k_routing_table &routing_table );
   void init();
-  void handle_response( std::shared_ptr<k_message> msg );
+  int income_message( message &msg, ip::udp::endpoint &ep );
+  // void handle_response( std::shared_ptr<k_message> msg );
   void print() const;
 };
 

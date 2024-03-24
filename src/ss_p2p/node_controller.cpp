@@ -12,20 +12,22 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
   , _tick_timer( *io_ctx ) 
   , _msg_pool( *io_ctx, true )
 {
-  const std::function<void(std::span<char>, ip::udp::endpoint&)> recv_handler = std::bind(
-	  &node_controller::on_receive_packet,
-	  this,
-	  std::placeholders::_1,
-	  std::placeholders::_2
-	  );
-  ip::udp::endpoint init_ep( ip::address::from_string("0.0.0.0"), 0 );
+  ip::udp::endpoint init_ep( ip::address::from_string("0.0.0.0"), 0 ); // 一旦適当な初期値で開始する
   _glob_self_ep = init_ep;
 
-  _udp_server = std::make_shared<udp_server>( _u_sock_manager, *_core_io_ctx, recv_handler );
+  _udp_server = std::make_shared<udp_server>( _u_sock_manager, *_core_io_ctx
+	  , std::bind( &node_controller::on_receive_packet
+		, this
+		, std::placeholders::_1
+		, std::placeholders::_2) 
+	  );
   _dht_manager = std::make_shared<dht_manager>( *io_ctx, _self_ep );
+  _ice_agent = std::make_shared<ice::ice_agent>( *_core_io_ctx, _u_sock_manager, self_ep/*一旦*/, _id
+	  , _dht_manager->get_direct_routing_table_controller() );
+ 
 
-  _d_routing_table_controller = std::make_shared<kademlia::direct_routing_table_controller>( get_routing_table() );
-  _ice_agent = std::make_shared<ice::ice_agent>( *_core_io_ctx, _u_sock_manager, self_ep/*一旦*/, _id, *_d_routing_table_controller );
+  /* 必ず初期化する */
+  _dht_manager->init( _ice_agent->get_signaling_send_func() );
 }
 
 udp_socket_manager &node_controller::get_socket_manager()
@@ -125,13 +127,13 @@ void node_controller::call_tick()
 
 void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpoint &ep )
 {
-  int flag = 1;
+  int flag = 0;
   std::shared_ptr<message> msg = std::make_shared<message>( message::decode(raw_msg) );
   if( msg == nullptr ) return;
 
   if( msg->is_contain_param("kademlia") )
   {
-	// int state = _dht_manager->handle_msg( msg , ep );
+	int state = _dht_manager->income_message( msg , ep );
   }
 
   if( msg->is_contain_param("ice_agent") )

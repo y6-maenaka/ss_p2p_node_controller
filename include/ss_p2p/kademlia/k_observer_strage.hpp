@@ -70,6 +70,12 @@ public:
   {
 	auto &s_entry = std::get< observer_strage_entry<T> >(_strage);
 	s_entry.insert(obs);
+
+	#if SS_VERBOSE
+	if constexpr (std::is_same_v<T, ping>) std::cout << "| (new observer) ping store." << "\n";
+	else if constexpr (std::is_same_v<T, find_node>) std::cout << "| (new observer) find_node store." << "\n";
+	else std::cout << "(unknown observer) store." << "\n";
+	#endif
   }
   
   k_observer_strage( io_context &io_ctx );

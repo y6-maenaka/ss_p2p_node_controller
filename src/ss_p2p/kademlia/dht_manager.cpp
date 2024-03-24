@@ -8,14 +8,15 @@ namespace kademlia
 
 
 dht_manager::dht_manager( boost::asio::io_context &io_ctx, ip::udp::endpoint &ep ) :
-  _io_ctx(io_ctx)
-  , _self_ep(ep)
-  , _tick_timer(io_ctx)
+  _io_ctx( io_ctx )
+  , _self_ep( ep )
+  , _tick_timer( io_ctx )
   , _self_id( calc_node_id(ep) )
+  , _obs_strage( io_ctx )
+  , _rpc_manager( _self_id, _io_ctx, _obs_strage, _s_send_func )
 {
   // _self_id = calc_node_id( ep );
-  _rpc_manager = std::make_shared<rpc_manager>( _self_id, _io_ctx );
-
+  
   #if SS_VERBOSE 
   std::cout << "[\x1b[32m start \x1b[39m] dht manager" << "\n";
   std::cout << "dht manager hosting with :: "; _self_id.print(); std::cout << "\n";
@@ -24,27 +25,63 @@ dht_manager::dht_manager( boost::asio::io_context &io_ctx, ip::udp::endpoint &ep
   return; 
 }
 
-void dht_manager::handle_msg( json &msg, ip::udp::endpoint &ep )
+int dht_manager::income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep )
 {
-  std::shared_ptr<ss::kademlia::k_message> k_msg = std::make_shared<ss::kademlia::k_message>(msg);
+  if( auto k_param = msg->get_param("kademlia"); k_param == nullptr ) return 0;
+  k_message k_msg( *(msg->get_param("kademlia")) );
 
-  // 必ずメッセージは検証する
-  if( bool flag = k_msg->validate(); !flag ) return;
-  if( k_msg->is_request() ) // handle request
+  auto call_observer_income_message = [&]( auto &obs )
   {
-	auto update_ctx = _rpc_manager->income_request( k_msg, ep );
-	// observer_ptr->setup( io_context &io_ctx );
-  }
-  else // handle response
+	return obs.income_message( *msg, ep );
+  };
+ 
+  const auto rpc = k_msg.get_rpc();
+  observer_id obs_id = k_msg.get_observer_id();
+
+  switch( rpc )
   {
-	auto update_ctx = _rpc_manager->income_response( k_msg, ep );
+	case k_message::rpc::ping : 
+	  {
+		if( std::optional<observer<ping>> obs = _obs_strage.find_observer<ping>(obs_id); obs != std::nullopt ){
+		  std::cout << "\x1b[33m" << "<k observer strage> ping found." << "\n" << "\x1b[39m";
+		  return call_observer_income_message(*obs); // relay_observerの検索
+		}
+		break;
+	  }
+	case k_message::rpc::find_node :
+	  {
+		if( std::optional<observer<ping>> obs = _obs_strage.find_observer<ping>(obs_id); obs != std::nullopt ){
+		  std::cout << "\x1b[33m" << "<k observer strage> find_node found." << "\n" << "\x1b[39m";
+		  return call_observer_income_message(*obs); // relay_observerの検索
+		}
+		break;
+	  }
+	default : 
+	  {
+		#if SS_DEBUG
+		std::cout << "\x1b[31m" << "(k_bserver_strage) not found." << "\x1b[39m" << "\n";
+		#endif
+	  }
   }
-  return;
+ 
+  _rpc_manager.income_message( msg, ep );
+
+  return 0;
 }
 
 k_routing_table &dht_manager::get_routing_table()
 {
-  return _rpc_manager->get_routing_table();
+  return _rpc_manager.get_routing_table();
+}
+
+direct_routing_table_controller &dht_manager::get_direct_routing_table_controller()
+{
+  return _rpc_manager.get_direct_routing_table_controller();
+}
+
+rpc_manager &dht_manager::get_rpc_manager()
+{
+  return _rpc_manager;
 }
 
 void dht_manager::update_global_self_endpoint( ip::udp::endpoint &ep )
@@ -62,7 +99,12 @@ void dht_manager::update_global_self_endpoint( ip::udp::endpoint &ep )
   std::cout << "\n";
   #endif
 
-  _rpc_manager->update_self_id( _self_id ); // 配下rpc_managerの更新
+  _rpc_manager.update_self_id( _self_id ); // 配下rpc_managerの更新
+}
+
+void dht_manager::init( s_send_func send_func )
+{
+  _s_send_func = send_func;
 }
 
 

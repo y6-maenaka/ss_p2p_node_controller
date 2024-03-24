@@ -12,6 +12,7 @@
 #include "./k_observer_strage.hpp"
 #include "./node_id.hpp"
 #include "./k_routing_table.hpp"
+#include "./direct_routing_table_controller.hpp"
 
 #include "boost/asio.hpp"
 
@@ -25,57 +26,50 @@ namespace kademlia
 {
 
 
+constexpr unsigned short DEFAULT_FIND_NODE_SIZE = 5; // find_nodeで応答するノード数
 class k_observer_strage;
   
 
 class rpc_manager
 {
 public:
-  rpc_manager( node_id &self_id, io_context &io_ctx );
+  using s_send_func = std::function<void(ip::udp::endpoint&, std::string, json)>;
+  rpc_manager( node_id &self_id, io_context &io_ctx, k_observer_strage &obs_strage, s_send_func &send_func );
 
-  struct update_context
-  {
-	enum update_state_t
-	{
-	  none ,
-	  generate_obs ,
-	  failure
-	};
-	enum rpc_t
-	{
-	  ping ,
-	  find_node ,
-	};
-	update_state_t update_state;
-	rpc_t rpc;
-	static update_context (error)() noexcept
-	{
-	  update_context ret;
-	  ret.update_state = update_state_t::failure;
-	  return ret;
-	};
-	update_context();
-  };
-  update_context income_request( std::shared_ptr<ss::kademlia::k_message> msg, ip::udp::endpoint &ep );
-  update_context income_response( std::shared_ptr<ss::kademlia::k_message> msg, ip::udp::endpoint &ep );
-  void handle_msg( json &k_msg );
+  int income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep );
+
   k_routing_table &get_routing_table();
+  direct_routing_table_controller &get_direct_routing_table_controller();
   void update_self_id( node_id &id );
+ 
+  /* リクエスト系メソッド */
+  using on_pong_handler = ping::on_pong_handler; // ping responseが到着した時に呼び出される
+  using on_timeout_handler = ping::on_timeout_handler ;
+  void ping_request( ip::udp::endpoint ep, on_pong_handler pong_handler, on_timeout_handler timeout_handler ); // pingを送信する
+  void find_node_request(); // find_node_response到着時のレスポンスは任せる
+
+  /* レスポンス系メソッド */
+  void ping_response( k_message &k_msg, ip::udp::endpoint &ep );
+  void find_node_response( k_message &k_msg, ip::udp::endpoint &ep );
+
+protected:
+  int income_request( k_message &k_msg, ip::udp::endpoint &ep );
+  int income_response( k_message &k_msg, ip::udp::endpoint &ep ); // observerで処理仕切れなかったメッセージが入ってくる
 
 private:
   void set_triger_observer();
+  
+  /* const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _send_func;
+  const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _traversal_send_func; */
 
-  std::shared_ptr< observer<class ping> > ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep );
-
-  const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _send_func;
-  const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _traversal_send_func;
-
-  std::shared_ptr<k_routing_table> _routing_table;
+  k_routing_table _routing_table;
+  direct_routing_table_controller _d_routing_table_controller;
 
   node_id &_self_id;
   io_context &_io_ctx;
   deadline_timer _tick_timer;
-  k_observer_strage _obs_strage;
+  s_send_func &_s_send_func;
+  k_observer_strage &_obs_strage;
 };
 
 

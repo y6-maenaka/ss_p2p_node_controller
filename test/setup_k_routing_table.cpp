@@ -3,7 +3,9 @@
 #include <ss_p2p/kademlia/node_id.hpp>
 #include <ss_p2p/kademlia/k_bucket.hpp>
 #include <ss_p2p/kademlia/k_node.hpp>
+#include <ss_p2p/node_controller.hpp>
 #include <utils.hpp>
+#include <json.hpp>
 
 #include <string>
 #include <vector>
@@ -21,83 +23,76 @@
 
 using namespace boost::asio;
 using namespace boost::uuids;
+using json = nlohmann::json;
+
+
+class ping_host
+{
+public:
+  void on_timeout( k_node swap_from, k_node swap_to ){
+	std::cout << "on timeout" << "\n";
+	std::cout << swap_from.get_endpoint() << " :: " << swap_to.get_endpoint() << "\n";
+  }
+
+  void on_pong()
+  {
+	std::cout << "on pong" << "\n";
+  }
+};
 
 
 int setup_k_routing_table()
 {
-  ip::udp::endpoint self_endpoint( ip::udp::v4(), 8100 );
+  std::shared_ptr<io_context> io_ctx = std::make_shared<io_context>();
+  ip::udp::endpoint self_endpoint( ip::udp::v4(), 9000 );
   ss::kademlia::k_node self_k_node( self_endpoint );
-  // std::vector< ss::kademlia::k_node > nodes;
-
-  ip::udp::endpoint peer_endpoint_1( ip::address::from_string("127.0.0.1"), 8090 );
-  ss::kademlia::k_node k_node_1( peer_endpoint_1 ); 
-  ip::udp::endpoint peer_endpoint_2( ip::address::from_string("127.0.0.4"), 8100 );
-  ss::kademlia::k_node k_node_2( peer_endpoint_2 );
-  ip::udp::endpoint peer_endpoint_3( ip::address::from_string("127.0.0.7"), 8110 );
-  ss::kademlia::k_node k_node_3( peer_endpoint_3 );
-  ip::udp::endpoint peer_endpoint_4( ip::address::from_string("127.0.0.7"), 8120 );
-  ss::kademlia::k_node k_node_4( peer_endpoint_4 );
-  ip::udp::endpoint peer_endpoint_5( ip::address::from_string("127.0.0.5"), 8130 );
-  ss::kademlia::k_node k_node_5( peer_endpoint_5 );
-
-  ss::kademlia::node_id self_id = ss::kademlia::calc_node_id( self_endpoint );
-  ss::kademlia::k_routing_table routing_table( self_id );
-
-  /*
-  routing_table.calc_branch_index( k_node_1 );
-  routing_table.calc_branch_index( k_node_2 );
-  routing_table.calc_branch_index( k_node_3 );
-  routing_table.calc_branch_index( k_node_4 );
-  routing_table.calc_branch_index( k_node_5 );
-  */
-  
-  /*
-  routing_table.auto_update( k_node_1 );
-  routing_table.auto_update( k_node_2 );
-  routing_table.auto_update( k_node_3 );
-  routing_table.auto_update( k_node_4 );
-  routing_table.auto_update( k_node_5 );
-  */
+ 
 
   
-  std::vector<ss::kademlia::k_node> ignore_nodes;
-  for( int i=0; i<100; i++ )
+  ss::node_controller n_controller( self_endpoint, io_ctx );
+  n_controller.start();
+
+  auto& dht_manager = n_controller.get_dht_manager();
+  auto& routing_table = n_controller.get_routing_table();
+  auto& rpc_manager = dht_manager.get_rpc_manager();
+  auto& ice_agent = n_controller.get_ice_agent();
+  auto signaling_send_func = ice_agent.get_signaling_send_func();
+
+  
+
+
+  for( int i=0; i<10; i++ ) // ダミーのk_nodeを追加
   {
-	ip::udp::endpoint _ep = ss::generate_random_endpoint();
-	ss::kademlia::k_node _k_node( _ep );
-	routing_table.auto_update( _k_node );
+	ip::udp::endpoint _dummy_ep = ss::generate_random_endpoint();
+	ss::kademlia::k_node _dummy_k_node(_dummy_ep);
   }
 
-  routing_table.print();
+  ip::udp::endpoint ping_clinet_ep( ip::address::from_string("127.0.0.1"), 8100 );
+  k_node ping_clinet_k_node(ping_clinet_ep);
+  routing_table.auto_update( ping_clinet_k_node );
+
+  
+  ip::udp::endpoint swap_from_ep( ip::address::from_string("10.0.0.1"), 100 ); 
+  k_node swap_from_k_node( swap_from_ep );
+
+  ip::udp::endpoint swap_to_ep( ip::address::from_string("192.168.0.1"), 200 );
+  k_node swap_to_k_node( swap_to_ep );
+
+ 
+
+  ping_host ph;
+  rpc_manager.ping_request( ping_clinet_ep
+	  , std::bind( &ping_host::on_pong, ph  )
+	  , std::bind( &ping_host::on_timeout, ph, swap_from_k_node, swap_to_k_node ) );  
+
+  std::cout << "done" << "\n";
 
 
-  auto nodes = routing_table.collect_node( self_k_node, 5, ignore_nodes );
-  for( auto itr : nodes )
-  {
-	std::cout << itr.get_endpoint() << "\n";
-  }
-
-  return 0;
-
-
-  auto &bucket = routing_table.get_bucket( k_node_1 );
-  bucket.print_vertical();
-  std::cout << "---------------------------" << "\n";
-  std::cout << bucket.swap_node( k_node_1, k_node_5 ) << "\n";
-  std::cout << "---------------------------" << "\n";
-  bucket.print_vertical();
-
-
-  k_node_1 = k_node_2;
-  k_node_1.print();
-  k_node_2.print();
-
-  /*
   std::mutex mtx;
   std::condition_variable cv;
   std::unique_lock<std::mutex> lock(mtx);
   cv.wait( lock );
-  */
+
 
   return 0;
 }

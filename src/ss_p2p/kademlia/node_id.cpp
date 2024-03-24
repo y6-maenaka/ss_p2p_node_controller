@@ -23,6 +23,12 @@ node_id::node_id( const node_id &nid )
   // std::copy( nid._id.begin(), nid._id.end(), _id.begin() );
 }
 
+std::string node_id::to_str() const 
+{
+  std::string ret( _id.begin(), _id.end() );
+  return ret;
+}
+
 bool node_id::operator ==( const node_id &nid ) const
 {
   return _id == nid._id;

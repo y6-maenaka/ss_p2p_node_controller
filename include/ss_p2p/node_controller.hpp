@@ -39,6 +39,7 @@ class node_controller
 public:
   const message::app_id _id = {'a','b','c','d','e','f','g','h'};
   const ip::udp::socket &self_sock();
+  node_controller( ip::udp::endpoint &self_ep , std::shared_ptr<io_context> io_ctx = std::make_shared<boost::asio::io_context>() );
 
   template <typename Func, typename ... Args>
   void sync_call( Func f, Args ... a );
@@ -52,7 +53,6 @@ public:
   void start();
   void stop();
   peer get_peer( ip::udp::endpoint &ep );
-  node_controller( ip::udp::endpoint &self_ep , std::shared_ptr<io_context> io_ctx = std::make_shared<boost::asio::io_context>() );
   udp_socket_manager& get_socket_manager();
   kademlia::k_routing_table &get_routing_table();
   void update_global_self_endpoint( ip::udp::endpoint ep );
@@ -67,17 +67,18 @@ protected:
   void tick( const boost::system::error_code &ec ); // 未使用ピアノ削除, on_tickのセット, 新しいpeerへの接続要求
   void call_tick();
 
-  std::shared_ptr<ss::kademlia::direct_routing_table_controller> _d_routing_table_controller;
 private:
+  // データ系
   ip::udp::endpoint _self_ep;
   ip::udp::endpoint _glob_self_ep;
   udp_socket_manager _u_sock_manager;
-  std::shared_ptr< udp_server > _udp_server;
-  std::shared_ptr<ice::ice_agent> _ice_agent;
-  std::shared_ptr<kademlia::dht_manager> _dht_manager;
   std::shared_ptr<io_context> _core_io_ctx;
   boost::asio::deadline_timer _tick_timer;
 
+  /* モジュール系 */
+  std::shared_ptr< udp_server > _udp_server;
+  std::shared_ptr<ice::ice_agent> _ice_agent;
+  std::shared_ptr<kademlia::dht_manager> _dht_manager;
   message_pool _msg_pool;
 };
 

@@ -81,7 +81,7 @@ public:
 private:
   io_context &_io_ctx;
   ice_sender &_ice_sender;
-  ice_observer_strage &_obs_strage;
+  ice_observer_strage &_obs_strage; // ice_observer_strage
   ss::kademlia::direct_routing_table_controller &_d_routing_table_controller;
 };
 

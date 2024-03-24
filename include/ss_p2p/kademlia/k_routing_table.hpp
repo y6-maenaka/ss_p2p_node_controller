@@ -49,8 +49,8 @@ public:
   update_state auto_update( k_node kn );
   bool is_exist( k_node &kn );
 
-  std::vector<k_node> collect_node( k_node& root_node, std::size_t max_count,
-	  const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  std::vector<k_node> collect_node( k_node& root_node, std::size_t max_count
+	  , const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
 
   std::vector<k_node> get_node_front( k_node &root_node, std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
   std::vector<k_node> get_node_back( k_node &root_node, std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );

@@ -34,6 +34,10 @@ bool udp_server::start()
 
 void udp_server::on_sock_read( const boost::system::error_code& ec, std::size_t bytes_transferred )
 {
+  #if SS_CAPTURE_PACKET
+  std::cout << "(recv) " << _src_ep << "\n";
+  #endif
+
    std::span<char> raw_msg( _recv_buff.data(), bytes_transferred );
    _io_ctx.post([this, raw_msg]() // node_contollerに転送
 	  {

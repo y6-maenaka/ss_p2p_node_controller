@@ -12,6 +12,7 @@
 
 #include "boost/asio.hpp"
 
+#include <utils.hpp>
 #include "./message.hpp"
 
 using namespace boost::asio;

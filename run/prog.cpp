@@ -35,6 +35,7 @@ int main()
   ss::node_controller n_controller( self_endpoint );
   n_controller.start();
 
+  auto& routing_table =   n_controller.get_routing_table();
 
 
   std::string boot_nodes_list_file_path = "../boot_node_lists.json";
@@ -61,7 +62,8 @@ int main()
   }
   n_controller.update_global_self_endpoint( *global_ip );
 
-  
+ 
+  routing_table.print();
   std::cout << "done" << "\n";
 
 

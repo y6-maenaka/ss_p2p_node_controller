@@ -15,13 +15,15 @@ k_observer::k_observer( io_context &io_ctx, k_routing_table &routing_table )
 }
 
 
-ping::ping( k_routing_table &routing_table, io_context &io_ctx, k_node host_node, k_node swap_node ) : 
+ping::ping( io_context &io_ctx, k_routing_table &routing_table, ip::udp::endpoint ep, on_pong_handler pong_handler, on_timeout_handler timeout_handler ) :
   k_observer( io_ctx, routing_table ) 
-  , _timer( _io_ctx )
-  , _host_node( host_node )
-  , _swap_node( swap_node )
+  , _timer( io_ctx )
+  , _dest_ep(ep)
+  , _pong_handler( pong_handler )
+  , _timeout_handler( timeout_handler )
+  , _is_pong_arrived( false )
 {
-  _is_pong_arrived = false;
+  return;
 }
 
 void ping::init()
@@ -33,19 +35,34 @@ void ping::init()
   _timer.expires_from_now( boost::posix_time::seconds(DEFAULT_PING_RESPONSE_TIMEOUT_s) );
   _timer.async_wait( std::bind( &ping::timeout, this, std::placeholders::_1 ) );
   // 指定時間経過後にpongが到着していなければswapする
-}
+} 
 
 void ping::timeout( const boost::system::error_code &ec )
 {
  if( _is_pong_arrived ) return; // pongが到着していれば特に何もしない
   
   this->destruct_self() ; // 実質破棄を許可する
-  _routing_table.swap_node( _host_node, _swap_node ); // タイムアウトしていればノードを交換する
+ 
+  if( !_is_pong_arrived ){
+  _io_ctx.post( [this]() // タイムアウトした時ようのハンドラを呼び出す
+	  { 
+		this->_timeout_handler();
+	  }) ;
+  }
+
+  // _routing_table.swap_node( _host_node, _swap_node ); // タイムアウトしていればノードを交換する
 }
 
-void ping::handle_response( std::shared_ptr<k_message> msg )
+int ping::income_message( message &msg, ip::udp::endpoint &ep )
 {
   _is_pong_arrived = true;
+
+  _io_ctx.post([this](){ // on_pong_handlerを呼び出す
+		this->_pong_handler();
+	  });
+
+  this->destruct_self() ; // 実質破棄を許可する(refresh_tickで削除される)
+  return 0;
 }
 
 void ping::print() const
@@ -54,7 +71,7 @@ void ping::print() const
 }
 
 
-find_node::find_node( k_routing_table &routing_table, io_context &io_ctx ) :
+find_node::find_node( io_context &io_ctx, k_routing_table &routing_table ) :
   k_observer( io_ctx, routing_table )
 {
   return; 
@@ -67,9 +84,9 @@ void find_node::init()
   #endif
 }
 
-void find_node::handle_response( std::shared_ptr<k_message> msg )
+int find_node::income_message( message &msg, ip::udp::endpoint &ep )
 {
-  return;
+  return 0;
 }
 
 void find_node::print() const

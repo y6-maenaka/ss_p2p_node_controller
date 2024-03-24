@@ -77,7 +77,7 @@ int setup_ice_agent()
   
   ip::udp::endpoint local_dest_ep( ip::address::from_string("127.0.0.1"), 8100 );
   json payload; payload["greet"] = "Hello World";
-  s_send_func( local_dest_ep, "body", payload, boost::system::error_code{} );
+  s_send_func( local_dest_ep, "body", payload );
 
   // ice_observer_strage.show_state( boost::system::error_code{} );
 

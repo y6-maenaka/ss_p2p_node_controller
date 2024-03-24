@@ -55,7 +55,7 @@ int ice_agent::income_message( std::shared_ptr<message> msg, ip::udp::endpoint &
 	}
 
 	#if SS_DEBUG
-	std::cout << "\x1b[31m" << "(ice_observer_strage) signaling observer not found." << "\x1b[39m" << "\n";
+	std::cout << "\x1b[31m" << "(ice_observer_strage) observer not found." << "\x1b[39m" << "\n";
 	#endif
 
 	_sgnl_server.income_message( msg, ep ); // シグナリングサーバに処理を投げる

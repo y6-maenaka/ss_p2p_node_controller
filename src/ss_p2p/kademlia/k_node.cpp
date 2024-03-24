@@ -55,6 +55,12 @@ bool k_node::operator!=( const k_node &kn ) const
   return (_id != kn._id);
 }
 
+std::string k_node::to_str()
+{
+  std::string ret = endpoint_to_str(_ep) + "|" + _id.to_str();
+  return ret;
+}
+
 void k_node::print() const
 {
   std::cout << _ep << "\n";

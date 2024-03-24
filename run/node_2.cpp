@@ -25,10 +25,10 @@ using boost::asio::ip::udp;
 
 int main()
 {
-  std::cout << "Hello node_1" << "\n";
+  std::cout << "Hello node_2" << "\n";
 
-
-  setup_signaling_response_host();
+  setup_node_controller();
+  // setup_signaling_response_host();
 
 
   std::mutex mtx;

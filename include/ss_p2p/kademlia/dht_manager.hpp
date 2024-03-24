@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <functional>
 
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/endpoint.hpp>
@@ -34,6 +35,7 @@ namespace kademlia
 class dht_manager
 {
 public:
+  using s_send_func = std::function<void(ip::udp::endpoint&, std::string, json)>;
   dht_manager( boost::asio::io_context &io_ctx , ip::udp::endpoint &ep );
 
   enum update_state_t{
@@ -45,17 +47,23 @@ public:
   void income_msg( std::shared_ptr<message> msg ); // メッセージ受信
   void invoke_msg( std::shared_ptr<message> msg ); // メッセージ送信
   void bootstrap();
-  void handle_msg( json &msg, ip::udp::endpoint &ep );
+
+  int income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep );
   k_routing_table &get_routing_table();
+  direct_routing_table_controller &get_direct_routing_table_controller();
+  rpc_manager &get_rpc_manager();
 
   void update_global_self_endpoint( ip::udp::endpoint &ep );
+  void init( s_send_func send_func ); 
 
 private:
   io_context &_io_ctx;
   deadline_timer _tick_timer;
   ip::udp::endpoint &_self_ep;
   node_id _self_id;
-  std::shared_ptr<rpc_manager> _rpc_manager;
+  rpc_manager _rpc_manager;
+  k_observer_strage _obs_strage;
+  s_send_func _s_send_func; // initにより初期化され
 
   void tick();
   void call_tick();

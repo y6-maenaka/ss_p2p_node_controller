@@ -3,9 +3,11 @@
 
 
 #include <array>
+#include <string>
 
 #include <ss_p2p/endpoint.hpp>
 #include "./node_id.hpp"
+#include <utils.hpp>
 
 #include "boost/asio.hpp"
 
@@ -34,11 +36,14 @@ public:
   ip::udp::endpoint get_endpoint();
   node_id& get_id();
 
+  std::string to_str();
   void print() const;
 private: 
   ip::udp::endpoint _ep;
   node_id _id;
 };
+
+k_node str_to_k_node( std::string from );
 
 
 };

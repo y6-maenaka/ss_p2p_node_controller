@@ -32,7 +32,8 @@ public:
   node_id();
   node_id( const node_id &nid );
   node_id( std::vector<unsigned char> id_from );
-
+  
+  std::string to_str() const;
   bool operator==( const node_id &nid ) const;
   id operator()() const;
   // node_id operator=( const node_id &nid ) const;
@@ -52,6 +53,7 @@ node_id calc_node_id( T* ep_bin, std::size_t ep_bin_len )
 
 node_id calc_node_id( ip::udp::endpoint &ep );
 unsigned short calc_node_xor_distance( const node_id &nid_1, const node_id &nid_2 );
+node_id str_to_node_id( std::string from );
 
 
 

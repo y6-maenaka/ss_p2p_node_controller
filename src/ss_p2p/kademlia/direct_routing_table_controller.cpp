@@ -13,6 +13,11 @@ direct_routing_table_controller::direct_routing_table_controller( k_routing_tabl
   return;
 }
 
+k_routing_table &direct_routing_table_controller::get_routing_table()
+{
+  return _routing_table;
+}
+
 std::vector<k_node> direct_routing_table_controller::collect_node( k_node &root_node, std::size_t max_count, const std::vector<k_node> &ignore_nodes )
 {
  return _routing_table.collect_node( root_node, max_count, ignore_nodes );

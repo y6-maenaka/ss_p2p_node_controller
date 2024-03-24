@@ -144,16 +144,13 @@ void signaling_server::signaling_send( ip::udp::endpoint &dest_ep, std::string r
 
 signaling_server::s_send_func signaling_server::get_signaling_send_func()
 {
-  std::function<void(ip::udp::endpoint &dest_ep, std::string, const json payload, const boost::system::error_code &ec)> ret =
-	std::bind(
+  return std::bind(
 		&signaling_server::signaling_send
 		, this
 		, std::placeholders::_1
 		, std::placeholders::_2
 		, std::placeholders::_3
 	  );
-
-  return ret;
 }
 
 

@@ -28,7 +28,8 @@ int main()
 {
   std::cout << "Hello node_4" << "\n";
 
-  setup_stun_server();
+  // setup_stun_server();
+  setup_k_routing_table();
 
 
   std::mutex mtx;
