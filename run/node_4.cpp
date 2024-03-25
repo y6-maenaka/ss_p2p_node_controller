@@ -4,6 +4,7 @@
 #include <string>
 #include <chrono>
 #include <mutex>
+#include <span>
 #include <condition_variable>
 
 #include "openssl/evp.h"
@@ -24,12 +25,13 @@
 using boost::asio::ip::udp;
 
 
-int main()
+int main( int argc, const char* argv[] )
 {
   std::cout << "Hello node_4" << "\n";
 
+  setup_peer( argc, argv );
   // setup_stun_server();
-  setup_k_routing_table();
+  // setup_k_routing_table();
 
 
   std::mutex mtx;

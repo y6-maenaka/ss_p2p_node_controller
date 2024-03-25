@@ -107,10 +107,12 @@ void dht_manager::init( s_send_func send_func )
   _s_send_func = send_func;
 }
 
+#if SS_DEBUG
 k_observer_strage &dht_manager::get_observer_strage()
 {
   return _obs_strage;
 }
+#endif
 
 
 }; // namespace kademlia

@@ -3,6 +3,7 @@
 
 
 #include <vector>
+#include <string>
 #include <memory>
 #include <mutex>
 #include <condition_variable>
@@ -10,11 +11,14 @@
 #include <optional>
 #include <chrono>
 
+#include <json.hpp>
 #include "./endpoint.hpp"
 #include "./message.hpp"
 #include "./message_pool.hpp"
 
+
 #include "boost/asio.hpp"
+using json = nlohmann::json;
 
 
 namespace ss
@@ -32,9 +36,13 @@ public:
   bool operator ==(const peer& pr) const;
 
   std::pair< std::shared_ptr<message>, std::time_t > receive( std::time_t timeout = -1 );
-  void send( const std::span<unsigned char> msg );
-  peer( ip::udp::endpoint &ep, message_pool::symbolic msg_pool_symbolic /*,s_send_func send_func*/ );
+  void send( std::span<char> msg );
+
+  void send( std::string msg );
+  peer( ip::udp::endpoint &ep, message_pool::symbolic msg_pool_symbolic ,s_send_func send_func );
   ~peer();
+
+  ip::udp::endpoint get_endpoint();
   void print() const;
 private:
   message_pool::symbolic _msg_pool_symbolic;

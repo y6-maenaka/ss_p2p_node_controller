@@ -19,16 +19,17 @@
 #include "../test/setup_signaling_response_host.cpp"
 #include "../test/setup_stun_server.cpp"
 #include "../test/setup_stun_client.cpp"
-
+#include "../test/sender_peer.cpp"
 
 using boost::asio::ip::udp;
 
 
-int main()
+int main( int argc, const char* argv[] )
 {
   std::cout << "Hello node_3" << "\n";
 
-  setup_stun_client();
+  sender_peer( argc, argv );
+  // setup_stun_client();
   // setup_stun_server();
 
   /*

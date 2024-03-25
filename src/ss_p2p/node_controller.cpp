@@ -45,6 +45,11 @@ kademlia::dht_manager &node_controller::get_dht_manager()
 {
   return *_dht_manager;
 }
+
+message_pool &node_controller::get_message_pool()
+{
+  return _msg_pool;
+}
 #endif
 
 std::optional< ip::udp::endpoint > node_controller::sync_get_global_address( std::vector<ip::udp::endpoint> boot_nodes )
@@ -108,7 +113,7 @@ void node_controller::stop()
 
 peer node_controller::get_peer( ip::udp::endpoint &ep )
 {
-  peer ret( ep, _msg_pool.get_symbolic(ep) );
+  peer ret( ep, _msg_pool.get_symbolic(ep), _ice_agent->get_signaling_send_func() );
   return ret;
 }
 
@@ -127,7 +132,7 @@ void node_controller::call_tick()
 
 void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpoint &ep )
 {
-  int flag = 0;
+  int flag = 1;
   std::shared_ptr<message> msg = std::make_shared<message>( message::decode(raw_msg) );
   if( msg == nullptr ) return;
 

@@ -59,6 +59,7 @@ public:
   #if SS_DEBUG
   ice::ice_agent &get_ice_agent();
   kademlia::dht_manager &get_dht_manager();
+  message_pool &get_message_pool();
   #endif
  
   std::optional< ip::udp::endpoint > sync_get_global_address( std::vector<ip::udp::endpoint> boot_nodes = std::vector<ip::udp::endpoint>() );

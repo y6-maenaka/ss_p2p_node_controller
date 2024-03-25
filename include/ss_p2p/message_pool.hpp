@@ -17,9 +17,9 @@
 #include "boost/uuid/uuid_generators.hpp"
 #include "boost/lexical_cast.hpp"
 
-
 #include <utils.hpp>
 #include "./message.hpp"
+
 
 using namespace boost::asio;
 using namespace boost::uuids;
@@ -48,7 +48,6 @@ public:
   };
   using message_entry = std::optional<struct _message_entry_>;
   using message_entry_id = _message_entry_::message_id;
-  // using message_entry = std::pair< std::shared_ptr<message>, std::time_t >;
   using message_queue = std::vector< _message_entry_ >;
   message_queue _msg_queue;
 
@@ -70,12 +69,12 @@ public:
   message_entry pop_by_id( message_entry_id id );
   void clear();
   ip::udp::endpoint get_endpoint() const;
-  void hello();
 
   bool operator ==( const message_peer_entry &pe ) const;
   bool operator !=( const message_peer_entry &pe ) const;
   static std::size_t calc_id( ip::udp::endpoint &ep );
   message_peer_entry( ip::udp::endpoint ep );
+  void print() const;
 };
 
 class message_pool
@@ -88,9 +87,6 @@ public:
 private:
   pool _pool;
 
-  std::mutex _mtx;
-  std::condition_variable _cv; 
-
   io_context &_io_ctx;
   deadline_timer _refresh_tick_timer;
   bool _requires_refresh;
@@ -99,22 +95,9 @@ private:
   void refresh_tick( const boost::system::error_code& ec ); // エントリーごと削除するか検討する
   entry allocate_entry( ip::udp::endpoint &ep ); // 空のmessage_peer_entryを作成する
 
-protected:
-  struct observer
-  {
-	std::vector< std::pair< std::function<message_peer_entry::message_entry(void)>, ip::udp::endpoint> > _msg_entry_points;
-
-	bool _is_active = false;
-	std::mutex _mtx;
-	std::condition_variable _cv;
-  } _observer;
-
-  class message_pool_observer;
-
 public:
   message_pool( io_context &io_ctx ,bool requires_refresh = true );
 
-  message_pool_observer get_message_pool_observer();
   void requires_refresh( bool b );
   void store( std::shared_ptr<message> msg, ip::udp::endpoint &ep ); // 追加
   
@@ -128,24 +111,28 @@ public:
 	_message_( class message_peer_entry::_message_entry_ &from, ip::udp::endpoint src_ep );
   };
 
+  struct message_hub
+  {
+	friend message_pool;
+	public:
+	  ~message_hub();
+	  void start( std::function<void(_message_)> f );
+	  void stop();
+ 
+	private:
+	  void on_arrive_message( std::function<message_peer_entry::message_entry(void)> pop_func, ip::udp::endpoint src_ep );
+	  std::function<void(message_pool::_message_)> _msg_handler;
+
+	  bool _is_active = false;
+	  std::mutex _mtx;
+	  std::condition_variable cv;
+  } _msg_hub;
+
+  message_hub &get_message_hub();
   symbolic get_symbolic( ip::udp::endpoint &ep, bool requires_clear = false /*バッファのクリアをするか否か*/); // 無い場合は新規作成する
   void release_symbolic( ip::udp::endpoint &ep );
-  void hello();
   
   void print() const;
-};
-
-class message_pool::message_pool_observer
-{
-public:
-  message_pool_observer( message_pool::observer &observer );
-  ~message_pool_observer();
-
-  void start( std::function<void(message_pool::_message_)> f );
-  void stop();
-
-private:
-  message_pool::observer &_obs;
 };
 
 

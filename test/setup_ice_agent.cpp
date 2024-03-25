@@ -50,7 +50,6 @@ int setup_ice_agent()
   std::shared_ptr<io_context> io_ctx = std::make_shared<io_context>();
   ip::udp::endpoint self_endpoint( ip::udp::v4(), 8090 );
 
-
   ss::node_controller n_controller( self_endpoint, io_ctx );
   n_controller.start();
 

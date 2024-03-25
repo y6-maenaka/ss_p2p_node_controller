@@ -10,8 +10,7 @@ namespace kademlia
 k_routing_table::k_routing_table( node_id self_id ) :
   _self_id( self_id )
 {
-  #if SS_VERBOSE 
-  printf("self_id ptr => %p\n", &_self_id );
+  #if SS_VERBOSE
   std::cout << "k routing table hosting with :: "; _self_id.print(); std::cout << "\n";
   #endif
   return;
@@ -150,7 +149,7 @@ void k_routing_table::print()
 	std::cout << "\n";
   }
 }
-#endif 
+#endif
 
 
 std::vector<k_node> eps_to_k_nodds( std::vector<ip::udp::endpoint> eps )
