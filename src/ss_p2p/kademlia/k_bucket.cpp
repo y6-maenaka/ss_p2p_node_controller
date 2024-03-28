@@ -36,16 +36,6 @@ k_bucket::update_state k_bucket::auto_update( k_node kn )
   return update_state::error;
 }
 
-/* std::shared_ptr<k_node> k_bucket::get_front_node( unsigned int idx ) 
-{
-  std::unique_lock<std::mutex> lock(_mtx);
-  if( _nodes.empty() ) return nullptr;
-  return std::make_shared<k_node>( _nodes.at( std::min(
-		  idx,
-		  static_cast<unsigned int>(_nodes.size()-1)) 
-		));
-} */
-
 std::vector<k_node> k_bucket::get_node_front( std::size_t count, const std::vector<k_node> &ignore_nodes )
 {
   std::vector<k_node> ret = std::vector<k_node>();
@@ -60,16 +50,6 @@ std::vector<k_node> k_bucket::get_node_front( std::size_t count, const std::vect
   }
   return ret;
 }
-
-/* std::shared_ptr<k_node> k_bucket::get_back_node( unsigned int idx ) 
-{
-  std::unique_lock<std::mutex> lock(_mtx);
-  if( _nodes.empty() ) return nullptr;
-  return std::make_shared<k_node>( _nodes.at( std::min( 
-		  std::max( static_cast<int>(_nodes.size()-1), static_cast<int>(0)),
-		  static_cast<int>(_nodes.size()-1))
-		));
-} */
 
 std::vector<k_node> k_bucket::get_node_back( std::size_t count, const std::vector<k_node> &ignore_nodes )
 {
@@ -86,49 +66,54 @@ std::vector<k_node> k_bucket::get_node_back( std::size_t count, const std::vecto
   return ret;
 }
 
-bool k_bucket::add_back( k_node kn )
+std::vector<k_node> k_bucket::get_nodes()
 {
-  std::unique_lock<std::mutex> lock(_mtx);
-  if( bool is_full = this->is_full(); is_full ) return false;
-  if( bool is_exist = this->is_exist(kn); is_exist  ) return false;
+  std::vector<k_node> ret; ret.reserve( _nodes.size() );
+  std::copy( _nodes.begin(), _nodes.end(), ret.begin() );
 
-  _nodes.push_back( kn );
-  return true;
+  return ret;
 }
 
-bool k_bucket::move_back( k_node &kn )
+void k_bucket::add_back( k_node kn )
 {
-  std::unique_lock<std::mutex> lock(_mtx);
+  // std::unique_lock<std::mutex> lock(_mtx);
+  if( bool is_full = this->is_full(); is_full ) return;
+  if( bool is_exist = this->is_exist(kn); is_exist  ) return;
+
+  _nodes.push_back( kn );
+}
+
+void k_bucket::move_back( k_node &kn )
+{
+  // std::unique_lock<std::mutex> lock(_mtx);
   auto itr = std::find_if( _nodes.begin(), _nodes.end(), [kn]( const k_node & _ ){
 		return kn == _;
 	  });
-  if( itr == _nodes.end() ) return false;
+  if( itr == _nodes.end() ) return;
 
   k_node target_node = *itr; // temp
   auto erase_itr = _nodes.erase(itr);
   _nodes.push_back( target_node );
-  return true;
 }
 
-bool k_bucket::delete_node( k_node &kn )
+void k_bucket::delete_node( k_node &kn )
 {
   auto itr = std::find( _nodes.begin(), _nodes.end(), kn );
-  if( itr == _nodes.end() ) return false;
+  if( itr == _nodes.end() ) return;
 
   #if SS_VERBOSE
   std::cout << "(delete node)" << kn.get_endpoint() << "\n";
   #endif
   _nodes.erase(itr);
-  return true;
 }
 
-bool k_bucket::swap_node( k_node &node_src, k_node node_dest )
+void k_bucket::swap_node( k_node &node_src, k_node node_dest )
 {
   auto src_itr = std::find( _nodes.begin(), _nodes.end(), node_src );
-  if( src_itr == _nodes.end() ) return false;
+  if( src_itr == _nodes.end() ) return;
 
   auto dest_itr = std::find( _nodes.begin(), _nodes.end(), node_dest );
-  if( dest_itr != _nodes.end() ) return false;
+  if( dest_itr != _nodes.end() ) return;
 
   #if SS_VERBOSE
   std::cout << "(swap node) " << node_src.get_endpoint() << " -> " << node_dest.get_endpoint() << "\n";
@@ -136,8 +121,6 @@ bool k_bucket::swap_node( k_node &node_src, k_node node_dest )
 
   auto itr = _nodes.erase( src_itr );
   _nodes.insert( itr, node_dest );
-
-  return true;
 }
 
 bool k_bucket::is_exist( k_node &kn ) const
@@ -153,7 +136,7 @@ bool k_bucket::is_full() const
   return _nodes.size() >= DEFAULT_K;
 }
 
-std::size_t k_bucket::count() const
+std::size_t k_bucket::get_node_count() const
 {
   return _nodes.size();
 }

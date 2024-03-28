@@ -27,9 +27,7 @@ public:
   k_node();
   k_node( const k_node &kn );
   k_node( ip::udp::endpoint &ep );
-  // k_node( ip::udp::endpoint &ep , node_id id );
 
-  // k_node operator=( const k_node &kn ) const;
   bool operator==( const k_node &kn ) const;
   bool operator!=( const k_node &kn ) const;
 
@@ -38,6 +36,8 @@ public:
 
   std::string to_str();
   void print() const;
+
+  static k_node (blank)();
 
 private: 
   ip::udp::endpoint _ep;

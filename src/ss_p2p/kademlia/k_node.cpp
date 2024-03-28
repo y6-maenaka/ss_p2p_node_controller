@@ -67,6 +67,15 @@ void k_node::print() const
   _id.print(); std::cout << "\n";
 }
 
+k_node k_node::blank()
+{
+  ip::udp::endpoint blank_ep( ip::address::from_string("0.0.0.0"), 0 );
+  k_node ret( blank_ep );
+  ret._id = node_id::none();
+
+  return ret;
+}
+
 
 };
 };

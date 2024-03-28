@@ -67,6 +67,7 @@ set( ss_p2p_kademlia_source_files
 	k_message.cpp
 	rpc_manager.cpp
 	direct_routing_table_controller.cpp
+	connection_maintainer.cpp
 )
 set( ss_p2p_ice_agent_include_files 
 	ice_agent.hpp

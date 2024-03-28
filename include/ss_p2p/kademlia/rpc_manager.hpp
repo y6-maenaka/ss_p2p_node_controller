@@ -44,9 +44,10 @@ public:
  
   /* リクエスト系メソッド */
   using on_pong_handler = ping::on_pong_handler; // ping responseが到着した時に呼び出される
-  using on_timeout_handler = ping::on_timeout_handler ;
-  void ping_request( ip::udp::endpoint ep, on_pong_handler pong_handler, on_timeout_handler timeout_handler ); // pingを送信する
-  void find_node_request(); // find_node_response到着時のレスポンスは任せる
+  using on_ping_timeout_handler = ping::on_timeout_handler ;
+  using on_find_node_response_handler = find_node::on_response_handler;
+  void ping_request( ip::udp::endpoint ep, on_pong_handler pong_handler, on_ping_timeout_handler timeout_handler ); // pingを送信する
+  void find_node_request( std::vector<ip::udp::endpoint> request_eps, std::vector<ip::udp::endpoint> ignore_eps, on_find_node_response_handler response_handler ); // find_node_response到着時のレスポンスは任せる
 
   /* レスポンス系メソッド */
   void ping_response( k_message &k_msg, ip::udp::endpoint &ep );
@@ -57,11 +58,6 @@ protected:
   int income_response( k_message &k_msg, ip::udp::endpoint &ep ); // observerで処理仕切れなかったメッセージが入ってくる
 
 private:
-  void set_triger_observer();
-  
-  /* const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _send_func;
-  const std::function<void(ip::udp::endpoint &ep, std::string, const json payload )> _traversal_send_func; */
-
   k_routing_table _routing_table;
   direct_routing_table_controller _d_routing_table_controller;
 

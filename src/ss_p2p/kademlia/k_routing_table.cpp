@@ -24,7 +24,7 @@ unsigned short k_routing_table::calc_branch( k_node &kn ) // オーバヘッド�
   return (K_NODE_ID_LENGTH*8) - node_xor_distance;
 }
 
-bool k_routing_table::swap_node( k_node &node_src, k_node node_dest )
+void k_routing_table::swap_node( k_node &node_src, k_node node_dest )
 {
   k_bucket &target_bucket = this->get_bucket(node_src);
   return target_bucket.swap_node( node_src, node_dest );
@@ -124,6 +124,15 @@ unsigned short k_routing_table::calc_branch_index( k_node &kn )
   return std::max( branch -1 , 0 );
 }
 
+std::size_t k_routing_table::get_node_count()
+{
+  std::size_t ret = 0;
+  for( auto &itr : _table )
+	ret += itr.get_node_count();
+
+  return ret;
+}
+
 k_bucket& k_routing_table::get_bucket( k_node &kn )
 {
   const auto branch_idx = calc_branch_index(kn);
@@ -135,6 +144,12 @@ k_bucket& k_routing_table::get_bucket( unsigned short branch )
   return _table[ std::max(branch-1,0) ];
 }
 
+k_bucket_iterator k_routing_table::get_begin_bucket_iterator()
+{
+  k_bucket_iterator ret( this, 1/*branchのスタートは1から*/ );
+  return ret;
+}
+
 #if SS_DEBUG
 void k_routing_table::print()
 {
@@ -143,7 +158,7 @@ void k_routing_table::print()
 	auto &target_bucket = this->get_bucket(i);
 	for( int i=0; i< get_console_width(); i++ ) printf("=");
 	std::cout << "| k-bucket (" << i << ") ";
-	std::cout << "| c: " << target_bucket.count() << " |" << "\n";
+	std::cout << "| c: " << target_bucket.get_node_count() << " |" << "\n";
 	for( int i=0; i<get_console_width(); i++ ) printf("-");
 	target_bucket.print_horizontal();
 	std::cout << "\n";
@@ -158,6 +173,123 @@ std::vector<k_node> eps_to_k_nodds( std::vector<ip::udp::endpoint> eps )
   for( auto itr : eps ) ret.push_back( k_node(itr) );
   return ret;
 }
+
+
+k_bucket_iterator::k_bucket_iterator( k_routing_table *routing_table, unsigned short branch ) :
+  _routing_table( routing_table )
+  , _branch(branch)
+  // , _bucket( std::ref((routing_table->get_bucket(branch))) )
+  , _bucket( ((routing_table->get_bucket(branch))) )
+{
+  return;
+}
+
+k_bucket_iterator& k_bucket_iterator::operator++() // 前置
+{
+  _branch++;
+
+  if( is_invalid() )
+  {
+	_branch = K_BUCKET_COUNT + 1;
+	// _bucket = nullptr;
+	return *this;
+  }
+  _bucket = std::ref( (_routing_table->get_bucket(_branch)) );
+
+  return *this;
+}
+k_bucket_iterator k_bucket_iterator::operator++(int)
+{
+  k_bucket_iterator ret = *this;
+  _branch++;
+
+  if( is_invalid() )
+  {
+	_branch = K_BUCKET_COUNT + 1;
+	// _bucket = nullptr;
+	return ret;
+  } 
+  _bucket = (_routing_table->get_bucket(_branch));
+
+  return ret;
+}
+
+k_bucket_iterator& k_bucket_iterator::operator--()
+{
+  _branch--;
+
+  if( is_invalid() )
+  {
+	_branch = 0;
+	// _bucket = nullptr;
+	return *this;
+  }
+  _bucket = (_routing_table->get_bucket(_branch));
+
+  return *this;
+}
+k_bucket_iterator k_bucket_iterator::operator--(int)
+{
+  k_bucket_iterator ret = *this;
+  _branch--;
+
+  if( is_invalid() )
+  {
+	_branch = 0;
+	// _bucket = nullptr;
+	return ret;
+  }
+  _bucket = (_routing_table)->get_bucket(_branch);
+
+  return ret;
+}
+k_bucket& k_bucket_iterator::operator*()
+{
+  return _bucket;
+}
+
+bool k_bucket_iterator::is_invalid() const
+{
+  if( _branch <= 0 || _branch >= 161 ) return true;
+  return false;
+}
+
+k_bucket_iterator& k_bucket_iterator::to_begin()
+{
+  _branch = 1;
+  _bucket = (_routing_table)->get_bucket(_branch);
+  return *this;
+}
+
+void k_bucket_iterator::_print_() const
+{
+  std::cout << "branch :: " << _branch << "\n";
+  // if( _bucket == nullptr ) std::cout << "bucket :: nullptr" << "\n";
+  // else printf("bucket :: %p\n", _bucket );
+  std::cout << "is_invalid :: " << is_invalid() << "\n";
+}
+
+unsigned short k_bucket_iterator::get_branch()
+{
+  return _branch;
+}
+
+k_bucket_iterator k_bucket_iterator::invalid()
+{
+  k_bucket_iterator ret( nullptr, -1 );
+  return ret;
+}
+
+std::vector<k_node> k_bucket_iterator::get_nodes()
+{
+  if( is_invalid() ) return std::vector<k_node>();
+  return _bucket.get_nodes();
+}
+
+/* k_bucket* k_bucket_iterator::get_bucket()
+{
+  return _bucket;
+} */
 
 
 };

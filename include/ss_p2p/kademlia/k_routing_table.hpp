@@ -8,6 +8,7 @@
 #include <vector>
 #include <iostream>
 #include <chrono>
+#include <optional>
 #include <sys/ioctl.h>
 
 #include "openssl/evp.h"
@@ -29,8 +30,34 @@ namespace kademlia
 {
 
 
+class k_routing_table;
 constexpr unsigned short K_BUCKET_COUNT = 160;
 
+
+class k_bucket_iterator  // 若干bucketへの操作を制御する
+{
+  friend k_routing_table;
+public:
+  k_bucket_iterator& operator++(); // 前置
+  k_bucket_iterator operator++(int/*dummy*/); // 後置
+  k_bucket_iterator& operator--();
+  k_bucket_iterator operator--(int);
+  bool operator==( const k_bucket_iterator &itr );
+  k_bucket& operator*();
+  unsigned short get_branch();
+  bool is_invalid() const;
+  k_bucket_iterator& to_begin();
+  std::vector<k_node> get_nodes();
+
+  void _print_() const;
+private: 
+  k_bucket_iterator( k_routing_table *routing_table, unsigned short branch = 1 );
+  k_routing_table *_routing_table;
+  k_bucket &_bucket;
+  int _branch;
+
+  static k_bucket_iterator (invalid)();
+}; 
 
 class k_routing_table
 {
@@ -43,7 +70,7 @@ private:
   unsigned short calc_branch( k_node &kn );
 public:
   k_routing_table( node_id self_id );
-  bool swap_node( k_node &node_src, k_node node_dest );
+  void swap_node( k_node &node_src, k_node node_dest );
 
   using update_state = k_bucket::update_state;
   update_state auto_update( k_node kn );
@@ -58,7 +85,10 @@ public:
   k_bucket& get_bucket( k_node &kn );
   k_bucket& get_bucket( unsigned short branch );
   unsigned short calc_branch_index( k_node &kn );
+  std::size_t get_node_count();
 
+  k_bucket_iterator get_begin_bucket_iterator();
+  
   #if SS_DEBUG
   void print();
   #endif

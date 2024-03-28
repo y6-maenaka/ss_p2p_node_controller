@@ -14,6 +14,7 @@ dht_manager::dht_manager( boost::asio::io_context &io_ctx, ip::udp::endpoint &ep
   , _self_id( calc_node_id(ep) )
   , _obs_strage( io_ctx )
   , _rpc_manager( _self_id, _io_ctx, _obs_strage, _s_send_func )
+  , _maintainer( this, _rpc_manager, io_ctx )
 {
   // _self_id = calc_node_id( ep );
   
@@ -100,6 +101,17 @@ void dht_manager::update_global_self_endpoint( ip::udp::endpoint &ep )
   #endif
 
   _rpc_manager.update_self_id( _self_id ); // 配下rpc_managerの更新
+}
+
+void dht_manager::start()
+{
+  _maintainer._requires_tick = true;
+  _maintainer.tick();
+}
+
+void dht_manager::stop()
+{
+  _maintainer._requires_tick = false;
 }
 
 void dht_manager::init( s_send_func send_func )

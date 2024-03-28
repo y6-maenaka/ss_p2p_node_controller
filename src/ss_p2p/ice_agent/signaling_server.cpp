@@ -83,7 +83,7 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
   int ttl = signaling_message_controller.get_ttl();
   if( ttl <= 0 ) return 0; // ttlが0以下だったらメッセージを破棄する
 
-  auto forward_eps = _d_routing_table_controller.collect_node( dest_ep, 3, relay_eps ); // 転送先
+  auto forward_eps = _d_routing_table_controller.collect_endpoint( dest_ep, 3, relay_eps ); // 転送先
   for( auto itr : forward_eps )
 	signaling_message_controller.add_relay_endpoint(itr); // 転送先をリレーノードとして追加する
 
@@ -131,7 +131,7 @@ void signaling_server::signaling_send( ip::udp::endpoint &dest_ep, std::string r
   {
 	std::cout << "-- ** --" << "\n";
 	_ice_sender.async_send( dest_ep, root_param, payload
-		, std::bind( &signaling_server::on_send_done, this, std::placeholders::_1)
+		, std::bind( &signaling_server::on_send_done, this, std::placeholders::_1 )
 	  );
 	return;
   }

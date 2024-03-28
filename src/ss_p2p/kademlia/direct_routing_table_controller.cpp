@@ -23,7 +23,7 @@ std::vector<k_node> direct_routing_table_controller::collect_node( k_node &root_
  return _routing_table.collect_node( root_node, max_count, ignore_nodes );
 }
 
-std::vector<ip::udp::endpoint> direct_routing_table_controller::collect_node( ip::udp::endpoint &root_ep, std::size_t max_count, const std::vector<ip::udp::endpoint> &ignore_eps )
+std::vector<ip::udp::endpoint> direct_routing_table_controller::collect_endpoint( ip::udp::endpoint &root_ep, std::size_t max_count, const std::vector<ip::udp::endpoint> &ignore_eps )
 {
   k_node root_node(root_ep);
   std::vector<k_node> ignore_nodes; 
@@ -49,6 +49,28 @@ bool direct_routing_table_controller::is_exist( k_node &kn ) const
 {
   return _routing_table.is_exist(kn);
 }
+
+void direct_routing_table_controller::auto_update( std::vector<ip::udp::endpoint> eps )
+{
+  for( auto itr : eps )
+  {
+	k_node target_k_node( itr );
+	_routing_table.auto_update( target_k_node );
+  }
+  return;
+}
+
+std::size_t direct_routing_table_controller::get_node_count()
+{
+  return _routing_table.get_node_count();
+}
+
+k_bucket_iterator direct_routing_table_controller::get_begin_bucket_iterator()
+{
+  return _routing_table.get_begin_bucket_iterator();
+}
+
+
 
 
 };

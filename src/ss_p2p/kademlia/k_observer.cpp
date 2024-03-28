@@ -7,16 +7,15 @@ namespace kademlia
 {
 
 
-k_observer::k_observer( io_context &io_ctx, k_routing_table &routing_table )
-  : base_observer( io_ctx ) ,
-  _routing_table( routing_table )
+k_observer::k_observer( io_context &io_ctx )
+  : base_observer( io_ctx )
 {
   return;
 }
 
 
-ping::ping( io_context &io_ctx, k_routing_table &routing_table, ip::udp::endpoint ep, on_pong_handler pong_handler, on_timeout_handler timeout_handler ) :
-  k_observer( io_ctx, routing_table ) 
+ping::ping( io_context &io_ctx, ip::udp::endpoint ep, on_pong_handler pong_handler, on_timeout_handler timeout_handler ) :
+  k_observer( io_ctx )
   , _timer( io_ctx )
   , _dest_ep(ep)
   , _pong_handler( pong_handler )
@@ -51,8 +50,6 @@ void ping::timeout( const boost::system::error_code &ec )
 		this->_timeout_handler();
 	  }) ;
   }
-
-  // _routing_table.swap_node( _host_node, _swap_node ); // タイムアウトしていればノードを交換する
 }
 
 int ping::income_message( message &msg, ip::udp::endpoint &ep )
@@ -74,8 +71,9 @@ void ping::print() const
 }
 
 
-find_node::find_node( io_context &io_ctx, k_routing_table &routing_table ) :
-  k_observer( io_ctx, routing_table )
+find_node::find_node( io_context &io_ctx, on_response_handler response_handler ) :
+  k_observer( io_ctx )
+  , _response_handler( response_handler )
 {
   return; 
 }

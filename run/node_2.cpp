@@ -28,7 +28,6 @@ int main()
   std::cout << "Hello node_2" << "\n";
 
   setup_node_controller();
-  // setup_signaling_response_host();
 
 
   std::mutex mtx;

@@ -30,10 +30,7 @@ constexpr unsigned int DEFAULT_PING_RESPONSE_TIMEOUT_s = 5; // デフォルト�
 class k_observer : public ss::base_observer
 {
 public:
-  k_observer( io_context &io_ctx, k_routing_table &routing_table );
-
-protected:
-  k_routing_table &_routing_table;
+  k_observer( io_context &io_ctx );
 };
 
 
@@ -42,9 +39,9 @@ class ping : public k_observer
 public:
   using on_pong_handler = std::function<void()>; // 引数は勝手にバイドすること
   using on_timeout_handler = std::function<void()>; 
-  ping( io_context &io_ctx, k_routing_table &routing_table, ip::udp::endpoint ep/* 一応保持しておく*/, on_pong_handler pong_handler, on_timeout_handler timeout_handler );
+  ping( io_context &io_ctx, ip::udp::endpoint ep/* 一応保持しておく*/, on_pong_handler pong_handler, on_timeout_handler timeout_handler );
 
-  void update_observer( k_routing_table &routing_table );
+  // void update_observer( k_routing_table &routing_table );
   int income_message( message &msg, ip::udp::endpoint &ep ); // このメソッドをタイマーセットしてio_ctxにポスト
   void timeout( const boost::system::error_code &ec );
   void init();
@@ -62,11 +59,14 @@ private:
 class find_node : public k_observer
 {
 public:
-  find_node( io_context &io_ctx, k_routing_table &routing_table );
+  using on_response_handler = std::function<void(std::vector<ip::udp::endpoint>)>;
+  find_node( io_context &io_ctx, on_response_handler response_handler );
   void init();
   int income_message( message &msg, ip::udp::endpoint &ep );
-  // void handle_response( std::shared_ptr<k_message> msg );
   void print() const;
+
+private:
+  on_response_handler _response_handler;
 };
 
 

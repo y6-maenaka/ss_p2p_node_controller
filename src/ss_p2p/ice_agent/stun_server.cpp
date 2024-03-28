@@ -42,7 +42,7 @@ void stun_server::on_send_done( const boost::system::error_code &ec )
   if( request_node_count > request_nodes.size() ) // request先ノード数が不住ぶな場合
   {
 	ip::udp::endpoint root_ep( ip::address::from_string("0.0.0.0") , 0 );
-	auto collected_nodes = _d_routing_table_controller.collect_node( root_ep, request_node_count - request_nodes.size(), request_nodes );
+	auto collected_nodes = _d_routing_table_controller.collect_endpoint( root_ep, request_node_count - request_nodes.size(), request_nodes );
   }
    
   if( request_nodes.empty() ) return std::make_shared<stun_server::sr_object>(stun_server::sr_object::_error_());

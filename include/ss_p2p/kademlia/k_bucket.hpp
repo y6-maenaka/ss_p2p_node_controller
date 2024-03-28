@@ -4,7 +4,7 @@
 
 #include <vector>
 #include <memory>
-#include <mutex>
+#include <shared_mutex>
 #include <condition_variable>
 #include <algorithm>
 
@@ -23,8 +23,7 @@ constexpr unsigned short DEFAULT_K = 4;
 class k_bucket
 {
 private:
-  std::mutex _mtx;
-  std::condition_variable _cv;
+  // std::shared_mutex _smtx;
 
   std::vector< k_node > _nodes;
 
@@ -43,14 +42,16 @@ public:
 
   std::vector<k_node> get_node_front( std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
   std::vector<k_node> get_node_back( std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  std::vector<k_node> get_nodes(); // 全てのノードを取得する
 
-  bool add_back( k_node kn );
-  bool move_back( k_node &kn );
-  bool delete_node( k_node &kn ); // 基本的に使用しない
-  bool swap_node( k_node &node_src, k_node node_dest );
+  void add_back( k_node kn );
+  void move_back( k_node &kn );
+  void delete_node( k_node &kn ); // 基本的に使用しない
+  void swap_node( k_node &node_src, k_node node_dest );
   bool is_exist( k_node &kn ) const;
   bool is_full() const;
-  std::size_t count() const;
+  std::size_t get_node_count() const;
+  // k_bucket& operator=( const k_bucket &bucket );
 
   void print_vertical() const; // 縦表示
   void print_horizontal() const; // 横表示

@@ -87,13 +87,14 @@ void node_controller::start()
 	{
 	  assert( _udp_server != nullptr );
 	  _udp_server->start();
+	  _dht_manager->start();
 
-	  call_tick(); // tickを呼び出す
 	  _msg_pool.requires_refresh(true); // msg_poolの定期リフレッシュを停止する
 
 	  _core_io_ctx->run();
 	});
   daemon.detach();
+
 
   #if SS_VERBOSE
   std::cout << "[\x1b[32m start \x1b[39m] node controller" << "\n";
@@ -105,6 +106,7 @@ void node_controller::stop()
   _udp_server->stop();
   _core_io_ctx->stop();
   _msg_pool.requires_refresh(false); // msg_poolの定期リフレッシュを再開する
+  _dht_manager->stop();
 
   #if SS_VERBOSE
   std::cout << "[\x1b[31m stop \x1b[39m] node controller" << "\n";
@@ -115,19 +117,6 @@ peer node_controller::get_peer( ip::udp::endpoint &ep )
 {
   peer ret( ep, _msg_pool.get_symbolic(ep), _ice_agent->get_signaling_send_func() );
   return ret;
-}
-
-void node_controller::tick( const boost::system::error_code& ec )
-{
-  std::cout << "tick" << "\n";
-  
-  this->call_tick();
-}
-
-void node_controller::call_tick()
-{
-  _tick_timer.expires_from_now(boost::posix_time::seconds(DEFAULT_NODE_CONTROLLER_TICK_TIME_S));
-  _tick_timer.async_wait( std::bind(&node_controller::tick, this , std::placeholders::_1) ); // node_controller::tickの起動
 }
 
 void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpoint &ep )

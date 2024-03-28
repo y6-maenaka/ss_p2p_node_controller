@@ -11,6 +11,7 @@
 #include <json.hpp>
 #include <utils.hpp>
 
+#include "./k_bucket.hpp"
 #include "./k_routing_table.hpp"
 #include "./k_node.hpp"
 #include "./node_id.hpp"
@@ -31,6 +32,8 @@ namespace ss
 namespace kademlia
 {
 
+constexpr unsigned short MINIMUM_NODES = 5; // 最低限のノード数
+
 
 class dht_manager
 {
@@ -38,15 +41,8 @@ public:
   using s_send_func = std::function<void(ip::udp::endpoint&, std::string, json)>;
   dht_manager( boost::asio::io_context &io_ctx , ip::udp::endpoint &ep );
 
-  enum update_state_t{
-	added,
-	pending,
-	error
-  };
-
   void income_msg( std::shared_ptr<message> msg ); // メッセージ受信
   void invoke_msg( std::shared_ptr<message> msg ); // メッセージ送信
-  void bootstrap();
 
   int income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep );
   k_routing_table &get_routing_table();
@@ -60,6 +56,8 @@ public:
   k_observer_strage &get_observer_strage();
   #endif
 
+  void start(); // 実質はtickをcallするだけ
+  void stop(); // tickのストップ
 private:
   io_context &_io_ctx;
   deadline_timer _tick_timer;
@@ -70,8 +68,27 @@ private:
   s_send_func _s_send_func; // initにより初期化され
 
   void tick();
-  void call_tick();
 
+  class connection_maintainer
+  {
+	friend class dht_manager;
+
+	std::time_t calc_next_tick_time(); // 次にtickを呼び出すまでの時間を計算する
+	void tick();
+	void tick_done(); // 次のtickを呼び出すため,必ずtick終了時に呼び出す
+	bool _requires_tick;
+	void get_remote_nodes();
+
+	std::time_t send_refresh_ping(); // 全てのping_responseが買ってくる時間を取得
+ 
+	connection_maintainer( class dht_manager *manager, rpc_manager &rpc_manager, io_context &io_ctx ); 
+	private:
+	  dht_manager *_d_manager;
+	  io_context &_io_ctx;
+	  class rpc_manager &_rpc_manager;
+	  deadline_timer _timer;
+
+  } _maintainer;
 };
 
 

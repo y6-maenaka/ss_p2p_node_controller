@@ -44,7 +44,7 @@ void signaling_request::init( ip::udp::endpoint &dest_ep, std::string param, jso
   msg_controller.set_dest_endpoint( dest_ep );
   msg_controller.set_src_endpoint( _glob_self_ep );
 
-  std::vector<ip::udp::endpoint> forward_eps = _d_routing_table_controller.collect_node( dest_ep, 3/*適当*/ );
+  std::vector<ip::udp::endpoint> forward_eps = _d_routing_table_controller.collect_endpoint( dest_ep, 3/*適当*/ );
   for( auto itr : forward_eps )
   {
 	_ice_sender.async_ice_send( itr, ice_msg

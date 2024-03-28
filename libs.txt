@@ -9,3 +9,8 @@ boost/uuid
 -> ice_agent/signalnig_server/signanlig_send(s_send_func) にrouting_tableが必要だが, dht_managerにはs_send_funcが必要
 初期化時に相互依存してしまう
 >>> dht_manager.init( send_func ) で後から送信関数オブジェクトを渡すようにした よくないと思う
+
+
+// 修正
+- k_bucketのmutex
+- connection_maintainer の collect_nodesのサイズ
