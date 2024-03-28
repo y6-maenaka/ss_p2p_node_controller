@@ -40,7 +40,7 @@ void dht_manager::connection_maintainer::tick_done()
   std::time_t next_tick_time_s = ( node_count < MINIMUM_NODES ) ? 10 : node_count * 20 ; /* 実装段階では雑に決定 */
 
   if( !(_requires_tick) ) return; // tickがstopされていたらそれ以上は繰り返さない
-
+  // d_table_controller.print();
 
   #if SS_VERBOSE
   std::cout << "next tick standby :: " << next_tick_time_s << "[s]" << "\n";
@@ -70,6 +70,7 @@ void dht_manager::connection_maintainer::get_remote_nodes()
 std::time_t dht_manager::connection_maintainer::send_refresh_ping()
 {
   // 全てのノードを収集する
+  std::cout << "-- 4" << "\n";
   auto &d_table_controller = _d_manager->get_direct_routing_table_controller();
   for( auto bucket_itr = d_table_controller.get_begin_bucket_iterator(); !(bucket_itr.is_invalid()); bucket_itr++ )
   {
@@ -78,8 +79,8 @@ std::time_t dht_manager::connection_maintainer::send_refresh_ping()
 	{ 
 	  _rpc_manager.ping_request
 		( itr.get_endpoint()  // timeout->deleteのpingを送信する
-		  , std::bind( &k_bucket::move_back, std::ref(bucket_itr), itr )
-		  , std::bind( &k_bucket::delete_node, std::ref(bucket_itr), itr ) 
+		  , std::bind( &k_bucket::move_back, std::ref(bucket_itr.get_raw()), itr )
+		  , std::bind( &k_bucket::delete_node, std::ref(bucket_itr.get_raw()), itr ) 
 		);
 	}
   }

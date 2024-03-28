@@ -23,6 +23,8 @@
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/message_pool.hpp>
 #include <ss_p2p/socket_manager.hpp>
+#include <ss_p2p/sender.hpp>
+
 
 using namespace boost::asio;
 
@@ -77,6 +79,7 @@ private:
   udp_socket_manager _u_sock_manager;
   std::shared_ptr<io_context> _core_io_ctx;
   boost::asio::deadline_timer _tick_timer;
+  sender _sender;
 
   /* モジュール系 */
   std::shared_ptr< udp_server > _udp_server;

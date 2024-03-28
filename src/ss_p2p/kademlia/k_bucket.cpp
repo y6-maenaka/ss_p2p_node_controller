@@ -69,7 +69,7 @@ std::vector<k_node> k_bucket::get_node_back( std::size_t count, const std::vecto
 std::vector<k_node> k_bucket::get_nodes()
 {
   std::vector<k_node> ret; ret.reserve( _nodes.size() );
-  std::copy( _nodes.begin(), _nodes.end(), ret.begin() );
+  std::copy( _nodes.begin(), _nodes.end(), std::back_inserter(ret) );
 
   return ret;
 }
@@ -102,7 +102,7 @@ void k_bucket::delete_node( k_node &kn )
   if( itr == _nodes.end() ) return;
 
   #if SS_VERBOSE
-  std::cout << "(delete node)" << kn.get_endpoint() << "\n";
+  std::cout << "(delete node) " << kn.get_endpoint() << "\n";
   #endif
   _nodes.erase(itr);
 }

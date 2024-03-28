@@ -9,6 +9,7 @@
 #include <ss_p2p/kademlia/direct_routing_table_controller.hpp>
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/socket_manager.hpp>
+#include <ss_p2p/sender.hpp>
 #include "./ice_message.hpp"
 #include "./ice_sender.hpp"
 #include "./ice_observer_strage.hpp"
@@ -30,7 +31,7 @@ namespace ice
 class ice_agent
 {
 public:
-  ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
+  ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id, sender &sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
   void hello();
 
   int income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep /*original_src_ep*/ ); // メッセージ受信
@@ -49,6 +50,7 @@ public:
   udp_socket_manager &_sock_manager;
   ip::udp::endpoint &_glob_self_ep; // グローバルendpoing
   message::app_id _app_id;
+  sender &_sender;
 
   signaling_server _sgnl_server;
   stun_server _stun_server;

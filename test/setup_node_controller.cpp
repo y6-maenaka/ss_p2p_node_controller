@@ -35,14 +35,11 @@ int setup_node_controller( int argc, const char* argv[] )
   std::vector<ip::udp::endpoint> boot_nodes;
   for( auto itr : boot_nodes_j ) boot_nodes.push_back( ss::addr_pair_to_endpoint( itr["ip"], itr["port"] ) );
 
-
   ip::udp::endpoint self_endpoint( ip::udp::v4(), std::atoi(args[1]) );
   ss::node_controller n_controller( self_endpoint );
-
-
-  auto &d_routing_table_controller = n_controller.get_direct_routing_table_controller();
-  d_routing_table_controller.auto_update( boot_nodes );
-  d_routing_table_controller.print();
+  
+  auto &direct_routing_table_controller = n_controller.get_direct_routing_table_controller();
+  direct_routing_table_controller.auto_update( boot_nodes );
 
   n_controller.start();
 

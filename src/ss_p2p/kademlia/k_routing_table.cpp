@@ -136,17 +136,17 @@ std::size_t k_routing_table::get_node_count()
 k_bucket& k_routing_table::get_bucket( k_node &kn )
 {
   const auto branch_idx = calc_branch_index(kn);
-  return _table[branch_idx];
+  return (_table[branch_idx]);
 }
 
 k_bucket& k_routing_table::get_bucket( unsigned short branch )
 {
-  return _table[ std::max(branch-1,0) ];
+  return (_table[ std::max(branch-1,0) ]);
 }
 
 k_bucket_iterator k_routing_table::get_begin_bucket_iterator()
 {
-  k_bucket_iterator ret( this, 1/*branchのスタートは1から*/ );
+  k_bucket_iterator ret( this, _table.begin(), 1/*branchのスタートは1から*/ );
   return ret;
 }
 
@@ -175,11 +175,15 @@ std::vector<k_node> eps_to_k_nodds( std::vector<ip::udp::endpoint> eps )
 }
 
 
-k_bucket_iterator::k_bucket_iterator( k_routing_table *routing_table, unsigned short branch ) :
+k_bucket_iterator::k_bucket_iterator()
+{
+  return;
+}
+
+k_bucket_iterator::k_bucket_iterator( k_routing_table *routing_table, k_routing_table::routing_table::iterator bucket_itr, unsigned short branch ) :
   _routing_table( routing_table )
-  , _branch(branch)
-  // , _bucket( std::ref((routing_table->get_bucket(branch))) )
-  , _bucket( ((routing_table->get_bucket(branch))) )
+  , _bucket_itr( bucket_itr )
+  , _branch( branch )
 {
   return;
 }
@@ -194,7 +198,8 @@ k_bucket_iterator& k_bucket_iterator::operator++() // 前置
 	// _bucket = nullptr;
 	return *this;
   }
-  _bucket = std::ref( (_routing_table->get_bucket(_branch)) );
+  // _bucket = &( (_routing_table->get_bucket(_branch)) );
+  _bucket_itr++;
 
   return *this;
 }
@@ -208,8 +213,9 @@ k_bucket_iterator k_bucket_iterator::operator++(int)
 	_branch = K_BUCKET_COUNT + 1;
 	// _bucket = nullptr;
 	return ret;
-  } 
-  _bucket = (_routing_table->get_bucket(_branch));
+  }
+  // _bucket = &(_routing_table->get_bucket(_branch));
+  _bucket_itr++;
 
   return ret;
 }
@@ -224,7 +230,8 @@ k_bucket_iterator& k_bucket_iterator::operator--()
 	// _bucket = nullptr;
 	return *this;
   }
-  _bucket = (_routing_table->get_bucket(_branch));
+  // _bucket = &(_routing_table->get_bucket(_branch));
+  _bucket_itr++;
 
   return *this;
 }
@@ -239,13 +246,19 @@ k_bucket_iterator k_bucket_iterator::operator--(int)
 	// _bucket = nullptr;
 	return ret;
   }
-  _bucket = (_routing_table)->get_bucket(_branch);
+  // _bucket = &(_routing_table)->get_bucket(_branch);
+  _bucket_itr++;
 
   return ret;
 }
 k_bucket& k_bucket_iterator::operator*()
 {
-  return _bucket;
+  return (*_bucket_itr);
+}
+
+k_bucket& k_bucket_iterator::get_raw()
+{
+  return *_bucket_itr;
 }
 
 bool k_bucket_iterator::is_invalid() const
@@ -256,8 +269,10 @@ bool k_bucket_iterator::is_invalid() const
 
 k_bucket_iterator& k_bucket_iterator::to_begin()
 {
+  std::cout << "エラー出るかも" << "\n";
+  std::advance( _bucket_itr, (-_branch-1) );
   _branch = 1;
-  _bucket = (_routing_table)->get_bucket(_branch);
+  // _bucket = &((_routing_table)->get_bucket(_branch));
   return *this;
 }
 
@@ -266,6 +281,7 @@ void k_bucket_iterator::_print_() const
   std::cout << "branch :: " << _branch << "\n";
   // if( _bucket == nullptr ) std::cout << "bucket :: nullptr" << "\n";
   // else printf("bucket :: %p\n", _bucket );
+  std::cout << "node counts :: " << (*_bucket_itr).get_node_count() << "\n";
   std::cout << "is_invalid :: " << is_invalid() << "\n";
 }
 
@@ -276,14 +292,14 @@ unsigned short k_bucket_iterator::get_branch()
 
 k_bucket_iterator k_bucket_iterator::invalid()
 {
-  k_bucket_iterator ret( nullptr, -1 );
+  k_bucket_iterator ret;
   return ret;
 }
 
 std::vector<k_node> k_bucket_iterator::get_nodes()
 {
   if( is_invalid() ) return std::vector<k_node>();
-  return _bucket.get_nodes();
+  return (*_bucket_itr).get_nodes();
 }
 
 /* k_bucket* k_bucket_iterator::get_bucket()

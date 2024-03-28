@@ -40,8 +40,12 @@ void ping::init()
 
 void ping::timeout( const boost::system::error_code &ec )
 {
- if( _is_pong_arrived ) return; // pongが到着していれば特に何もしない
-  
+  if( _is_pong_arrived ) return; // pongが到着していれば特に何もしない
+ 
+  #if SS_VERBOSE
+  std::cout << "(ping observer) timeout" << "\n";
+  #endif
+
   this->destruct_self() ; // 実質破棄を許可する
  
   if( !_is_pong_arrived ){
@@ -54,6 +58,10 @@ void ping::timeout( const boost::system::error_code &ec )
 
 int ping::income_message( message &msg, ip::udp::endpoint &ep )
 {
+  #if SS_VERBOSE
+  std::cout << "(ping observer) pong arrive" << "\n";
+  #endif
+
   _is_pong_arrived = true;
 
   _io_ctx.post([this](){ // on_pong_handlerを呼び出す

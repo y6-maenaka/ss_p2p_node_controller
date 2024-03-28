@@ -11,6 +11,7 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
   , _u_sock_manager( self_ep, std::ref(*io_ctx) ) 
   , _tick_timer( *io_ctx ) 
   , _msg_pool( *io_ctx, true )
+  , _sender( _u_sock_manager, _id )
 {
   ip::udp::endpoint init_ep( ip::address::from_string("0.0.0.0"), 0 ); // 一旦適当な初期値で開始する
   _glob_self_ep = init_ep;
@@ -22,7 +23,7 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
 		, std::placeholders::_2) 
 	  );
   _dht_manager = std::make_shared<dht_manager>( *io_ctx, _self_ep );
-  _ice_agent = std::make_shared<ice::ice_agent>( *_core_io_ctx, _u_sock_manager, self_ep/*一旦*/, _id
+  _ice_agent = std::make_shared<ice::ice_agent>( *_core_io_ctx, _u_sock_manager, self_ep/*一旦*/, _id, _sender
 	  , _dht_manager->get_direct_routing_table_controller() );
  
 
@@ -129,6 +130,8 @@ void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpo
 {
   int flag = 1;
   std::shared_ptr<message> msg = std::make_shared<message>( message::decode(raw_msg) );
+  msg->print();
+
   if( msg == nullptr ) return;
 
   if( msg->is_contain_param("kademlia") )

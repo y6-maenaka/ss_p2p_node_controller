@@ -9,8 +9,9 @@ namespace ice
 {
 
 
-signaling_server::signaling_server( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage ) :
+signaling_server::signaling_server( io_context &io_ctx, sender &sender, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage ) :
    _io_ctx( io_ctx )
+  , _sender( sender )
   , _ice_sender( ice_sender )
   , _glob_self_ep( glob_self_ep )
   , _d_routing_table_controller( d_routing_table_controller )
@@ -41,11 +42,18 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
 	ip::address_v4 temp_v4 = ip::address_v4::from_string("127.0.0.1");
 	src_ep.address(temp_v4); */
 
-	_ice_sender.async_ice_send( src_ep, ice_msg // レスポンスの送信
+	auto enc_msg = ice_msg.encode(); // ルーティングテーブルにリクエストepが存在しなくてもとりあえず返信する
+	_sender.async_send( src_ep, "ice_agent", enc_msg
+		, std::bind( &signaling_response::init
+		  , *(sgnl_response_obs.get_raw()) 
+		  , std::placeholders::_1 ) 
+		);
+
+	/* _ice_sender.async_ice_send( src_ep, ice_msg // レスポンスの送信
 		, std::bind( &signaling_response::init
 		, *(sgnl_response_obs.get_raw())
 		, std::placeholders::_1 )
-	  );
+	  ); */
 
 	#if SS_VERBOSE
 	std::cout << "(init observer)[signaling response] send -> " << src_ep << "\n";

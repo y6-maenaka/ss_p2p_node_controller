@@ -12,13 +12,14 @@ namespace ice
 {
 
 
-ice_agent::ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+ice_agent::ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::udp::endpoint &glob_self_ep, message::app_id id, sender &sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
   _sock_manager( sock_manager )
   , _glob_self_ep( glob_self_ep )
   , _app_id( id )
+  , _sender( sender )
   , _ice_sender( sock_manager, glob_self_ep, id )
   , _obs_strage( io_ctx )
-  , _sgnl_server( io_ctx, _ice_sender, glob_self_ep, d_routing_table_controller, _obs_strage )
+  , _sgnl_server( io_ctx, sender, _ice_sender, glob_self_ep, d_routing_table_controller, _obs_strage )
   , _stun_server( io_ctx, _ice_sender, d_routing_table_controller, _obs_strage )
 {
   return;

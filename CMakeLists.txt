@@ -32,6 +32,7 @@ set( ss_p2p_include_files
 	udp_server.hpp
 	observer.hpp
 	observer_strage.hpp
+	sender.hpp
 )
 set( ss_p2p_source_files
     node_controller.cpp
@@ -43,6 +44,7 @@ set( ss_p2p_source_files
 	udp_server.cpp
 	observer.cpp
 	observer_strage.cpp
+	sender.cpp
 )
 set( ss_p2p_kademlia_include_files
     k_routing_table.hpp

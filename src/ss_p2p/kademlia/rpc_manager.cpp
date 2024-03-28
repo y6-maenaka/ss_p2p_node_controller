@@ -38,6 +38,9 @@ void rpc_manager::ping_request( ip::udp::endpoint ep, on_pong_handler pong_handl
   k_msg.set_observer_id( ping_obs.get_id() );
 
   _s_send_func( ep, "kademlia", k_msg.encode() );
+  #if SS_VERBOSE
+  std::cout << "ping request -> " << ep << "\n";
+  #endif
 
   ping_obs.init();
   _obs_strage.add_observer( ping_obs ); // ストアする
@@ -49,6 +52,8 @@ void rpc_manager::find_node_request( std::vector<ip::udp::endpoint> request_eps,
   find_node_obs.init();
 
   k_message k_msg = k_message::_request_( k_message::rpc::find_node );
+  k_msg.set_observer_id( find_node_obs.get_id() );
+
   auto msg_controller = k_msg.get_find_node_message_controller();
   msg_controller.set_ignore_endpoint( ignore_eps );
 

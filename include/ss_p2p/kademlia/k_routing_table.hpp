@@ -31,39 +31,16 @@ namespace kademlia
 
 
 class k_routing_table;
+class k_bucket_iterator;
 constexpr unsigned short K_BUCKET_COUNT = 160;
 
-
-class k_bucket_iterator  // 若干bucketへの操作を制御する
-{
-  friend k_routing_table;
-public:
-  k_bucket_iterator& operator++(); // 前置
-  k_bucket_iterator operator++(int/*dummy*/); // 後置
-  k_bucket_iterator& operator--();
-  k_bucket_iterator operator--(int);
-  bool operator==( const k_bucket_iterator &itr );
-  k_bucket& operator*();
-  unsigned short get_branch();
-  bool is_invalid() const;
-  k_bucket_iterator& to_begin();
-  std::vector<k_node> get_nodes();
-
-  void _print_() const;
-private: 
-  k_bucket_iterator( k_routing_table *routing_table, unsigned short branch = 1 );
-  k_routing_table *_routing_table;
-  k_bucket &_bucket;
-  int _branch;
-
-  static k_bucket_iterator (invalid)();
-}; 
 
 class k_routing_table
 {
   friend k_bucket;
-private:
+  friend k_bucket_iterator;
   using routing_table = std::array< k_bucket, K_BUCKET_COUNT >;
+private:
   routing_table _table;
 
   node_id _self_id;
@@ -93,6 +70,34 @@ public:
   void print();
   #endif
 };
+
+class k_bucket_iterator  // 若干bucketへの操作を制御する( 生のiteratorはk_routing_tableから取得する )
+{
+  friend k_routing_table;
+public:
+  k_bucket_iterator& operator++(); // 前置
+  k_bucket_iterator operator++(int/*dummy*/); // 後置
+  k_bucket_iterator& operator--();
+  k_bucket_iterator operator--(int);
+  bool operator==( const k_bucket_iterator &itr );
+  k_bucket& operator*();
+  k_bucket& get_raw();
+  unsigned short get_branch();
+  bool is_invalid() const;
+  k_bucket_iterator& to_begin();
+  std::vector<k_node> get_nodes();
+
+  void _print_() const;
+private: 
+  k_bucket_iterator();
+  k_bucket_iterator( k_routing_table *routing_table, k_routing_table::routing_table::iterator bucket_itr, unsigned short branch );
+  k_routing_table *_routing_table;
+  k_routing_table::routing_table::iterator _bucket_itr;
+  // k_bucket *_bucket;
+  int _branch;
+
+  static k_bucket_iterator (invalid)();
+}; 
 
 std::vector<k_node> eps_to_k_nodes( std::vector<ip::udp::endpoint> eps );
 k_node generate_random_k_node();

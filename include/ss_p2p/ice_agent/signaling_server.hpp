@@ -10,6 +10,7 @@
 
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/observer.hpp>
+#include <ss_p2p/sender.hpp>
 #include <ss_p2p/socket_manager.hpp>
 #include <ss_p2p/kademlia/k_routing_table.hpp>
 #include <ss_p2p/kademlia/direct_routing_table_controller.hpp>
@@ -49,13 +50,14 @@ public:
   using s_send_func = std::function<void(ip::udp::endpoint &dest_ep, std::string, const json payload)>;
   s_send_func get_signaling_send_func();
 
-  signaling_server( io_context &io_ctx, ice_sender& ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage );
+  signaling_server( io_context &io_ctx, sender &sender, ice_sender& ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage );
 
   int income_message( std::shared_ptr<ss::message> msg, ip::udp::endpoint &ep );
 
   // members
   io_context &_io_ctx;
   direct_routing_table_controller &_d_routing_table_controller;
+  sender &_sender;
   ice_sender &_ice_sender;
   ice_observer_strage &_obs_strage; // add専用
   ip::udp::endpoint &_glob_self_ep;
