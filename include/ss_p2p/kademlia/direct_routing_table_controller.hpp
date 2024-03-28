@@ -37,6 +37,8 @@ public:
   k_bucket_iterator get_begin_bucket_iterator();
 
   std::size_t get_node_count();
+
+  void print() const;
 };
 
 

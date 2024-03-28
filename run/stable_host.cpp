@@ -16,7 +16,7 @@ int main( int argc, const char* argv[] )
   std::span args( argv, argc );
   std::shared_ptr<io_context> io_ctx = std::make_shared<io_context>();
 
-  ip::udp::endpoint self_ep( ip::udp::v4(), std::atoi(args[0]) );
+  ip::udp::endpoint self_ep( ip::udp::v4(), std::atoi(args[1]) );
   ss::node_controller n_controller( self_ep, io_ctx );
 
 

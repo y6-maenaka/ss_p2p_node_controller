@@ -23,11 +23,11 @@
 using boost::asio::ip::udp;
 
 
-int main()
+int main( int argc, const char* argv[] )
 {
   std::cout << "Hello node_2" << "\n";
 
-  setup_node_controller();
+  setup_node_controller( argc, argv );
 
 
   std::mutex mtx;

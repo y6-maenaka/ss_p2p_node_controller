@@ -54,9 +54,11 @@ public:
   void stop();
   peer get_peer( ip::udp::endpoint &ep );
   udp_socket_manager& get_socket_manager();
-  kademlia::k_routing_table &get_routing_table();
+  kademlia::direct_routing_table_controller &get_direct_routing_table_controller();
+
   void update_global_self_endpoint( ip::udp::endpoint ep );
   #if SS_DEBUG
+  kademlia::k_routing_table &get_routing_table();
   ice::ice_agent &get_ice_agent();
   kademlia::dht_manager &get_dht_manager();
   message_pool &get_message_pool();

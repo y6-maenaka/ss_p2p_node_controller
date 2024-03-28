@@ -36,6 +36,11 @@ udp_socket_manager &node_controller::get_socket_manager()
 }
 
 #if SS_DEBUG
+kademlia::k_routing_table &node_controller::get_routing_table()
+{
+  return _dht_manager->get_routing_table();
+}
+
 ice::ice_agent &node_controller::get_ice_agent()
 {
   return *_ice_agent;
@@ -60,9 +65,9 @@ std::optional< ip::udp::endpoint > node_controller::sync_get_global_address( std
   return stun_reserved_obj->sync_get();
 }
 
-kademlia::k_routing_table &node_controller::get_routing_table()
+kademlia::direct_routing_table_controller &node_controller::get_direct_routing_table_controller()
 {
-  return _dht_manager->get_routing_table();
+  return _dht_manager->get_direct_routing_table_controller();
 }
 
 void node_controller::update_global_self_endpoint( ip::udp::endpoint ep )
@@ -98,6 +103,7 @@ void node_controller::start()
 
   #if SS_VERBOSE
   std::cout << "[\x1b[32m start \x1b[39m] node controller" << "\n";
+  std::cout << "(self endpoint) : " << _self_ep << "\n";
   #endif
 }
 
