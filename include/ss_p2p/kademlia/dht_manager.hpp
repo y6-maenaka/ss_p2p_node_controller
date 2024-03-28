@@ -8,6 +8,7 @@
 
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/endpoint.hpp>
+#include <ss_p2p/sender.hpp>
 #include <json.hpp>
 #include <utils.hpp>
 
@@ -39,7 +40,7 @@ class dht_manager
 {
 public:
   using s_send_func = std::function<void(ip::udp::endpoint&, std::string, json)>;
-  dht_manager( boost::asio::io_context &io_ctx , ip::udp::endpoint &ep );
+  dht_manager( boost::asio::io_context &io_ctx , ip::udp::endpoint &ep, sender &sender );
 
   void income_msg( std::shared_ptr<message> msg ); // メッセージ受信
   void invoke_msg( std::shared_ptr<message> msg ); // メッセージ送信
@@ -50,7 +51,7 @@ public:
   rpc_manager &get_rpc_manager();
 
   void update_global_self_endpoint( ip::udp::endpoint &ep );
-  void init( s_send_func send_func ); 
+  void init( s_send_func s_send_func ); 
 
   #if SS_DEBUG
   k_observer_strage &get_observer_strage();
@@ -65,6 +66,7 @@ private:
   node_id _self_id;
   rpc_manager _rpc_manager;
   k_observer_strage _obs_strage;
+  sender &_sender;
   s_send_func _s_send_func; // initにより初期化され
 
   void tick();

@@ -44,5 +44,13 @@ bool sender::sync_send( ip::udp::endpoint dest_ep, std::string param, json &payl
   return false;
 }
 
+void sender::on_send_done( const boost::system::error_code &ec )
+{
+  #if SS_VERBOSE
+  if( !ec ) std::cout << "sender::send success" << "\n";
+  else std::cout << "sender::send error" << "\n";
+  #endif
+}
+
 
 }; // namespace ss

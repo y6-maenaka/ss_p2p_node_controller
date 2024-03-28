@@ -22,7 +22,7 @@ class sender
 public:
   
   template < typename SuccessHandler >
-  void async_send( ip::udp::endpoint dest_ep, std::string param, json &payload, SuccessHandler handler )
+  void async_send( ip::udp::endpoint dest_ep, std::string param, const json &payload, SuccessHandler handler )
   {
 	message msg = message::request(_app_id);
 	msg.set_param(param, payload);
@@ -36,7 +36,7 @@ public:
 		);
 	
 	#if SS_CAPTURE_PACKET
-	std::cout << dest_ep << " (send)" << "\n";
+	std::cout << dest_ep << " (send) -> " << dest_ep << "\n";
 	#endif
   }
 
@@ -52,7 +52,7 @@ public:
 		);
 
 	#if SS_CAPTURE_PACKET
-	std::cout << dest_ep << " (send)" << "\n";
+	std::cout << dest_ep << " (send) -> " << dest_ep << "\n";
 	#endif
   }
 
@@ -60,7 +60,11 @@ public:
   bool sync_send( ip::udp::endpoint dest_ep, std::string param, json &payload );
   
   sender( udp_socket_manager &sock_manager, message::app_id id );
+
+  using send_func = std::function<void(ip::udp::endpoint &dest_ep, std::string, json payload)>;
 private:
+  void on_send_done( const boost::system::error_code &ec );
+
   udp_socket_manager &_sock_manager;
   message::app_id _app_id;
 };

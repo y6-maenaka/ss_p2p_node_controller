@@ -22,7 +22,7 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
 		, std::placeholders::_1
 		, std::placeholders::_2) 
 	  );
-  _dht_manager = std::make_shared<dht_manager>( *io_ctx, _self_ep );
+  _dht_manager = std::make_shared<dht_manager>( *io_ctx, _self_ep, _sender );
   _ice_agent = std::make_shared<ice::ice_agent>( *_core_io_ctx, _u_sock_manager, self_ep/*一旦*/, _id, _sender
 	  , _dht_manager->get_direct_routing_table_controller() );
  
@@ -130,7 +130,11 @@ void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpo
 {
   int flag = 1;
   std::shared_ptr<message> msg = std::make_shared<message>( message::decode(raw_msg) );
+
+  std::cout << "-----------------------------------------" << "\n";
+  std::cout << ep << "\n";
   msg->print();
+  std::cout << "-----------------------------------------" << "\n";
 
   if( msg == nullptr ) return;
 

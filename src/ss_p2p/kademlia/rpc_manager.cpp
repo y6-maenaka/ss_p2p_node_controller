@@ -9,26 +9,18 @@ namespace kademlia
 {
 
 
-rpc_manager::rpc_manager( node_id &self_id, io_context &io_ctx, k_observer_strage &obs_strage, s_send_func &send_func ) :
+rpc_manager::rpc_manager( node_id &self_id, io_context &io_ctx, k_observer_strage &obs_strage, sender &sender, s_send_func &send_func ) :
   _self_id( self_id )  
   , _io_ctx( io_ctx ) 
   , _tick_timer( io_ctx )
   , _obs_strage( obs_strage )
+  , _sender( sender )
   , _s_send_func( send_func )
   , _routing_table( self_id )
   , _d_routing_table_controller( _routing_table )
 {
   return;
 }
-
-/* std::shared_ptr< observer<ping> > rpc_manager::ping( k_node host_node, k_node swap_node, ip::udp::endpoint &ep ) 
-{
-  k_message k_msg = k_message::_request_( k_message::rpc::ping );
-  const auto k_payload = k_msg.export_json();
-
-  _send_func( ep , "kademlia", k_payload );
-  return nullptr;
-} */
 
 void rpc_manager::ping_request( ip::udp::endpoint ep, on_pong_handler pong_handler, on_ping_timeout_handler timeout_handler )
 {
@@ -72,7 +64,9 @@ void rpc_manager::ping_response( k_message &k_msg, ip::udp::endpoint &ep )
 
   k_msg.set_message_type(k_message::message_type::response); // レスポンスに変更
 
-  _s_send_func( ep, "kademlia", k_msg.encode() );  // レスポンス送信
+  _sender.async_send( ep, "kademlia", k_msg.encode() // response系は普通に送信する
+	  , std::bind( &rpc_manager::on_send_done, this, std::placeholders::_1 ) 
+	);
 }
 
 void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
@@ -84,7 +78,9 @@ void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
   auto eps = routing_table_controller.collect_endpoint( ep, DEFAULT_FIND_NODE_SIZE );
   msg_controller.set_finded_endpoint( eps );
 
-  _s_send_func( ep, "kademlia", k_msg.encode() ); // レスポンス送信
+  _sender.async_send( ep, "kademlia", k_msg.encode() // response系は普通に送信する
+	  , std::bind( &rpc_manager::on_send_done, this, std::placeholders::_1 )
+	  );
 }
 
 int rpc_manager::income_request( k_message &k_msg, ip::udp::endpoint &ep )
@@ -113,6 +109,13 @@ int rpc_manager::income_response( k_message &k_msg, ip::udp::endpoint &ep )
 {
   // 基本的にobserverで捌かれる
   return 0;
+}
+
+void rpc_manager::on_send_done( const boost::system::error_code &ec )
+{
+  #if SS_VERBOSE
+  std::cout << "rpc_manager::on_send_done" << "\n";
+  #endif
 }
 
 int rpc_manager::income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep )

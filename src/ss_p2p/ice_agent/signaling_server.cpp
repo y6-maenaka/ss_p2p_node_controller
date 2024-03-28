@@ -136,9 +136,9 @@ void signaling_server::async_hello( const boost::system::error_code &ec )
 void signaling_server::signaling_send( ip::udp::endpoint &dest_ep, std::string root_param, json payload )
 {
   if( _d_routing_table_controller.is_exist(dest_ep) )
-  {
+  { // ルーティングテーブルに宛先があれば普通に送信する
 	std::cout << "-- ** --" << "\n";
-	_ice_sender.async_send( dest_ep, root_param, payload
+	_sender.async_send( dest_ep, root_param, payload
 		, std::bind( &signaling_server::on_send_done, this, std::placeholders::_1 )
 	  );
 	return;
