@@ -158,8 +158,8 @@ if( _BUILD_TEST )
 						${OPENSSL_LIBRARIES}
    )
 
-  add_executable( prog ./run/prog.cpp )
-   target_link_libraries( prog PRIVATE
+  add_executable( stable_host ./run/stable_host.cpp )
+   target_link_libraries( stable_host PRIVATE
                         ss_p2p
 						${OPENSSL_LIBRARIES}
    )
