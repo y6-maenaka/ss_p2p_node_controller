@@ -132,6 +132,16 @@ k_message::find_node_message_controller::find_node_message_controller( k_message
   return;  
 }
 
+std::vector<ip::udp::endpoint> k_message::find_node_message_controller::get_ignore_endpoint()
+{
+  auto msg_ignore_nodes = _body["ignore_eps"].get<std::vector<std::string>>();
+
+  std::vector<ip::udp::endpoint> ret;
+  for( auto itr : msg_ignore_nodes ) ret.push_back( str_to_endpoint(itr) );
+
+  return ret;
+}
+
 void k_message::find_node_message_controller::set_ignore_endpoint( std::vector<ip::udp::endpoint> eps )
 {
   _body["ignore_eps"] = json::array();

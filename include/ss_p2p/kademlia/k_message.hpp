@@ -65,6 +65,7 @@ public:
   {
 	friend k_message;
 	find_node_message_controller( k_message *from );
+	std::vector<ip::udp::endpoint> get_ignore_endpoint();
 	void set_ignore_endpoint( std::vector<ip::udp::endpoint> eps ); // ノードをリクエストする際に検索対象外としてもらうepリスト
 	void set_finded_endpoint( std::vector<ip::udp::endpoint> eps ); // 自身のルーティングテーブルから取得したk_nodeを格納する(実際にはepを格納する)
 	private: 

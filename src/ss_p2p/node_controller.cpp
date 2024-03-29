@@ -101,7 +101,6 @@ void node_controller::start()
 	});
   daemon.detach();
 
-
   #if SS_VERBOSE
   std::cout << "[\x1b[32m start \x1b[39m] node controller" << "\n";
   std::cout << "(self endpoint) : " << _self_ep << "\n";

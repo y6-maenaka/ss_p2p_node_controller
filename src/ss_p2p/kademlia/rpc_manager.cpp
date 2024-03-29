@@ -64,6 +64,11 @@ void rpc_manager::ping_response( k_message &k_msg, ip::udp::endpoint &ep )
 	  , std::bind( &rpc_manager::on_send_done, this, std::placeholders::_1 ) 
 	);
 
+  
+  // 一旦送信の成功可否にかかわらずping元ノードをルーティングテーブルに追加する
+  std::vector<ip::udp::endpoint> eps;  eps.push_back( ep );
+  _d_routing_table_controller.auto_update( eps );
+
   #if SS_VERBOSE
   std::cout << "ping response -> " << ep << "\n";
   #endif  
@@ -71,12 +76,20 @@ void rpc_manager::ping_response( k_message &k_msg, ip::udp::endpoint &ep )
 
 void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
 {
-  k_msg.set_message_type(k_message::message_type::response);
   auto msg_controller = k_msg.get_find_node_message_controller();
-  auto routing_table_controller = direct_routing_table_controller( _routing_table );
+  auto ignore_eps = msg_controller.get_ignore_endpoint();
+  ignore_eps.push_back( ep ); // リクエスト元も検索対象外とする
 
-  auto eps = routing_table_controller.collect_endpoint( ep, DEFAULT_FIND_NODE_SIZE );
-  msg_controller.set_finded_endpoint( eps );
+  std::cout << "+++++++++++++++++++++++++++++++++++++++++++++" << "\n";
+  std::cout << "ignore eps below" << "\n";
+  for( auto itr : ignore_eps )
+	std::cout << itr << "\n";
+  std::cout << "+++++++++++++++++++++++++++++++++++++++++++++" << "\n";
+
+  auto eps = _d_routing_table_controller.collect_endpoint( ep, DEFAULT_FIND_NODE_SIZE, ignore_eps );
+  msg_controller.set_finded_endpoint( eps ); // 自身のルーティングテーブルからみつかった ノードを格納する
+  
+  k_msg.set_message_type(k_message::message_type::response); // request -> responseI
 
   _sender.async_send( ep, "kademlia", k_msg.encode() // response系は普通に送信する
 	  , std::bind( &rpc_manager::on_send_done, this, std::placeholders::_1 )

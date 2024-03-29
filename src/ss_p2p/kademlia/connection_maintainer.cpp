@@ -40,7 +40,7 @@ void dht_manager::connection_maintainer::tick_done()
   std::time_t next_tick_time_s = ( node_count < MINIMUM_NODES ) ? 10 : node_count * 20 ; /* 実装段階では雑に決定 */
 
   if( !(_requires_tick) ) return; // tickがstopされていたらそれ以上は繰り返さない
-  d_table_controller.print();
+  // d_table_controller.print();
 
   #if SS_VERBOSE
   std::cout << "next tick standby :: " << next_tick_time_s << "[s]" << "\n";
@@ -55,14 +55,13 @@ void dht_manager::connection_maintainer::get_remote_nodes()
   auto &d_table_controller = _d_manager->get_direct_routing_table_controller();
   std::size_t node_count = d_table_controller.get_node_count();
 
-  std::cout << "-- 2" << "\n";
   if( node_count < MINIMUM_NODES )
   {
 	ip::udp::endpoint root_ep( ip::address::from_string("0.0.0.0"), 0 );
 	auto request_eps = d_table_controller.collect_endpoint( root_ep, 5/*適当*/ );
 	_rpc_manager.find_node_request( request_eps, request_eps
 		, std::bind( &direct_routing_table_controller::auto_update, d_table_controller, std::placeholders::_1 ) 
-		);
+		); // find_node_responseに格納されているnノードにpingを送信する
   }
   this->tick_done();
 }
@@ -70,7 +69,6 @@ void dht_manager::connection_maintainer::get_remote_nodes()
 std::time_t dht_manager::connection_maintainer::send_refresh_ping()
 {
   // 全てのノードを収集する
-  std::cout << "-- 4" << "\n";
   auto &d_table_controller = _d_manager->get_direct_routing_table_controller();
   for( auto bucket_itr = d_table_controller.get_begin_bucket_iterator(); !(bucket_itr.is_invalid()); bucket_itr++ )
   {

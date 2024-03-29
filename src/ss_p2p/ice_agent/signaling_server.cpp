@@ -38,22 +38,12 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
 
 	observer<class signaling_response> sgnl_response_obs( _io_ctx, _ice_sender, _glob_self_ep, _d_routing_table_controller );
 
-	/* std::cout << "仮 仮" << "\n";
-	ip::address_v4 temp_v4 = ip::address_v4::from_string("127.0.0.1");
-	src_ep.address(temp_v4); */
-
 	auto enc_msg = ice_msg.encode(); // ルーティングテーブルにリクエストepが存在しなくてもとりあえず返信する
 	_sender.async_send( src_ep, "ice_agent", enc_msg
 		, std::bind( &signaling_response::init
 		  , *(sgnl_response_obs.get_raw()) 
 		  , std::placeholders::_1 ) 
 		);
-
-	/* _ice_sender.async_ice_send( src_ep, ice_msg // レスポンスの送信
-		, std::bind( &signaling_response::init
-		, *(sgnl_response_obs.get_raw())
-		, std::placeholders::_1 )
-	  ); */
 
 	#if SS_VERBOSE
 	std::cout << "(init observer)[signaling response] send -> " << src_ep << "\n";
