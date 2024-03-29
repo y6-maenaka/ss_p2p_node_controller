@@ -12,7 +12,6 @@ sender::sender( udp_socket_manager &sock_manager, message::app_id id ) :
   return;
 }
 
-
 bool sender::sync_send( ip::udp::endpoint dest_ep, message &msg )
 {
   auto enc_msg = message::encode( msg );
@@ -29,7 +28,7 @@ bool sender::sync_send( ip::udp::endpoint dest_ep, message &msg )
 
 bool sender::sync_send( ip::udp::endpoint dest_ep, std::string param, json &payload )
 {
-  message msg = message::request(_app_id);
+  message msg = message(_app_id);
   msg.set_param( param, payload );
 
   auto enc_msg = message::encode( msg );

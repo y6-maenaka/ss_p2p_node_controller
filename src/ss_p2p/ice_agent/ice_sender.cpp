@@ -17,7 +17,7 @@ ice_sender::ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glo
 
 bool ice_sender::sync_send( ip::udp::endpoint &dest_ep, std::string param, json &payload )
 {
-  message msg = message::request(_app_id);
+  message msg = message(_app_id);
   msg.set_param( param, payload );
 
   auto enc_msg = message::encode( msg );
@@ -34,7 +34,7 @@ bool ice_sender::sync_send( ip::udp::endpoint &dest_ep, std::string param, json 
 
 bool ice_sender::sync_ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg )
 {
-  message msg = message::request(_app_id);
+  message msg = message(_app_id);
   msg.set_param("ice_agent", ice_msg.encode() );
 
   auto enc_msg = message::encode( msg );

@@ -36,11 +36,11 @@ bool message::is_contain_param( std::string param )
   return _body.contains(param);
 }
 
-message message::request( app_id &id )
+/* message message::request( app_id &id )
 {
   message ret(id);
   return ret;
-}
+} */
 
 std::vector<std::uint8_t> message::encode( const message &from )
 {

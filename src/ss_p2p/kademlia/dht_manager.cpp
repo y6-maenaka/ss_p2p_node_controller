@@ -14,7 +14,7 @@ dht_manager::dht_manager( boost::asio::io_context &io_ctx, ip::udp::endpoint &ep
   , _self_id( calc_node_id(ep) )
   , _obs_strage( io_ctx )
   , _sender( sender )
-  , _rpc_manager( _self_id, _io_ctx, _obs_strage, _sender, _s_send_func )
+  , _rpc_manager( _self_id, _io_ctx, _obs_strage, sender, _s_send_func )
   , _maintainer( this, _rpc_manager, io_ctx )
 {
   // _self_id = calc_node_id( ep );

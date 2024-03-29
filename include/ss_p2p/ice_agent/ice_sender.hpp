@@ -30,7 +30,7 @@ public:
   template < typename SuccessHandler > 
   void async_send( ip::udp::endpoint &dest_ep, std::string param, json &payload, SuccessHandler handler ) // 指定したパラメータに乗せて送信
   {
-	message msg = message::request(_app_id);
+	message msg = message(_app_id);
 	msg.set_param(param, payload );
 
 	auto enc_msg = message::encode( msg );
@@ -49,7 +49,7 @@ public:
   template < typename SuccessHandler >
   void async_ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg, SuccessHandler handler ) // iceメッセージに乗せて送信
   {
-	message msg = message::request(_app_id);
+	message msg = message(_app_id);
 	msg.set_param("ice_agent", ice_msg.encode() );
 
 	auto enc_msg = message::encode( msg );

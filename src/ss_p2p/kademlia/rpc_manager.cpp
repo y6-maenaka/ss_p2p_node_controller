@@ -58,15 +58,15 @@ void rpc_manager::find_node_request( std::vector<ip::udp::endpoint> request_eps,
 
 void rpc_manager::ping_response( k_message &k_msg, ip::udp::endpoint &ep )
 {
-  #if SS_VERBOSE
-  std::cout << "ping response -> " << ep << "\n";
-  #endif  
-
   k_msg.set_message_type(k_message::message_type::response); // レスポンスに変更
 
   _sender.async_send( ep, "kademlia", k_msg.encode() // response系は普通に送信する
 	  , std::bind( &rpc_manager::on_send_done, this, std::placeholders::_1 ) 
 	);
+
+  #if SS_VERBOSE
+  std::cout << "ping response -> " << ep << "\n";
+  #endif  
 }
 
 void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
@@ -81,6 +81,10 @@ void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
   _sender.async_send( ep, "kademlia", k_msg.encode() // response系は普通に送信する
 	  , std::bind( &rpc_manager::on_send_done, this, std::placeholders::_1 )
 	  );
+
+  #if SS_VERBOSE
+  std::cout << "find_node response -> " << ep << "\n";
+  #endif
 }
 
 int rpc_manager::income_request( k_message &k_msg, ip::udp::endpoint &ep )

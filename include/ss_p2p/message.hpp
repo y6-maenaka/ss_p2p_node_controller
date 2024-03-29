@@ -33,7 +33,7 @@ public:
   [[ nodiscard ]] bool is_contain_param( std::string param );
 
   using encoded_message = std::span<char>;
-  static message (request)(app_id &id);
+  // static message (request)(app_id &id);
   static std::vector<std::uint8_t> encode( const message &from ); 
   static message decode( std::span<char> from ); // 生メッセージのデコード
 
