@@ -51,6 +51,10 @@ void rpc_manager::find_node_request( ip::udp::endpoint ep, std::vector<ip::udp::
 
   _s_send_func( ep, "kademlia", k_msg.encode() );
 
+  #if SS_VERBOSE
+  std::cout << "\x1b[33m" << "(find_node) request -> " << "\x1b[39m" << ep << "\n";
+  #endif
+
   _obs_strage.add_observer( find_node_obs );
 }
 

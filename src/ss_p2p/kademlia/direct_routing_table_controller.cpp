@@ -76,9 +76,9 @@ k_bucket_iterator direct_routing_table_controller::get_begin_bucket_iterator()
   return _routing_table.get_begin_bucket_iterator();
 }
 
-void direct_routing_table_controller::print() const
+void direct_routing_table_controller::print( int start_branch ) const
 {
-  return _routing_table.print();
+  return _routing_table.print( start_branch );
 }
 
 

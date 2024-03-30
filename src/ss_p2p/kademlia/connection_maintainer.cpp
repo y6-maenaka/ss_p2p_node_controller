@@ -40,14 +40,14 @@ void dht_manager::connection_maintainer::tick_done()
   std::time_t next_tick_time_s = ( node_count < MINIMUM_NODES ) ? 10 : node_count * 20 ; /* 実装段階では雑に決定 */
 
   if( !(_requires_tick) ) return; // tickがstopされていたらそれ以上は繰り返さない
-  // d_table_controller.print();
+  d_table_controller.print( 157 );
 
   #if SS_VERBOSE
   std::cout << "next tick standby :: " << next_tick_time_s << "[s]" << "\n";
   #endif
 
   _timer.expires_from_now( boost::posix_time::seconds( next_tick_time_s/*適当*/) );
-  _timer.async_wait( std::bind( &dht_manager::connection_maintainer::get_remote_nodes, this ) );
+  _timer.async_wait( std::bind( &dht_manager::connection_maintainer::tick, this ) );
 }
 
 void dht_manager::connection_maintainer::get_remote_nodes()
@@ -61,8 +61,6 @@ void dht_manager::connection_maintainer::get_remote_nodes()
 	auto request_eps = d_table_controller.collect_endpoint( root_ep, 5/*適当*/ );
 	auto &d_routing_table_controller = _d_manager->get_direct_routing_table_controller();
 
-	auto ping_response_handler = std::bind( &direct_routing_table_controller::auto_update, d_routing_table_controller , std::placeholders::_1 );
-	auto ping_timeout_handler = std::bind( &rpc_manager::null_handler, std::ref(_d_manager->_rpc_manager), std::placeholders::_1 );
 	for( auto itr : request_eps )
 	{
 	  /* _rpc_manager.find_node_request( itr, request_eps
@@ -106,6 +104,10 @@ std::time_t dht_manager::connection_maintainer::send_refresh_ping()
 		  , std::bind( &k_bucket::move_back, std::ref(bucket_itr.get_raw()), itr )
 		  , std::bind( &k_bucket::delete_node, std::ref(bucket_itr.get_raw()), itr ) 
 		);
+	  
+	  #if SS_VERBOSE
+	  std::cout << "\x1b[36m" << "(dht_manager/connection_maintainer) refresh_ping -> " << "\x1b[39m" << itr.get_endpoint() << "\n";
+	  #endif
 	}
   }
 

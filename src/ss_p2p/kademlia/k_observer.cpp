@@ -43,7 +43,7 @@ void ping::timeout( const boost::system::error_code &ec )
   if( _is_pong_arrived ) return; // pongが到着していれば特に何もしない
  
   #if SS_VERBOSE
-  std::cout << "(ping observer) timeout" << "\n";
+  std::cout << "\x1b[33m" << "(ping observer)" << "\x1b[39m" <<" timeout" << "\n";
   #endif
 
   this->destruct_self() ; // 実質破棄を許可する
@@ -51,6 +51,7 @@ void ping::timeout( const boost::system::error_code &ec )
   if( !_is_pong_arrived ){
   _io_ctx.post( [this]() // タイムアウトした時ようのハンドラを呼び出す
 	  { 
+		std::cout << "ここここ" << "\n";
 		this->_timeout_handler(_dest_ep);
 	  }) ;
   }
@@ -59,12 +60,13 @@ void ping::timeout( const boost::system::error_code &ec )
 int ping::income_message( message &msg, ip::udp::endpoint &ep )
 {
   #if SS_VERBOSE
-  std::cout << "(ping observer) pong arrive" << "\n";
+  std::cout << "\x1b[33m" << "(ping observer)" << "\x1b[39m" <<" poing arrive" << "\n";
   #endif
 
   _is_pong_arrived = true;
 
   _io_ctx.post([this](){ // on_pong_handlerを呼び出す
+		std::cout << "ですですです"	 << "\n";
 		this->_pong_handler(_dest_ep);
 	  });
 

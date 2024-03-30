@@ -67,7 +67,7 @@ public:
   k_bucket_iterator get_begin_bucket_iterator();
   
   #if SS_DEBUG
-  void print();
+  void print( int start_branch = 1 );
   #endif
 };
 

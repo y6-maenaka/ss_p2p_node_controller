@@ -151,9 +151,9 @@ k_bucket_iterator k_routing_table::get_begin_bucket_iterator()
 }
 
 #if SS_DEBUG
-void k_routing_table::print()
+void k_routing_table::print( int start_branch )
 {
-  for( int i=1; i<=_table.size(); i++ )
+  for( int i=start_branch; i<=_table.size(); i++ )
   {
 	auto &target_bucket = this->get_bucket(i);
 	for( int i=0; i< get_console_width(); i++ ) printf("=");

@@ -39,7 +39,7 @@ public:
 
   std::size_t get_node_count();
 
-  void print() const;
+  void print( int start_branch = 1 ) const;
 };
 
 
