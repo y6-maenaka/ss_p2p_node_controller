@@ -12,6 +12,7 @@
 #include <ss_p2p/observer.hpp>
 #include <ss_p2p/kademlia/direct_routing_table_controller.hpp>
 #include <ss_p2p/message.hpp>
+#include <ss_p2p/sender.hpp>
 #include <utils.hpp>
 #include "./ice_message.hpp"
 #include "./stun_server.hpp"
@@ -37,9 +38,10 @@ constexpr unsigned short DEFAULT_BINDING_REQUEST_TIMEOUT_s = 4;
 class signaling_observer : public ss::base_observer
 {
 public:
-  signaling_observer( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
+  signaling_observer( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
 protected:
   ss::kademlia::direct_routing_table_controller &_d_routing_table_controller;
+  sender &_sender;
   ice_sender &_ice_sender;
   ip::udp::endpoint &_glob_self_ep;
 };
@@ -60,13 +62,13 @@ public:
 
   } _msg_cache;
 
-  signaling_request( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
+  signaling_request( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
   void on_send_done( const boost::system::error_code &ec );
 private:
   json format_request_msg( ip::udp::endpoint &src_ep, ip::udp::endpoint &dest_ep ); // リクエストメッセージのフォーマット
 
   void on_traversal_done( const boost::system::error_code &ec );
-  // const ip::udp::endpoint &_glob_self_ep;
+  void send_dummy_message( ip::udp::endpoint &ep );
   
   bool _done = false;
 };
@@ -74,7 +76,7 @@ private:
 class signaling_response : public signaling_observer
 {
 public:
-  signaling_response( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller );
+  signaling_response( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller );
   void init( const boost::system::error_code &ec ); // 有効期限を設定する
   int income_message( message &msg, ip::udp::endpoint &ep );
   void on_send_done( const boost::system::error_code &ec );
@@ -84,7 +86,7 @@ public:
 class signaling_relay : public signaling_observer
 {
 public:
-  signaling_relay( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller );
+  signaling_relay( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller );
   void init();
   int income_message( message &msg, ip::udp::endpoint &ep );
   void on_send_done( const boost::system::error_code &ec );
@@ -99,8 +101,9 @@ public:
   int income_message( message &msg, ip::udp::endpoint &ep );
   void print() const;
   
-  stun_observer( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &_d_routing_table_controller );
+  stun_observer( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &_d_routing_table_controller );
 private:
+  sender &_sender;
   ice_sender &_ice_sender;
   ss::kademlia::direct_routing_table_controller &_d_routing_table_controller;
 };
@@ -126,7 +129,7 @@ public:
   void on_timeout( const boost::system::error_code &ec );
   void print() const;
   int income_message( message &msg, ip::udp::endpoint &ep );
-  binding_request( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &_d_routing_table_controller );
+  binding_request( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &_d_routing_table_controller );
 
   void update_sr( const consensus_ctx &cctx );
   void async_call_sr_handler( std::optional<ip::udp::endpoint> ep ); // スレッドセーフでhandlerを呼び出す

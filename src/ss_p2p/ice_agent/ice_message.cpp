@@ -13,17 +13,9 @@ void ice_message::print() const
   std::cout << _body << "\n";
 }
 
-ice_message::ice_message( std::string protocol )
+ice_message::ice_message( ice_message::protocol_t p )
 {
-  if( protocol == "signaling" ){
-	set_protocol( protocol_t::signaling );
-  }
-  else if( protocol == "stun" ){
-	set_protocol( protocol_t::stun );
-  }
-  else{
-	set_protocol( protocol_t::none );
-  }
+  set_protocol( p );
 
   // 必須項目
   json relay_eps = json::array();
@@ -33,15 +25,13 @@ ice_message::ice_message( std::string protocol )
 
 ice_message ice_message::_signaling_()
 {
-  ice_message ret("signaling");
-  ret.set_protocol( protocol_t::signaling );
+  ice_message ret( protocol_t::signaling );
   return ret;
 }
 
 ice_message ice_message::_stun_()
 {
-  ice_message ret("stun");
-  ret.set_protocol( protocol_t::stun );
+  ice_message ret( protocol_t::stun );
   return ret;
 }
 
@@ -93,7 +83,7 @@ ice_message::stun_message_controller ice_message::get_stun_message_controller()
   return ice_message::stun_message_controller(this);
 }
 
-const json ice_message::encode()
+json ice_message::encode()
 {
   return _body;
 }

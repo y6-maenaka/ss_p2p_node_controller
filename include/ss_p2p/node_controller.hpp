@@ -51,8 +51,9 @@ public:
 
   void requires_routing( bool b );
   void on_receive_packet( std::span<char> raw_msg , ip::udp::endpoint &ep );
-
-  void start();
+  
+  void init( std::vector<ip::udp::endpoint> boot_eps );
+  void start( std::vector<ip::udp::endpoint> boot_eps = std::vector<ip::udp::endpoint>() );
   void stop();
   peer get_peer( ip::udp::endpoint &ep );
   udp_socket_manager& get_socket_manager();
@@ -66,7 +67,7 @@ public:
   message_pool &get_message_pool();
   #endif
  
-  std::optional< ip::udp::endpoint > sync_get_global_address( std::vector<ip::udp::endpoint> boot_nodes = std::vector<ip::udp::endpoint>() );
+  std::optional< ip::udp::endpoint > sync_get_global_address( std::vector<ip::udp::endpoint> boot_eps = std::vector<ip::udp::endpoint>() );
 
 protected:
   void tick( const boost::system::error_code &ec ); // 未使用ピアノ削除, on_tickのセット, 新しいpeerへの接続要求

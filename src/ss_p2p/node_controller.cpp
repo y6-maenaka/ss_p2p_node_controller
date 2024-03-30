@@ -58,12 +58,12 @@ message_pool &node_controller::get_message_pool()
 }
 #endif
 
-std::optional< ip::udp::endpoint > node_controller::sync_get_global_address( std::vector<ip::udp::endpoint> boot_nodes )
+std::optional< ip::udp::endpoint > node_controller::sync_get_global_address( std::vector<ip::udp::endpoint> boot_eps )
 {
   auto &stun_server = _ice_agent->get_stun_server();
-  auto stun_reserved_obj = stun_server.binding_request( boot_nodes );
+  auto sr_obj = stun_server.binding_request( boot_eps );
  
-  return stun_reserved_obj->sync_get();
+  return sr_obj->sync_get();
 }
 
 kademlia::direct_routing_table_controller &node_controller::get_direct_routing_table_controller()
@@ -87,13 +87,20 @@ void node_controller::update_global_self_endpoint( ip::udp::endpoint ep )
   _dht_manager->update_global_self_endpoint( ep );
 }
 
-void node_controller::start()
+void node_controller::start( std::vector<ip::udp::endpoint> boot_eps )
 {
-  std::thread daemon([&]()
+  std::thread daemon([&, boot_eps ]()
 	{
 	  assert( _udp_server != nullptr );
 	  _udp_server->start();
 	  _dht_manager->start();
+
+	  auto sr_obj = _ice_agent->get_stun_server().binding_request( boot_eps );
+	  sr_obj->async_get( std::bind( [this]( std::optional<ip::udp::endpoint> ep ){
+			  if( ep == std::nullopt ) return;
+			  this->update_global_self_endpoint( *ep );
+			}, std::placeholders::_1 )
+		  );
 
 	  _msg_pool.requires_refresh(true); // msg_poolの定期リフレッシュを停止する
 
@@ -128,7 +135,9 @@ peer node_controller::get_peer( ip::udp::endpoint &ep )
 void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpoint &ep )
 {
   int flag = 1;
+  std::cout << "-- 1" << "\n";
   std::shared_ptr<message> msg = std::make_shared<message>( message::decode(raw_msg) );
+  std::cout << "-- 2" << "\n";
 
   std::cout << "-----------------------------------------" << "\n";
   std::cout << ep << "\n";

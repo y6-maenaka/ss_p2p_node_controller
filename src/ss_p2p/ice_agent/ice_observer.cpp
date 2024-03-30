@@ -8,8 +8,9 @@ namespace ice
 {
 
 
-signaling_observer::signaling_observer( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+signaling_observer::signaling_observer( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
   base_observer( io_ctx )
+  , _sender( sender )
   , _ice_sender(ice_sender)
   , _glob_self_ep( glob_self_ep )
   , _d_routing_table_controller( d_routing_table_controller )
@@ -18,8 +19,8 @@ signaling_observer::signaling_observer( io_context &io_ctx, ice_sender &ice_send
 }
 
 
-signaling_request::signaling_request( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
-  signaling_observer( io_ctx, ice_sender, glob_self_ep, d_routing_table_controller )
+signaling_request::signaling_request( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+  signaling_observer( io_ctx, sender, ice_sender, glob_self_ep, d_routing_table_controller )
 {
   return;
 }
@@ -28,9 +29,10 @@ void signaling_request::init( ip::udp::endpoint &dest_ep, std::string param, jso
 {
   std::string dummy_msg_str = "signaling dummy"; json dummy_msg_json = dummy_msg_str;
 
-  _ice_sender.async_send( dest_ep, "dummy", dummy_msg_json
+  this->send_dummy_message( dest_ep ); // NATテーブルに覚えさせるためにダミーメッセージを送信する
+  /* _ice_sender.async_send( dest_ep, "dummy", dummy_msg_json
 	  , std::bind( &signaling_request::on_send_done, this, std::placeholders::_1 )
-  ); // nat開通用にダミーメッセージを送信する
+  ); // nat開通用にダミーメッセージを送信する */ 
 
   // キャッシュの登録
   _msg_cache.ep = dest_ep;
@@ -72,6 +74,14 @@ void signaling_request::on_send_done( const boost::system::error_code &ec )
 void signaling_request::on_traversal_done( const boost::system::error_code &ec )
 {
   _done = true;
+}
+
+void signaling_request::send_dummy_message( ip::udp::endpoint &ep ) 
+{
+  std::string dummy_msg_str = "signaling dummy"; json dummy_msg_json = dummy_msg_str;
+  _sender.async_send( ep, "dummy", dummy_msg_json
+	  , std::bind( &signaling_request::on_send_done, this, std::placeholders::_1 )
+	);
 }
 
 json signaling_request::format_request_msg( ip::udp::endpoint &src_ep, ip::udp::endpoint &dest_ep )
@@ -129,8 +139,8 @@ void signaling_request::print() const
 }
 
 
-signaling_response::signaling_response( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller ) :
-  signaling_observer( io_ctx, ice_sender, glob_self_ep, d_routing_table_controller )
+signaling_response::signaling_response( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller ) :
+  signaling_observer( io_ctx, sender, ice_sender, glob_self_ep, d_routing_table_controller )
 {
   return;
 }
@@ -159,8 +169,8 @@ void signaling_response::print() const
 }
 
 
-signaling_relay::signaling_relay( io_context &io_ctx, ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller ) :
-  signaling_observer( io_ctx, ice_sender, glob_self_ep, d_routing_table_controller )
+signaling_relay::signaling_relay( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller ) :
+  signaling_observer( io_ctx, sender, ice_sender, glob_self_ep, d_routing_table_controller )
 {
   return;
 }
@@ -188,16 +198,17 @@ void signaling_relay::print() const
 }
 
 
-stun_observer::stun_observer( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+stun_observer::stun_observer( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
   base_observer( io_ctx )
+  , _sender( sender )
   , _ice_sender( ice_sender )
   , _d_routing_table_controller( d_routing_table_controller )
 {
   return;
 }
 
-binding_request::binding_request( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
-  stun_observer( io_ctx, ice_sender, d_routing_table_controller )
+binding_request::binding_request( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+  stun_observer( io_ctx, sender, ice_sender, d_routing_table_controller )
   , _timer( io_ctx )
   , _is_timeout( false )
   , _is_handler_called( false )

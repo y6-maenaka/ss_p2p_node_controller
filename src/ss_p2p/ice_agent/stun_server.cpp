@@ -13,8 +13,9 @@ namespace ice
 {
 
 
-stun_server::stun_server( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage ) :
+stun_server::stun_server( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage ) :
   _io_ctx( io_ctx )
+  , _sender( sender )
   , _ice_sender( ice_sender )
   , _d_routing_table_controller( d_routing_table_controller )
   , _obs_strage( obs_strage )
@@ -32,6 +33,8 @@ void stun_server::on_send_done( const boost::system::error_code &ec )
 
 [[nodiscard]] stun_server::sr_ptr stun_server::binding_request( std::vector<ip::udp::endpoint> target_nodes , unsigned short reliability )
 {
+  std::cout << "\n binding_request() called :: " << "\n";
+
   std::vector<ip::udp::endpoint> request_nodes = std::vector<ip::udp::endpoint>(); 
   request_nodes.reserve( target_nodes.size() );
   std::copy( target_nodes.begin(), target_nodes.end(), std::back_inserter(request_nodes) );
@@ -44,11 +47,12 @@ void stun_server::on_send_done( const boost::system::error_code &ec )
 	ip::udp::endpoint root_ep( ip::address::from_string("0.0.0.0") , 0 );
 	auto collected_nodes = _d_routing_table_controller.collect_endpoint( root_ep, request_node_count - request_nodes.size(), request_nodes );
   }
-   
+  
+  std::cout << "request_nodes count :: " << request_nodes.size() << "\n";
   if( request_nodes.empty() ) return std::make_shared<stun_server::sr_object>(stun_server::sr_object::_error_());
 
   std::shared_ptr<sr_object> sr = std::make_shared<sr_object>(); // 予約オブジェクトの作成
-  observer<class binding_request> binding_req_obs( _io_ctx, _ice_sender, _d_routing_table_controller ); // binding_request observerの作成
+  observer<class binding_request> binding_req_obs( _io_ctx, _sender, _ice_sender, _d_routing_table_controller ); // binding_request observerの作成
   binding_req_obs.init( sr ); // observerにsrを紐づける  (重要)
  
   ice_message ice_msg = ice_message::_stun_(); // stunメッセーを作成

@@ -12,6 +12,7 @@
 #include <chrono>
 
 #include <ss_p2p/message.hpp>
+#include <ss_p2p/sender.hpp>
 
 #include "boost/asio.hpp"
 
@@ -40,13 +41,13 @@ class ice_observer_strage;
 class stun_server
 {
 public:
-  stun_server( io_context &io_ctx, ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage );
+  stun_server( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage );
   int income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep );
   void on_send_done( const boost::system::error_code &ec );
 
   struct sr_object // stun reserved object  基本的にbinding_request observerに1つ割り当てられる
   {
-    using on_nat_traversal_success_handler = std::function<void(std::optional<ip::udp::endpoint>)>; // asyncのときに成功ハンドラとして使う
+    using on_nat_traversal_success_handler = std::function<void( std::optional<ip::udp::endpoint> )>; // asyncのときに成功ハンドラとして使う
 	sr_object();
 	enum state_t
 	{
@@ -54,7 +55,7 @@ public:
 	  , pending // 取得処理中
 	  , notfound // 取得失敗
 	};
-	std::optional<ip::udp::endpoint> sync_get();  // 応答が帰ってくるまで実行スレッドをブロッキングする
+	std::optional<ip::udp::endpoint> sync_get();  // 応答が帰ってくるまで実行スレッドをブロッキングする(今の実装だと,node_contollerスレッドから呼び出すと永遠ブロッキングする)
 	void async_get( on_nat_traversal_success_handler handler ); // レスポンスを受信したら結果をハンドラに渡す
 	
 	static sr_object (_error_)();
@@ -80,6 +81,7 @@ public:
 
 private:
   io_context &_io_ctx;
+  sender &_sender;
   ice_sender &_ice_sender;
   ice_observer_strage &_obs_strage; // ice_observer_strage
   ss::kademlia::direct_routing_table_controller &_d_routing_table_controller;

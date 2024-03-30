@@ -25,6 +25,8 @@ rpc_manager::rpc_manager( node_id &self_id, io_context &io_ctx, k_observer_strag
 void rpc_manager::ping_request( ip::udp::endpoint ep, on_pong_handler pong_handler, on_ping_timeout_handler timeout_handler )
 {
   observer<ping> ping_obs( _io_ctx, ep, pong_handler, timeout_handler );
+  ping_obs.init();
+  _obs_strage.add_observer( ping_obs ); // 送信より先に保存しておく
 
   k_message k_msg = k_message::_request_( k_message::rpc::ping );
   k_msg.set_observer_id( ping_obs.get_id() );
@@ -33,15 +35,13 @@ void rpc_manager::ping_request( ip::udp::endpoint ep, on_pong_handler pong_handl
   #if SS_VERBOSE
   std::cout << "ping request -> " << ep << "\n";
   #endif
-
-  ping_obs.init();
-  _obs_strage.add_observer( ping_obs ); // ストアする
 }
 
 void rpc_manager::find_node_request( ip::udp::endpoint ep, std::vector<ip::udp::endpoint> ignore_eps, on_find_node_response_handler response_handler )
 {
   observer<find_node> find_node_obs( _io_ctx, response_handler );
   find_node_obs.init();
+  _obs_strage.add_observer( find_node_obs ); // 送信するより先に保存しておく
 
   k_message k_msg = k_message::_request_( k_message::rpc::find_node );
   k_msg.set_observer_id( find_node_obs.get_id() );
@@ -55,7 +55,6 @@ void rpc_manager::find_node_request( ip::udp::endpoint ep, std::vector<ip::udp::
   std::cout << "\x1b[33m" << "(find_node) request -> " << "\x1b[39m" << ep << "\n";
   #endif
 
-  _obs_strage.add_observer( find_node_obs );
 }
 
 void rpc_manager::ping_response( k_message &k_msg, ip::udp::endpoint &ep )

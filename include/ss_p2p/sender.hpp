@@ -20,7 +20,6 @@ namespace ss
 class sender
 {
 public:
-
   template < typename SuccessHandler >
   void async_send( ip::udp::endpoint dest_ep, std::string param, const json &payload, SuccessHandler handler )
   {

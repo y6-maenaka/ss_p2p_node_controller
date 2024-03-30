@@ -31,7 +31,7 @@ public:
   void async_send( ip::udp::endpoint &dest_ep, std::string param, json &payload, SuccessHandler handler ) // 指定したパラメータに乗せて送信
   {
 	message msg = message(_app_id);
-	msg.set_param(param, payload );
+	msg.set_param( param, payload );
 
 	auto enc_msg = message::encode( msg );
 
@@ -42,7 +42,13 @@ public:
 		);
 	
 	#if SS_CAPTURE_PACKET
-	std::cout << dest_ep << " (send)" << "\n";
+	std::cout << "********************************************" << "\n";
+	std::cout << dest_ep << " (async send)" << "\n";
+	msg.print();
+	std::cout << "--------------------------------------------" << "\n";
+	for( auto itr : enc_msg ) std::cout << itr;
+	std::cout << "\n";
+	std::cout << "********************************************" << "\n";
 	#endif
   }
 
@@ -62,7 +68,13 @@ public:
 	  );
 
 	#if SS_CAPTURE_PACKET
-	std::cout << dest_ep << " (send)" << "\n";
+	std::cout << "********************************************" << "\n";
+	std::cout << dest_ep << " (async ice send)" << "\n";
+	msg.print();
+	std::cout << "--------------------------------------------" << "\n";
+	for( auto itr : enc_msg ) std::cout << itr;
+	std::cout << "\n";
+	std::cout << "********************************************" << "\n";
 	#endif
   }
 

@@ -36,22 +36,21 @@ void ping::init()
 
   k_observer::extend_expire_at( DEFAULT_PING_RESPONSE_TIMEOUT_s );
   // 指定時間経過後にpongが到着していなければswapする
-} 
+}
 
 void ping::timeout( const boost::system::error_code &ec )
 {
   if( _is_pong_arrived ) return; // pongが到着していれば特に何もしない
- 
+
   #if SS_VERBOSE
   std::cout << "\x1b[33m" << "(ping observer)" << "\x1b[39m" <<" timeout" << "\n";
   #endif
 
   this->destruct_self() ; // 実質破棄を許可する
- 
+
   if( !_is_pong_arrived ){
   _io_ctx.post( [this]() // タイムアウトした時ようのハンドラを呼び出す
-	  { 
-		std::cout << "ここここ" << "\n";
+	  {
 		this->_timeout_handler(_dest_ep);
 	  }) ;
   }
@@ -66,7 +65,6 @@ int ping::income_message( message &msg, ip::udp::endpoint &ep )
   _is_pong_arrived = true;
 
   _io_ctx.post([this](){ // on_pong_handlerを呼び出す
-		std::cout << "ですですです"	 << "\n";
 		this->_pong_handler(_dest_ep);
 	  });
 
@@ -86,7 +84,7 @@ find_node::find_node( io_context &io_ctx, on_response_handler response_handler )
   // , _rpc_manager( rpc_manager )
   , _response_handler( response_handler )
 {
-  return; 
+  return;
 }
 
 void find_node::init()
@@ -99,7 +97,7 @@ void find_node::init()
 int find_node::income_message( message &msg, ip::udp::endpoint &ep )
 {
   #if SS_VERBOSE
-  std::cout << "(find_node observer) find_node response arrive" << "\n";
+  std::cout << "\x1b[31m" << "(find_node observer) find_node response arrive" << "\x1b[39m" << "\n";
   #endif
 
   if( auto k_param = msg.get_param("kademlia"); k_param == nullptr ) return 0;
@@ -111,9 +109,12 @@ int find_node::income_message( message &msg, ip::udp::endpoint &ep )
   for( auto itr : finded_eps )
   {
 	_io_ctx.post([this, itr](){
+		  std::cout << "..... \n レｓｙポンスハンドラが事項されます \n... \n";
 		  this->_response_handler(itr);
 		});
   }
+
+  this->destruct_self() ; // 実質破棄を許可する(refresh_tickで削除される)
   return 0;
 }
 

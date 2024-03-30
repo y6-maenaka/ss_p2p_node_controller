@@ -37,11 +37,17 @@ int setup_node_controller( int argc, const char* argv[] )
 
   ip::udp::endpoint self_endpoint( ip::udp::v4(), std::atoi(args[1]) );
   ss::node_controller n_controller( self_endpoint );
-  
+ 
+  auto &k_observer_strage = n_controller.get_dht_manager().get_observer_strage();
+  auto &ice_observer_strage = n_controller.get_ice_agent().get_observer_strage();
   auto &direct_routing_table_controller = n_controller.get_direct_routing_table_controller();
   direct_routing_table_controller.auto_update_batch( boot_nodes );
 
-  n_controller.start();
+  std::cout << "boot_eps count :: " << boot_nodes.size() << "\n";
+  n_controller.start( boot_nodes );
+
+  ice_observer_strage.show_state( boost::system::error_code{} );
+  // k_observer_strage.show_state( boost::system::error_code{} );
 
 
   std::mutex mtx;

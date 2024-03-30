@@ -36,7 +36,7 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
 	auto msg_controller = ice_msg.get_signaling_message_controller();
 	msg_controller.set_sub_protocol( ice_message::signaling::sub_protocol_t::response );
 
-	observer<class signaling_response> sgnl_response_obs( _io_ctx, _ice_sender, _glob_self_ep, _d_routing_table_controller );
+	observer<class signaling_response> sgnl_response_obs( _io_ctx, _sender, _ice_sender, _glob_self_ep, _d_routing_table_controller );
 
 	auto enc_msg = ice_msg.encode(); // ルーティングテーブルにリクエストepが存在しなくてもとりあえず返信する
 	_sender.async_send( src_ep, "ice_agent", enc_msg
@@ -55,7 +55,7 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
 
   /* この先転送系の処理 */
 
-  observer<class signaling_relay> sgnl_relay_obs( _io_ctx, _ice_sender, _glob_self_ep, _d_routing_table_controller ); // relayオブザーバーの作成
+  observer<class signaling_relay> sgnl_relay_obs( _io_ctx, _sender, _ice_sender, _glob_self_ep, _d_routing_table_controller ); // relayオブザーバーの作成
   signaling_message_controller.add_relay_endpoint( _ice_sender.get_self_endpoint() ); // 自身も中継ノードに追加する
   signaling_message_controller.set_sub_protocol( ice_message::signaling::sub_protocol_t::relay );
 
@@ -134,7 +134,7 @@ void signaling_server::signaling_send( ip::udp::endpoint &dest_ep, std::string r
 	return;
   }
 
-  observer<class signaling_request> sgnl_req_obs( _io_ctx, _ice_sender, _glob_self_ep, _d_routing_table_controller );
+  observer<class signaling_request> sgnl_req_obs( _io_ctx, _sender, _ice_sender, _glob_self_ep, _d_routing_table_controller );
   sgnl_req_obs.init( dest_ep, root_param, payload );
 
   _obs_strage.add_observer<class signaling_request>( sgnl_req_obs ); // store

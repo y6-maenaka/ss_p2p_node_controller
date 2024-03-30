@@ -44,6 +44,11 @@ bool message::is_contain_param( std::string param )
 
 std::vector<std::uint8_t> message::encode( const message &from )
 {
+  std::cout << "要修正" << "\n";
+  std::string _ = from._body.dump();
+  std::vector<std::uint8_t>  _ret( _.begin(), _.end() );
+  return _ret;
+
   std::vector<std::uint8_t> ret;
   ret = nlohmann::json::to_bson(from._body);
   return ret;
@@ -51,6 +56,12 @@ std::vector<std::uint8_t> message::encode( const message &from )
 
 message message::decode( std::span<char> from )
 {
+  std::cout << "要修正" << "\n";
+  std::string _(from.data(), from.size());
+  json _ret = json::parse(_);
+  return _ret;
+
+  
   json ret_json = nlohmann::json::from_bson( from );
   return message(ret_json);
 }

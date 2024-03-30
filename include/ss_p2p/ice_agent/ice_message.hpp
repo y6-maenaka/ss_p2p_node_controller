@@ -31,9 +31,7 @@ private:
 
 public:
   void print() const;
-  ice_message( std::string protocol ); // ホスト作成
-  ice_message( json &from );
-  
+    
   enum protocol_t
   {
 	signaling
@@ -44,6 +42,9 @@ public:
 
   static ice_message (_stun_)();
   static ice_message (_signaling_)();
+  ice_message( protocol_t p ); // ホスト作成
+  ice_message( json &from );
+
 
   protocol_t get_protocol() const;
   void set_protocol( protocol_t p );
@@ -124,7 +125,7 @@ public:
   void set_param( std::string key, std::string value );
   void set_observer_id( const observer_id &id );
   observer_id get_observer_id();
-  const json encode();
+  json encode();
 };
 
 

@@ -20,7 +20,7 @@ ice_agent::ice_agent( io_context &io_ctx, udp_socket_manager &sock_manager, ip::
   , _ice_sender( sock_manager, glob_self_ep, id )
   , _obs_strage( io_ctx )
   , _sgnl_server( io_ctx, sender, _ice_sender, glob_self_ep, d_routing_table_controller, _obs_strage )
-  , _stun_server( io_ctx, _ice_sender, d_routing_table_controller, _obs_strage )
+  , _stun_server( io_ctx, sender, _ice_sender, d_routing_table_controller, _obs_strage )
 {
   return;
 }
