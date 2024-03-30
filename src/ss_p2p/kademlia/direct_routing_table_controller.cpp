@@ -50,7 +50,7 @@ bool direct_routing_table_controller::is_exist( k_node &kn ) const
   return _routing_table.is_exist(kn);
 }
 
-void direct_routing_table_controller::auto_update( std::vector<ip::udp::endpoint> eps )
+void direct_routing_table_controller::auto_update_batch( std::vector<ip::udp::endpoint> eps )
 {
   for( auto itr : eps )
   {
@@ -58,6 +58,12 @@ void direct_routing_table_controller::auto_update( std::vector<ip::udp::endpoint
 	_routing_table.auto_update( target_k_node );
   }
   return;
+}
+
+void direct_routing_table_controller::auto_update( ip::udp::endpoint ep )
+{
+  k_node target_k_node( ep );
+  _routing_table.auto_update( target_k_node );
 }
 
 std::size_t direct_routing_table_controller::get_node_count()

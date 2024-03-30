@@ -29,7 +29,7 @@ int main( int argc, const char* argv[] )
 	ip::udp::endpoint dummy_ep = ss::generate_random_endpoint();
 	dummy_eps.push_back( dummy_ep );
   }
-  direct_routing_table_controller.auto_update( dummy_eps );
+  direct_routing_table_controller.auto_update_batch( dummy_eps );
 
   n_controller.start();
 

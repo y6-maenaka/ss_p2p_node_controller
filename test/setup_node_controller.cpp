@@ -39,7 +39,7 @@ int setup_node_controller( int argc, const char* argv[] )
   ss::node_controller n_controller( self_endpoint );
   
   auto &direct_routing_table_controller = n_controller.get_direct_routing_table_controller();
-  direct_routing_table_controller.auto_update( boot_nodes );
+  direct_routing_table_controller.auto_update_batch( boot_nodes );
 
   n_controller.start();
 

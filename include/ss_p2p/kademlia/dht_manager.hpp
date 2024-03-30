@@ -42,9 +42,6 @@ public:
   using s_send_func = std::function<void(ip::udp::endpoint&, std::string, json)>;
   dht_manager( boost::asio::io_context &io_ctx , ip::udp::endpoint &ep, sender &sender );
 
-  void income_msg( std::shared_ptr<message> msg ); // メッセージ受信
-  void invoke_msg( std::shared_ptr<message> msg ); // メッセージ送信
-
   int income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep );
   k_routing_table &get_routing_table();
   direct_routing_table_controller &get_direct_routing_table_controller();
@@ -59,6 +56,7 @@ public:
 
   void start(); // 実質はtickをcallするだけ
   void stop(); // tickのストップ
+
 private:
   io_context &_io_ctx;
   deadline_timer _tick_timer;
@@ -80,6 +78,8 @@ private:
 	void tick_done(); // 次のtickを呼び出すため,必ずtick終了時に呼び出す
 	bool _requires_tick;
 	void get_remote_nodes();
+
+	void no_handle( ip::udp::endpoint ep );
 
 	std::time_t send_refresh_ping(); // 全てのping_responseが買ってくる時間を取得
  

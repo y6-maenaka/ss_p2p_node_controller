@@ -51,7 +51,7 @@ void ping::timeout( const boost::system::error_code &ec )
   if( !_is_pong_arrived ){
   _io_ctx.post( [this]() // タイムアウトした時ようのハンドラを呼び出す
 	  { 
-		this->_timeout_handler();
+		this->_timeout_handler(_dest_ep);
 	  }) ;
   }
 }
@@ -65,7 +65,7 @@ int ping::income_message( message &msg, ip::udp::endpoint &ep )
   _is_pong_arrived = true;
 
   _io_ctx.post([this](){ // on_pong_handlerを呼び出す
-		this->_pong_handler();
+		this->_pong_handler(_dest_ep);
 	  });
 
   this->destruct_self() ; // 実質破棄を許可する(refresh_tickで削除される)
@@ -81,6 +81,7 @@ void ping::print() const
 
 find_node::find_node( io_context &io_ctx, on_response_handler response_handler ) :
   k_observer( io_ctx )
+  // , _rpc_manager( rpc_manager )
   , _response_handler( response_handler )
 {
   return; 
@@ -95,6 +96,22 @@ void find_node::init()
 
 int find_node::income_message( message &msg, ip::udp::endpoint &ep )
 {
+  #if SS_VERBOSE
+  std::cout << "(find_node observer) find_node response arrive" << "\n";
+  #endif
+
+  if( auto k_param = msg.get_param("kademlia"); k_param == nullptr ) return 0;
+  k_message k_msg( *(msg.get_param("kademlia")) );
+
+  auto msg_controller = k_msg.get_find_node_message_controller();
+  auto finded_eps = msg_controller.get_finded_endpoint();
+
+  for( auto itr : finded_eps )
+  {
+	_io_ctx.post([this, itr](){
+		  this->_response_handler(itr);
+		});
+  }
   return 0;
 }
 

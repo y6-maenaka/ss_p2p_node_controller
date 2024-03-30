@@ -8,9 +8,9 @@
 #include <ss_p2p/observer.hpp>
 #include <ss_p2p/message.hpp>
 #include <utils.hpp>
-#include "./k_message.hpp"
-#include "./k_node.hpp"
-#include "./k_routing_table.hpp"
+#include <ss_p2p/kademlia/k_message.hpp>
+#include <ss_p2p/kademlia/k_node.hpp>
+#include <ss_p2p/kademlia/k_routing_table.hpp>
 
 #include "boost/asio.hpp"
 
@@ -23,8 +23,10 @@ namespace ss
 {
 namespace kademlia
 {
+  
 
 constexpr unsigned int DEFAULT_PING_RESPONSE_TIMEOUT_s = 5; // デフォルトのpong待機時間 
+class rpc_manager;
 
 
 class k_observer : public ss::base_observer
@@ -37,8 +39,8 @@ public:
 class ping : public k_observer
 {
 public:
-  using on_pong_handler = std::function<void()>; // 引数は勝手にバイドすること
-  using on_timeout_handler = std::function<void()>; 
+  using on_pong_handler = std::function<void(ip::udp::endpoint)>; // 引数は勝手にバイドすること
+  using on_timeout_handler = std::function<void(ip::udp::endpoint)>; 
   ping( io_context &io_ctx, ip::udp::endpoint ep/* 一応保持しておく*/, on_pong_handler pong_handler, on_timeout_handler timeout_handler );
 
   // void update_observer( k_routing_table &routing_table );
@@ -59,14 +61,15 @@ private:
 class find_node : public k_observer
 {
 public:
-  using on_response_handler = std::function<void(std::vector<ip::udp::endpoint>)>;
-  find_node( io_context &io_ctx, on_response_handler response_handler );
+  using on_response_handler = std::function<void(ip::udp::endpoint)>;
+  find_node( io_context &io_ctx, on_response_handler response_handler ); // find_nodeで見つかったノードに対して全てresponse_handlerを呼び出す
   void init();
   int income_message( message &msg, ip::udp::endpoint &ep );
   void print() const;
 
 private:
   on_response_handler _response_handler;
+  // rpc_manager *_rpc_manager;
 };
 
 

@@ -59,11 +59,37 @@ void dht_manager::connection_maintainer::get_remote_nodes()
   {
 	ip::udp::endpoint root_ep( ip::address::from_string("0.0.0.0"), 0 );
 	auto request_eps = d_table_controller.collect_endpoint( root_ep, 5/*適当*/ );
-	_rpc_manager.find_node_request( request_eps, request_eps
-		, std::bind( &direct_routing_table_controller::auto_update, d_table_controller, std::placeholders::_1 ) 
-		); // find_node_responseに格納されているnノードにpingを送信する
+	auto &d_routing_table_controller = _d_manager->get_direct_routing_table_controller();
+
+	auto ping_response_handler = std::bind( &direct_routing_table_controller::auto_update, d_routing_table_controller , std::placeholders::_1 );
+	auto ping_timeout_handler = std::bind( &rpc_manager::null_handler, std::ref(_d_manager->_rpc_manager), std::placeholders::_1 );
+	for( auto itr : request_eps )
+	{
+	  /* _rpc_manager.find_node_request( itr, request_eps
+		  , std::bind( &rpc_manager::ping_request
+			, std::ref( _d_manager->_rpc_manager )
+			, std::placeholders::_1
+			, ping_response_handler
+			, ping_timeout_handler
+		  ) 
+		); */
+
+	  _rpc_manager.find_node_request( itr, request_eps
+		  , [&](ip::udp::endpoint ep) // find_node_responseに対するハンドラ
+		  {
+			_rpc_manager.ping_request( ep
+				, std::bind( &direct_routing_table_controller::auto_update, d_routing_table_controller, std::placeholders::_1 ) // pingが帰ってきたらルーティングテーブルに追加
+				, std::bind( &rpc_manager::null_handler, std::ref(_d_manager->_rpc_manager), std::placeholders::_1 )
+			  );
+		  });
+	}
   }
   this->tick_done();
+}
+
+void dht_manager::connection_maintainer::no_handle( ip::udp::endpoint ep )
+{
+  return;
 }
 
 std::time_t dht_manager::connection_maintainer::send_refresh_ping()

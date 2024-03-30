@@ -32,7 +32,8 @@ public:
   std::vector<ip::udp::endpoint> collect_endpoint( ip::udp::endpoint& root_ep, std::size_t max_count = 2, const std::vector<ip::udp::endpoint> &ignore_eps = std::vector<ip::udp::endpoint>() );
   bool is_exist( ip::udp::endpoint &ep ) const;
   bool is_exist( k_node &kn ) const;
-  void auto_update( std::vector<ip::udp::endpoint> eps );
+  void auto_update_batch( std::vector<ip::udp::endpoint> eps );
+  void auto_update( ip::udp::endpoint ep );
 
   k_bucket_iterator get_begin_bucket_iterator();
 

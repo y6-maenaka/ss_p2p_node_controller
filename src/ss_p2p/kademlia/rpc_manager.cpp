@@ -10,8 +10,8 @@ namespace kademlia
 
 
 rpc_manager::rpc_manager( node_id &self_id, io_context &io_ctx, k_observer_strage &obs_strage, sender &sender, s_send_func &send_func ) :
-  _self_id( self_id )  
-  , _io_ctx( io_ctx ) 
+  _self_id( self_id )
+  , _io_ctx( io_ctx )
   , _tick_timer( io_ctx )
   , _obs_strage( obs_strage )
   , _sender( sender )
@@ -38,9 +38,9 @@ void rpc_manager::ping_request( ip::udp::endpoint ep, on_pong_handler pong_handl
   _obs_strage.add_observer( ping_obs ); // ストアする
 }
 
-void rpc_manager::find_node_request( std::vector<ip::udp::endpoint> request_eps, std::vector<ip::udp::endpoint> ignore_eps, on_find_node_response_handler response_handler )
+void rpc_manager::find_node_request( ip::udp::endpoint ep, std::vector<ip::udp::endpoint> ignore_eps, on_find_node_response_handler response_handler )
 {
-  observer<find_node> find_node_obs( _io_ctx , response_handler );
+  observer<find_node> find_node_obs( _io_ctx, response_handler );
   find_node_obs.init();
 
   k_message k_msg = k_message::_request_( k_message::rpc::find_node );
@@ -49,10 +49,8 @@ void rpc_manager::find_node_request( std::vector<ip::udp::endpoint> request_eps,
   auto msg_controller = k_msg.get_find_node_message_controller();
   msg_controller.set_ignore_endpoint( ignore_eps );
 
-  for( auto itr : request_eps )
-  {
-	_s_send_func( itr, "kademlia", k_msg.encode() );
-  }
+  _s_send_func( ep, "kademlia", k_msg.encode() );
+
   _obs_strage.add_observer( find_node_obs );
 }
 
@@ -61,17 +59,16 @@ void rpc_manager::ping_response( k_message &k_msg, ip::udp::endpoint &ep )
   k_msg.set_message_type(k_message::message_type::response); // レスポンスに変更
 
   _sender.async_send( ep, "kademlia", k_msg.encode() // response系は普通に送信する
-	  , std::bind( &rpc_manager::on_send_done, this, std::placeholders::_1 ) 
+	  , std::bind( &rpc_manager::on_send_done, this, std::placeholders::_1 )
 	);
 
-  
   // 一旦送信の成功可否にかかわらずping元ノードをルーティングテーブルに追加する
   std::vector<ip::udp::endpoint> eps;  eps.push_back( ep );
-  _d_routing_table_controller.auto_update( eps );
+  _d_routing_table_controller.auto_update_batch( eps );
 
   #if SS_VERBOSE
   std::cout << "ping response -> " << ep << "\n";
-  #endif  
+  #endif
 }
 
 void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
@@ -88,7 +85,7 @@ void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
 
   auto eps = _d_routing_table_controller.collect_endpoint( ep, DEFAULT_FIND_NODE_SIZE, ignore_eps );
   msg_controller.set_finded_endpoint( eps ); // 自身のルーティングテーブルからみつかった ノードを格納する
-  
+
   k_msg.set_message_type(k_message::message_type::response); // request -> responseI
 
   _sender.async_send( ep, "kademlia", k_msg.encode() // response系は普通に送信する
@@ -100,9 +97,13 @@ void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
   #endif
 }
 
+void rpc_manager::null_handler( ip::udp::endpoint ep )
+{
+  return ;
+}
+
 int rpc_manager::income_request( k_message &k_msg, ip::udp::endpoint &ep )
 {
-  // 処理
   const auto rpc = k_msg.get_rpc();
 
   switch( rpc )
@@ -112,13 +113,13 @@ int rpc_manager::income_request( k_message &k_msg, ip::udp::endpoint &ep )
 		this->ping_response( k_msg, ep );
 		break;
 	  }
-	case k_message::rpc::find_node : 
+	case k_message::rpc::find_node :
 	  {
 		this->find_node_response( k_msg, ep );
 		break;
 	  }
   }
-  
+
   return 0;
 }
 
@@ -178,4 +179,3 @@ void rpc_manager::update_self_id( node_id &id )
 
 };
 };
-

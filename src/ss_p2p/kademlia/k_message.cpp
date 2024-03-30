@@ -150,6 +150,16 @@ void k_message::find_node_message_controller::set_ignore_endpoint( std::vector<i
   }
 }
 
+std::vector<ip::udp::endpoint> k_message::find_node_message_controller::get_finded_endpoint()
+{
+  auto msg_finded_nodes = _body["finded_eps"].get<std::vector<std::string>>();
+
+  std::vector<ip::udp::endpoint> ret;
+  for( auto itr : msg_finded_nodes ) ret.push_back( str_to_endpoint(itr) );
+
+  return ret;
+}
+
 void k_message::find_node_message_controller::set_finded_endpoint( std::vector<ip::udp::endpoint> eps )
 {
   _body["finded_eps"] = json::array();

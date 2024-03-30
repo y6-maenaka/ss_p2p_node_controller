@@ -48,12 +48,13 @@ public:
   using on_ping_timeout_handler = ping::on_timeout_handler ;
   using on_find_node_response_handler = find_node::on_response_handler;
   void ping_request( ip::udp::endpoint ep, on_pong_handler pong_handler, on_ping_timeout_handler timeout_handler ); // pingを送信する
-  void find_node_request( std::vector<ip::udp::endpoint> request_eps, std::vector<ip::udp::endpoint> ignore_eps, on_find_node_response_handler response_handler ); // find_node_response到着時のレスポンスは任せる
+  void find_node_request( ip::udp::endpoint ep, std::vector<ip::udp::endpoint> ignore_eps, on_find_node_response_handler handler );
 
   /* レスポンス系メソッド */
   void ping_response( k_message &k_msg, ip::udp::endpoint &ep );
   void find_node_response( k_message &k_msg, ip::udp::endpoint &ep );
 
+  void null_handler( ip::udp::endpoint ep ); // pign-responseに対する特に何もしないハンドラ
 protected:
   int income_request( k_message &k_msg, ip::udp::endpoint &ep );
   int income_response( k_message &k_msg, ip::udp::endpoint &ep ); // observerで処理仕切れなかったメッセージが入ってくる
