@@ -22,3 +22,9 @@ auto recved_msg = peer.receive( std::time_t timeout_s ); // 指定無しでメ�
 auto &message_hub = n_controller.get_message_hub();
 message_hub.start( std::function<void(ss::message_pool::_message_)> receive_handler );
 ```
+
+
+<br><br><br>
+
+本製品には、OpenSSL Toolkit で使用するために OpenSSL Project で開発されたソフトウェアが含まれています (https://www.openssl.org/)
+Copyright (c) 1998-2011 The OpenSSL Project. All rights reserved.
