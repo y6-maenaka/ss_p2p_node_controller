@@ -1,0 +1,21 @@
+(共通) 1. ノードコントローラーのオブジェクト化と開始
+```cpp
+ss::node_controlelr n_controller( boost::asio::ip::udp::endpoint self_endpoint, std::shared_ptr<boost::asio::io_context> io_context );
+n_controller.start( std::vector<boost::asio::ip::udp::endpoint> boot_eps ); // 既知のノードをブートノードとして幾つか(>0)与える
+```
+
+<br><br>
+
+(単一ピア) 指定ピアからのメッセージ受信待機
+```cpp
+auto peer = n_controller.get_peer( boost::asio::ip::udp::endpoint peer_udp_endpoint );
+auto recved_msg = peer.receive( std::time_t timeout_s ); // 指定無しでメッセージが到着するまでブロッキング
+```
+
+<br>
+
+(多数ピア) ホストに流入してくるメッセージ受信待機
+```cpp
+auto &message_hub = n_controller.get_message_hub();
+message_hub.start( std::function<void(ss::message_pool::_message_)> receive_handler );
+```
