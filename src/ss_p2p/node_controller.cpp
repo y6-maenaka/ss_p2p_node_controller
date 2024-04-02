@@ -135,15 +135,7 @@ peer node_controller::get_peer( ip::udp::endpoint &ep )
 void node_controller::on_receive_packet( std::vector<std::uint8_t> raw_msg, ip::udp::endpoint &ep )
 {
   int flag = 1;
-  std::cout << "-- 1" << "\n";
   std::shared_ptr<message> msg = std::make_shared<message>( message::decode(raw_msg) );
-  std::cout << "-- 2" << "\n";
-
-  std::cout << "-----------------------------------------" << "\n";
-  std::cout << ep << "\n";
-  msg->print();
-  std::cout << "-----------------------------------------" << "\n";
-
   if( msg == nullptr ) return;
 
   if( msg->is_contain_param("kademlia") )

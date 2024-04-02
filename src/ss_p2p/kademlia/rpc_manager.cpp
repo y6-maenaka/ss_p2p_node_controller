@@ -80,12 +80,6 @@ void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
   auto ignore_eps = msg_controller.get_ignore_endpoint();
   ignore_eps.push_back( ep ); // リクエスト元も検索対象外とする
 
-  std::cout << "+++++++++++++++++++++++++++++++++++++++++++++" << "\n";
-  std::cout << "ignore eps below" << "\n";
-  for( auto itr : ignore_eps )
-	std::cout << itr << "\n";
-  std::cout << "+++++++++++++++++++++++++++++++++++++++++++++" << "\n";
-
   auto eps = _d_routing_table_controller.collect_endpoint( ep, DEFAULT_FIND_NODE_SIZE, ignore_eps );
   msg_controller.set_finded_endpoint( eps ); // 自身のルーティングテーブルからみつかった ノードを格納する
 

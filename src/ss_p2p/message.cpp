@@ -36,19 +36,8 @@ bool message::is_contain_param( std::string param )
   return _body.contains(param);
 }
 
-/* message message::request( app_id &id )
-{
-  message ret(id);
-  return ret;
-} */
-
 std::vector<std::uint8_t> message::encode( const message &from )
 {
-  std::cout << "要修正" << "\n";
-  std::string _ = from._body.dump();
-  std::vector<std::uint8_t>  _ret( _.begin(), _.end() );
-  return _ret;
-
   std::vector<std::uint8_t> ret;
   ret = nlohmann::json::to_bson(from._body);
   return ret;
@@ -56,20 +45,9 @@ std::vector<std::uint8_t> message::encode( const message &from )
 
 message message::decode( std::vector<std::uint8_t> from )
 {
-  std::cout << "######################################################" << "\n";
-  std::cout << "decode from below"  << "\n";
-  for( auto itr : from ) std::cout << itr;
-  std::cout << "\n";
-  std::cout << "######################################################" << "\n";
-
-
-  std::cout << "要修正" << "\n";
-  std::string _(from.begin(), from.end() );
-  json _ret = json::parse(_);
-  return _ret;
- 
-  json ret_json = nlohmann::json::from_bson( from );
-  return message(ret_json);
+  std::string _( from.begin(), from.end() ); // 直接std::vector<std::uint8_t>を渡すと警告が発生するため仕方なく
+  json ret_json = nlohmann::json::from_bson( _ );
+  return message(ret_json); 
 }
 
 void message::print() 

@@ -33,9 +33,9 @@ private:
 
   boost::asio::ip::udp::endpoint _src_ep;
 
-  void on_sock_read( const boost::system::error_code& ec, std::size_t bytes_transferred );
+  // void on_sock_read( const boost::system::error_code& ec, std::size_t bytes_transferred );
   void call_receiver();
-  void call_income_message_handler();
+  void call_income_message_handler( const boost::system::error_code &ec, std::size_t bytes_transferred );
 
   udp_socket_manager& _sock_manager;
   io_context &_io_ctx; // sock_managerも共通のio_sockを持っているが一応
