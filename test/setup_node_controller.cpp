@@ -46,9 +46,8 @@ int setup_node_controller( int argc, const char* argv[] )
   std::cout << "boot_eps count :: " << boot_nodes.size() << "\n";
   n_controller.start( boot_nodes );
 
-  ice_observer_strage.show_state( boost::system::error_code{} );
+  // ice_observer_strage.show_state( boost::system::error_code{} );
   // k_observer_strage.show_state( boost::system::error_code{} );
-
 
   std::mutex mtx;
   std::condition_variable cv;

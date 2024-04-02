@@ -54,14 +54,20 @@ std::vector<std::uint8_t> message::encode( const message &from )
   return ret;
 }
 
-message message::decode( std::span<char> from )
+message message::decode( std::vector<std::uint8_t> from )
 {
+  std::cout << "######################################################" << "\n";
+  std::cout << "decode from below"  << "\n";
+  for( auto itr : from ) std::cout << itr;
+  std::cout << "\n";
+  std::cout << "######################################################" << "\n";
+
+
   std::cout << "要修正" << "\n";
-  std::string _(from.data(), from.size());
+  std::string _(from.begin(), from.end() );
   json _ret = json::parse(_);
   return _ret;
-
-  
+ 
   json ret_json = nlohmann::json::from_bson( from );
   return message(ret_json);
 }

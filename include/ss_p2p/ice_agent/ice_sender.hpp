@@ -78,8 +78,8 @@ public:
 	#endif
   }
 
-  bool sync_send( ip::udp::endpoint &dest_ep, std::string param, json &payload );
-  bool sync_ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg );
+  std::size_t sync_send( ip::udp::endpoint &dest_ep, std::string param, json &payload );
+  std::size_t sync_ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg );
 
   void on_send_done( const boost::system::error_code &ec );
 

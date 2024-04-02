@@ -35,7 +35,7 @@ public:
   using encoded_message = std::span<char>;
   // static message (request)(app_id &id);
   static std::vector<std::uint8_t> encode( const message &from ); 
-  static message decode( std::span<char> from ); // 生メッセージのデコード
+  static message decode( std::vector<std::uint8_t> from ); // 生メッセージのデコード
 
   json& operator()();
   void print();

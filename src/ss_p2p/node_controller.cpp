@@ -25,7 +25,7 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
   _dht_manager = std::make_shared<dht_manager>( *io_ctx, _self_ep, _sender );
   _ice_agent = std::make_shared<ice::ice_agent>( *_core_io_ctx, _u_sock_manager, self_ep/*一旦*/, _id, _sender
 	  , _dht_manager->get_direct_routing_table_controller() );
- 
+
 
   /* 必ず初期化する */
   _dht_manager->init( _ice_agent->get_signaling_send_func() );
@@ -100,7 +100,7 @@ void node_controller::start( std::vector<ip::udp::endpoint> boot_eps )
 			  if( ep == std::nullopt ) return;
 			  this->update_global_self_endpoint( *ep );
 			}, std::placeholders::_1 )
-		  );
+		  ); 
 
 	  _msg_pool.requires_refresh(true); // msg_poolの定期リフレッシュを停止する
 
@@ -132,7 +132,7 @@ peer node_controller::get_peer( ip::udp::endpoint &ep )
   return ret;
 }
 
-void node_controller::on_receive_packet( std::span<char> raw_msg, ip::udp::endpoint &ep )
+void node_controller::on_receive_packet( std::vector<std::uint8_t> raw_msg, ip::udp::endpoint &ep )
 {
   int flag = 1;
   std::cout << "-- 1" << "\n";

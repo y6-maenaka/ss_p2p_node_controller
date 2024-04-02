@@ -83,7 +83,7 @@ ice_message::stun_message_controller ice_message::get_stun_message_controller()
   return ice_message::stun_message_controller(this);
 }
 
-json ice_message::encode()
+const json ice_message::encode()
 {
   return _body;
 }

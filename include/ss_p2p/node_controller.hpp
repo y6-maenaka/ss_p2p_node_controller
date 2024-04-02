@@ -50,7 +50,7 @@ public:
   void async_call( Func f, Args ... a );
 
   void requires_routing( bool b );
-  void on_receive_packet( std::span<char> raw_msg , ip::udp::endpoint &ep );
+  void on_receive_packet( std::vector<std::uint8_t> raw_msg , ip::udp::endpoint &ep );
   
   void init( std::vector<ip::udp::endpoint> boot_eps );
   void start( std::vector<ip::udp::endpoint> boot_eps = std::vector<ip::udp::endpoint>() );

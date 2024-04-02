@@ -125,7 +125,7 @@ public:
   void set_param( std::string key, std::string value );
   void set_observer_id( const observer_id &id );
   observer_id get_observer_id();
-  json encode();
+  const json encode();
 };
 
 

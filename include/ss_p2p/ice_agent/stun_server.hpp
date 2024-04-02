@@ -43,7 +43,7 @@ class stun_server
 public:
   stun_server( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller, ice_observer_strage &obs_strage );
   int income_message( std::shared_ptr<message> msg, ip::udp::endpoint &ep );
-  void on_send_done( const boost::system::error_code &ec );
+  void on_send_done( const boost::system::error_code &ec, std::size_t bytes_transferred );
 
   struct sr_object // stun reserved object  基本的にbinding_request observerに1つ割り当てられる
   {

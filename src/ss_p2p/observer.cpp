@@ -52,7 +52,9 @@ base_observer::id str_to_observer_id( std::string id_str )
 
 std::string observer_id_to_str( const observer_id &from )
 {
-  return boost::uuids::to_string( from );
+  auto ret = boost::uuids::to_string( from );
+  // boost::erase_all( ret, "-" );
+  return ret;
 }
 
 

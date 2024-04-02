@@ -23,18 +23,16 @@ stun_server::stun_server( io_context &io_ctx, class sender &sender, class ice_se
   return;
 }
 
-void stun_server::on_send_done( const boost::system::error_code &ec )
+void stun_server::on_send_done( const boost::system::error_code &ec, std::size_t bytes_transferred )
 {
   #if SS_VERBOSE
-  if( !ec ) std::cout << "(stun server) send done" << "\n";
+  if( !ec ) std::cout << "(stun server) send done -> " << bytes_transferred << " [bytes]" << "\n";
   else std::cout << "(stun server) send error" << "\n";
   #endif
 }
 
 [[nodiscard]] stun_server::sr_ptr stun_server::binding_request( std::vector<ip::udp::endpoint> target_nodes , unsigned short reliability )
 {
-  std::cout << "\n binding_request() called :: " << "\n";
-
   std::vector<ip::udp::endpoint> request_nodes = std::vector<ip::udp::endpoint>(); 
   request_nodes.reserve( target_nodes.size() );
   std::copy( target_nodes.begin(), target_nodes.end(), std::back_inserter(request_nodes) );
@@ -63,12 +61,15 @@ void stun_server::on_send_done( const boost::system::error_code &ec )
   _obs_strage.add_observer<class binding_request>(binding_req_obs); // 送信に先駆けてobserverを保存しておく
   
   for( auto itr : request_nodes ){ // binding_requestを送信する
-	if( bool flag = _ice_sender.sync_ice_send( itr, ice_msg ); flag ){
+	/* if( std::size_t send_bytes = _ice_sender.sync_ice_send( itr, ice_msg ); send_bytes > 0 ){ // 送信が成功した場合
 	  #if SS_VERBOSE
 		std::cout << "(stun server)[binding_request] -> " << itr << "\n";
 	  #endif
 	  binding_req_obs.get_raw()->add_requested_ep(itr); // 送信先済みリストに登録
-	}
+	} */
+
+	_ice_sender.async_ice_send( itr, ice_msg, std::bind( &stun_server::on_send_done, this, std::placeholders::_1, std::placeholders::_2 ) );
+	binding_req_obs.get_raw()->add_requested_ep( itr );
   }
   return sr;
 }
@@ -85,8 +86,9 @@ int stun_server::income_message( std::shared_ptr<message> msg, ip::udp::endpoint
 	msg_controller.set_sub_protocol( ice_message::stun::sub_protocol_t::binding_response ); // メッセージをレスポンスへ
 	msg_controller.set_global_ep(ep); // 送信元ノードのグローバル(ローカルの場合もある)アドレスをセット
 
+	std::cout << "\x1b[31m" << " -- ** -- " << "\x1b[39m" << "\n";
 	_ice_sender.async_ice_send( ep, ice_msg
-		, std::bind( &stun_server::on_send_done, this, std::placeholders::_1 ) );
+		, std::bind( &stun_server::on_send_done, this, std::placeholders::_1, std::placeholders::_2 ) );
 
 	#if SS_VERBOSE
 	std::cout << "binding response -> " << ep << "\n";

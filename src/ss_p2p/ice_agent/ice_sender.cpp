@@ -15,7 +15,7 @@ ice_sender::ice_sender( udp_socket_manager &sock_manager, ip::udp::endpoint &glo
   return;
 }
 
-bool ice_sender::sync_send( ip::udp::endpoint &dest_ep, std::string param, json &payload )
+std::size_t ice_sender::sync_send( ip::udp::endpoint &dest_ep, std::string param, json &payload )
 {
   message msg = message(_app_id);
   msg.set_param( param, payload );
@@ -23,16 +23,16 @@ bool ice_sender::sync_send( ip::udp::endpoint &dest_ep, std::string param, json 
   auto enc_msg = message::encode( msg );
   boost::system::error_code ec;
 
-  _sock_manager.self_sock().send_to( boost::asio::buffer(enc_msg)
+  std::size_t bytes = _sock_manager.self_sock().send_to( boost::asio::buffer(enc_msg)
 	  , dest_ep
-	  , 0
+	  , socket_base::message_out_of_band
 	  , ec );
 
-  if( !ec ) return true;
-  return false;
+  if( !ec ) return bytes;
+  return 0;
 }
 
-bool ice_sender::sync_ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg )
+std::size_t ice_sender::sync_ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg )
 {
   message msg = message(_app_id);
   msg.set_param("ice_agent", ice_msg.encode() );
@@ -40,13 +40,13 @@ bool ice_sender::sync_ice_send( ip::udp::endpoint &dest_ep, ice_message &ice_msg
   auto enc_msg = message::encode( msg );
   boost::system::error_code ec;
 
-  _sock_manager.self_sock().send_to( boost::asio::buffer(enc_msg)
+  std::size_t bytes = _sock_manager.self_sock().send_to( boost::asio::buffer(enc_msg)
 	  , dest_ep
 	  , 0
 	  , ec );
 
-  if( !ec ) return true;
-  return false;
+  if( !ec ) return bytes;
+  return 0;
 }
 
 void ice_sender::on_send_done( const boost::system::error_code &ec )
