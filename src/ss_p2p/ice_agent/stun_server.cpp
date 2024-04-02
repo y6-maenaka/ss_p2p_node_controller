@@ -44,9 +44,9 @@ void stun_server::on_send_done( const boost::system::error_code &ec, std::size_t
   {
 	ip::udp::endpoint root_ep( ip::address::from_string("0.0.0.0") , 0 );
 	auto collected_nodes = _d_routing_table_controller.collect_endpoint( root_ep, request_node_count - request_nodes.size(), request_nodes );
+	for( auto itr : collected_nodes ) request_nodes.push_back( itr );
   }
   
-  std::cout << "request_nodes count :: " << request_nodes.size() << "\n";
   if( request_nodes.empty() ) return std::make_shared<stun_server::sr_object>(stun_server::sr_object::_error_());
 
   std::shared_ptr<sr_object> sr = std::make_shared<sr_object>(); // 予約オブジェクトの作成
@@ -60,14 +60,8 @@ void stun_server::on_send_done( const boost::system::error_code &ec, std::size_t
   
   _obs_strage.add_observer<class binding_request>(binding_req_obs); // 送信に先駆けてobserverを保存しておく
   
-  for( auto itr : request_nodes ){ // binding_requestを送信する
-	/* if( std::size_t send_bytes = _ice_sender.sync_ice_send( itr, ice_msg ); send_bytes > 0 ){ // 送信が成功した場合
-	  #if SS_VERBOSE
-		std::cout << "(stun server)[binding_request] -> " << itr << "\n";
-	  #endif
-	  binding_req_obs.get_raw()->add_requested_ep(itr); // 送信先済みリストに登録
-	} */
-
+  for( auto itr : request_nodes )
+  { // binding_requestを送信する
 	_ice_sender.async_ice_send( itr, ice_msg, std::bind( &stun_server::on_send_done, this, std::placeholders::_1, std::placeholders::_2 ) );
 	binding_req_obs.get_raw()->add_requested_ep( itr );
   }

@@ -36,6 +36,7 @@ public:
   {
 	ping
 	, find_node
+	, none
   };
   enum message_type
   {

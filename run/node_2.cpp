@@ -1,5 +1,3 @@
-#include "run_0.hpp"
-
 #include <ss_p2p/kademlia/k_routing_table.hpp>
 #include <ss_p2p/node_controller.hpp>
 #include <string>

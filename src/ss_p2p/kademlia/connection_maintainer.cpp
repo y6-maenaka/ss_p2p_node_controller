@@ -40,7 +40,7 @@ void dht_manager::connection_maintainer::tick_done()
   std::time_t next_tick_time_s = ( node_count < MINIMUM_NODES ) ? 10 : node_count * 20 ; /* 実装段階では雑に決定 */
 
   if( !(_requires_tick) ) return; // tickがstopされていたらそれ以上は繰り返さない
-  // d_table_controller.print( 155 );
+  d_table_controller.print( 155 );
 
   #if SS_VERBOSE
   std::cout << "next tick standby :: " << next_tick_time_s << "[s]" << "\n";
@@ -63,15 +63,6 @@ void dht_manager::connection_maintainer::get_remote_nodes()
 
 	for( auto itr : request_eps )
 	{
-	  /* _rpc_manager.find_node_request( itr, request_eps
-		  , std::bind( &rpc_manager::ping_request
-			, std::ref( _d_manager->_rpc_manager )
-			, std::placeholders::_1
-			, ping_response_handler
-			, ping_timeout_handler
-		  ) 
-		); */
-
 	  _rpc_manager.find_node_request( itr, request_eps
 		  , [&](ip::udp::endpoint ep) // find_node_responseに対するハンドラ
 		  {
@@ -87,6 +78,7 @@ void dht_manager::connection_maintainer::get_remote_nodes()
 
 void dht_manager::connection_maintainer::no_handle( ip::udp::endpoint ep )
 {
+  // dummy
   return;
 }
 

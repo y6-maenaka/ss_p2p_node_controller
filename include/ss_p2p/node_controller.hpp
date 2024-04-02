@@ -34,6 +34,7 @@ namespace ss
 
 
 constexpr std::time_t DEFAULT_NODE_CONTROLLER_TICK_TIME_S = 30/*[s]*/; // 時間周期処理
+constexpr std::time_t DEFAULT_GLOBAL_ADDRESS_REFRESH_TICK_TIME_s = 60/*[s]*/; // グローバルアドレスを再取得する間隔s
 
 
 class node_controller
@@ -58,6 +59,7 @@ public:
   peer get_peer( ip::udp::endpoint &ep );
   udp_socket_manager& get_socket_manager();
   kademlia::direct_routing_table_controller &get_direct_routing_table_controller();
+  message_pool::message_hub& get_message_hub();
 
   void update_global_self_endpoint( ip::udp::endpoint ep );
   #if SS_DEBUG
@@ -70,8 +72,8 @@ public:
   std::optional< ip::udp::endpoint > sync_get_global_address( std::vector<ip::udp::endpoint> boot_eps = std::vector<ip::udp::endpoint>() );
 
 protected:
-  void tick( const boost::system::error_code &ec ); // 未使用ピアノ削除, on_tickのセット, 新しいpeerへの接続要求
-  void call_tick();
+  void tick(); // 未使用ピアノ削除, on_tickのセット, 新しいpeerへの接続要求, グローバルアドレスの再取得 など
+  void call_tick( std::time_t tick_time_s = DEFAULT_GLOBAL_ADDRESS_REFRESH_TICK_TIME_s );
 
 private:
   // データ系

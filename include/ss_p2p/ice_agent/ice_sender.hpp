@@ -42,13 +42,7 @@ public:
 		);
 	
 	#if SS_CAPTURE_PACKET
-	std::cout << "********************************************" << "\n";
 	std::cout << dest_ep << " (async send)" << "\n";
-	msg.print();
-	std::cout << "--------------------------------------------" << "\n";
-	for( auto itr : enc_msg ) std::cout << itr;
-	std::cout << "\n";
-	std::cout << "********************************************" << "\n";
 	#endif
   }
 
@@ -68,13 +62,7 @@ public:
 	  );
 
 	#if SS_CAPTURE_PACKET
-	std::cout << "********************************************" << "\n";
 	std::cout << dest_ep << " (async ice send)" << "\n";
-	msg.print();
-	std::cout << "--------------------------------------------" << "\n";
-	for( auto itr : enc_msg ) std::cout << itr;
-	std::cout << "\n";
-	std::cout << "********************************************" << "\n";
 	#endif
   }
 

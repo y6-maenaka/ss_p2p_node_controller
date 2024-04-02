@@ -115,6 +115,10 @@ int rpc_manager::income_request( k_message &k_msg, ip::udp::endpoint &ep )
 		this->find_node_response( k_msg, ep );
 		break;
 	  }
+	default :
+	  {
+		break; // 不正なk_msg
+	  }
   }
 
   return 0;

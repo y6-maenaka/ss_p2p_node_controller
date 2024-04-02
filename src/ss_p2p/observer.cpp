@@ -31,6 +31,7 @@ std::string base_observer::get_id_str() const
 void base_observer::destruct_self()
 {
   _expire_at = 0;
+  // _expire_at = std::time(nullptr) + 1; // ちょっとだけバッファを儲けてtimeoutハンドラの実行中にクリアされ流ことを避ける
 }
 
 void base_observer::extend_expire_at( std::time_t t )

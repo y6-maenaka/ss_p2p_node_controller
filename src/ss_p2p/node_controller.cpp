@@ -71,6 +71,11 @@ kademlia::direct_routing_table_controller &node_controller::get_direct_routing_t
   return _dht_manager->get_direct_routing_table_controller();
 }
 
+message_pool::message_hub &node_controller::get_message_hub()
+{
+  return _msg_pool.get_message_hub();
+}
+
 void node_controller::update_global_self_endpoint( ip::udp::endpoint ep )
 {
   ip::udp::endpoint __prev_global_self_ep = _glob_self_ep;
@@ -103,6 +108,7 @@ void node_controller::start( std::vector<ip::udp::endpoint> boot_eps )
 		  ); 
 
 	  _msg_pool.requires_refresh(true); // msg_poolの定期リフレッシュを停止する
+	  this->call_tick();
 
 	  _core_io_ctx->run();
 	});
@@ -124,6 +130,28 @@ void node_controller::stop()
   #if SS_VERBOSE
   std::cout << "[\x1b[31m stop \x1b[39m] node controller" << "\n";
   #endif
+}
+
+void node_controller::tick()
+{
+  #if SS_VERBOSE
+  std::cout << "\x1b[31m" << "(node controller) グローバルアドレスの再取得" << "\x1b[39m" << "\n";
+  #endif
+  // グローバルアドレスの再取得
+  auto sr_obj = _ice_agent->get_stun_server().binding_request();
+	  sr_obj->async_get( std::bind( [this]( std::optional<ip::udp::endpoint> ep ){
+			  if( ep == std::nullopt ) return;
+			  this->update_global_self_endpoint( *ep );
+			}, std::placeholders::_1 )
+		  ); 
+
+  this->call_tick();
+}
+
+void node_controller::call_tick( std::time_t tick_time_s )
+{
+  _tick_timer.expires_from_now( boost::posix_time::seconds( tick_time_s ) );
+  _tick_timer.async_wait( std::bind( &node_controller::tick, this) );
 }
 
 peer node_controller::get_peer( ip::udp::endpoint &ep )

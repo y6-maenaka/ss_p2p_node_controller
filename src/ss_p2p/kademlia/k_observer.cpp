@@ -31,10 +31,10 @@ void ping::init()
   std::cout << "(init observer) ping" << "\n";
   #endif
 
-  _timer.expires_from_now( boost::posix_time::seconds(DEFAULT_PING_RESPONSE_TIMEOUT_s) );
+  _timer.expires_from_now( boost::posix_time::seconds(DEFAULT_PING_RESPONSE_TIMEOUT_s-1) ); // observerの方が先に削除されないように
   _timer.async_wait( std::bind( &ping::timeout, this, std::placeholders::_1 ) );
 
-  k_observer::extend_expire_at( DEFAULT_PING_RESPONSE_TIMEOUT_s );
+  k_observer::extend_expire_at( DEFAULT_PING_RESPONSE_TIMEOUT_s + 1 ); 
   // 指定時間経過後にpongが到着していなければswapする
 }
 
@@ -46,14 +46,14 @@ void ping::timeout( const boost::system::error_code &ec )
   std::cout << "\x1b[33m" << "(ping observer)" << "\x1b[39m" <<" timeout" << "\n";
   #endif
 
-  this->destruct_self() ; // 実質破棄を許可する
-
   if( !_is_pong_arrived ){
+  std::cout << "\x1b[31m" << "エラー発生箇所" << "\x1b[39m" << "\n";
   _io_ctx.post( [this]() // タイムアウトした時ようのハンドラを呼び出す
 	  {
 		this->_timeout_handler(_dest_ep);
 	  }) ;
   }
+  this->destruct_self(); // 実質破棄を許可する
 }
 
 int ping::income_message( message &msg, ip::udp::endpoint &ep )
@@ -109,7 +109,6 @@ int find_node::income_message( message &msg, ip::udp::endpoint &ep )
   for( auto itr : finded_eps )
   {
 	_io_ctx.post([this, itr](){
-		  std::cout << "..... \n レｓｙポンスハンドラが事項されます \n... \n";
 		  this->_response_handler(itr);
 		});
   }

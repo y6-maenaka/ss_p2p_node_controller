@@ -61,20 +61,23 @@ void k_message::set_rpc( k_message::rpc r )
 		_body["rpc"] = "find_node";
 		break;
 	  }
+	default :
+	  {
+		_body["rpc"] = "none"; // エラー
+	  }
   }
   return;
 }
 
 k_message::rpc k_message::get_rpc() const
 {
-  std::cout << "要修正" << "\n";
   if( _body["rpc"] == "ping" ) return k_message::rpc::ping;
   else return k_message::rpc::find_node;
+  return k_message::rpc::none;
 }
 
-k_message::message_type k_message::get_message_type() const
+k_message::message_type k_message::get_message_type() const // この返し方はちょっと怪しいかも
 {
-  std::cout << "要修正" << "\n";
   if( _body["type"] == "request" ) return k_message::message_type::request;
   return k_message::message_type::response;
 }

@@ -28,12 +28,10 @@ public:
   void stop();
 
 private:
-  // std::array< char, std::numeric_limits<std::uint16_t>::max() > _recv_buff;
-  std::array< char, 1024 > _recv_buff;
+  std::array< char, std::numeric_limits<std::uint16_t>::max() > _recv_buff;
 
   boost::asio::ip::udp::endpoint _src_ep;
 
-  // void on_sock_read( const boost::system::error_code& ec, std::size_t bytes_transferred );
   void call_receiver();
   void call_income_message_handler( const boost::system::error_code &ec, std::size_t bytes_transferred );
 

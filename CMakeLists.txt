@@ -127,9 +127,14 @@ target_sources( ss_p2p PRIVATE
 )
 
 if( _BUILD_SS )
+  add_executable( host_node ./run/host_node.cpp )
+  target_link_libraries( host_node PRIVATE 
+						  ss_p2p
+						  ${OPENSSL_LIBRARIES}
+	)
 endif()
 
-if( _BUILD_TEST )
+if( _BUILD_DEBUG )
   add_executable( node_0 ./run/node_0.cpp )
    target_link_libraries( node_0 PRIVATE
                         ss_p2p
@@ -166,11 +171,10 @@ if( _BUILD_TEST )
 						${OPENSSL_LIBRARIES}
    )
 
+  add_compile_definitions( SS_VERBOSE )
+  add_compile_definitions( SS_CAPTURE_PACKET )
+  add_compile_definitions( SS_DEBUG )
 endif()
 
 
-
-add_compile_definitions( SS_VERBOSE )
-add_compile_definitions( SS_CAPTURE_PACKET )
-add_compile_definitions( SS_DEBUG )
 add_definitions( -std=c++20 )

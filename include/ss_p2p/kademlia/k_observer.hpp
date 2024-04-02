@@ -43,7 +43,6 @@ public:
   using on_timeout_handler = std::function<void(ip::udp::endpoint)>; 
   ping( io_context &io_ctx, ip::udp::endpoint ep/* 一応保持しておく*/, on_pong_handler pong_handler, on_timeout_handler timeout_handler );
 
-  // void update_observer( k_routing_table &routing_table );
   int income_message( message &msg, ip::udp::endpoint &ep ); // このメソッドをタイマーセットしてio_ctxにポスト
   void timeout( const boost::system::error_code &ec );
   void init();
@@ -69,7 +68,6 @@ public:
 
 private:
   on_response_handler _response_handler;
-  // rpc_manager *_rpc_manager;
 };
 
 
