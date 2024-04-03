@@ -28,3 +28,5 @@ message_hub.start( std::function<void(ss::message_pool::_message_)> receive_hand
 
 本製品には、OpenSSL Toolkit で使用するために OpenSSL Project で開発されたソフトウェアが含まれています (https://www.openssl.org/)
 Copyright (c) 1998-2011 The OpenSSL Project. All rights reserved.
+
+一部<a href="https://github.com/arvidn/libtorrent">libtorrent</a>を参考にしてコードを書いています.
