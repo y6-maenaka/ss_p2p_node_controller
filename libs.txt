@@ -2,9 +2,6 @@ boost/asio
 boost/uuid
 
 
-
-
-
 // memo
 -> ice_agent/signalnig_server/signanlig_send(s_send_func) にrouting_tableが必要だが, dht_managerにはs_send_funcが必要
 初期化時に相互依存してしまう
