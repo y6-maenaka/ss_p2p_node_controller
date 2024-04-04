@@ -10,3 +10,4 @@
 build/*
 ./libs.txt
 
+!Dockerfile
