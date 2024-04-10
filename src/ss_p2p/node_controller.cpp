@@ -7,9 +7,9 @@ namespace ss
 
 node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io_context> io_ctx ) :
    _self_ep(self_ep)
-  , _core_io_ctx( io_ctx ) 
-  , _u_sock_manager( self_ep, std::ref(*io_ctx) ) 
-  , _tick_timer( *io_ctx ) 
+  , _core_io_ctx( io_ctx )
+  , _u_sock_manager( self_ep, std::ref(*io_ctx) )
+  , _tick_timer( *io_ctx )
   , _msg_pool( *io_ctx, true )
   , _sender( _u_sock_manager, _id )
 {
@@ -20,7 +20,7 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
 	  , std::bind( &node_controller::on_receive_packet
 		, this
 		, std::placeholders::_1
-		, std::placeholders::_2) 
+		, std::placeholders::_2)
 	  );
   _dht_manager = std::make_shared<dht_manager>( *io_ctx, _self_ep, _sender );
   _ice_agent = std::make_shared<ice::ice_agent>( *_core_io_ctx, _u_sock_manager, self_ep/*一旦*/, _id, _sender
@@ -62,7 +62,7 @@ std::optional< ip::udp::endpoint > node_controller::sync_get_global_address( std
 {
   auto &stun_server = _ice_agent->get_stun_server();
   auto sr_obj = stun_server.binding_request( boot_eps );
- 
+
   return sr_obj->sync_get();
 }
 
@@ -83,7 +83,7 @@ void node_controller::update_global_self_endpoint( ip::udp::endpoint ep )
   _glob_self_ep = ep;
 
   #if SS_VERBOSE
-  std::cout << "\x1b[33m" << "[node_controller] update global self endpoint" << "\n" << "\x1b[39m";
+  std::cout << "\x1b[33m" << "[node_controller](update global self endpoint)" << "\n" << "\x1b[39m";
   std::cout << __prev_global_self_ep << " -> " << _glob_self_ep << "\n";
   std::cout << "\n";
   #endif
@@ -105,7 +105,7 @@ void node_controller::start( std::vector<ip::udp::endpoint> boot_eps )
 			  if( ep == std::nullopt ) return;
 			  this->update_global_self_endpoint( *ep );
 			}, std::placeholders::_1 )
-		  ); 
+		  );
 
 	  _msg_pool.requires_refresh(true); // msg_poolの定期リフレッシュを停止する
 	  this->call_tick();
@@ -143,7 +143,7 @@ void node_controller::tick()
 			  if( ep == std::nullopt ) return;
 			  this->update_global_self_endpoint( *ep );
 			}, std::placeholders::_1 )
-		  ); 
+		  );
 
   this->call_tick();
 }
@@ -166,6 +166,16 @@ void node_controller::on_receive_packet( std::vector<std::uint8_t> raw_msg, ip::
   std::shared_ptr<message> msg = std::make_shared<message>( message::decode(raw_msg) );
   if( msg == nullptr ) return;
 
+  #if SS_CAPTURE_PACKET
+  /*
+  for( int i=0; i<get_console_width(); i++ ) printf("*");
+  std::cout << "\n";
+  std::cout << "(recv) from : " << ep << "\n";
+  msg->print();
+  for( int i=0; i<get_console_width(); i++ ) printf("*");
+  */
+  #endif
+
   if( msg->is_contain_param("kademlia") )
   {
 	int state = _dht_manager->income_message( msg , ep );
@@ -175,8 +185,8 @@ void node_controller::on_receive_packet( std::vector<std::uint8_t> raw_msg, ip::
   {
 	flag = _ice_agent->income_message( msg, ep );
   }
- 
-  if( flag == 1 ){
+
+  if( flag == 1 ){ // 現時点では全ての流入してくるメッセージを保存するようにする
 	_msg_pool.store( msg, ep ); // メッセージの保存
   }
 }

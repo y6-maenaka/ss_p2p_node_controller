@@ -33,7 +33,7 @@ void rpc_manager::ping_request( ip::udp::endpoint ep, on_pong_handler pong_handl
 
   _s_send_func( ep, "kademlia", k_msg.encode() );
   #if SS_VERBOSE
-  std::cout << "ping request -> " << ep << "\n";
+  std::cout << "\x1b[33m" << "[rpc_manager](ping_request) send -> " << "\x1b[39m" << ep << "\n";
   #endif
 }
 
@@ -52,7 +52,7 @@ void rpc_manager::find_node_request( ip::udp::endpoint ep, std::vector<ip::udp::
   _s_send_func( ep, "kademlia", k_msg.encode() );
 
   #if SS_VERBOSE
-  std::cout << "\x1b[33m" << "(find_node) request -> " << "\x1b[39m" << ep << "\n";
+  std::cout << "\x1b[33m" << "[rpc_manager](find_node_request) send -> " << "\x1b[39m" << ep << "\n";
   #endif
 
 }
@@ -70,7 +70,7 @@ void rpc_manager::ping_response( k_message &k_msg, ip::udp::endpoint &ep )
   _d_routing_table_controller.auto_update_batch( eps );
 
   #if SS_VERBOSE
-  std::cout << "ping response -> " << ep << "\n";
+  std::cout << "[rpc_manager](ping_response) send -> " << ep << "\n";
   #endif
 }
 
@@ -90,7 +90,7 @@ void rpc_manager::find_node_response( k_message &k_msg, ip::udp::endpoint &ep )
 	  );
 
   #if SS_VERBOSE
-  std::cout << "find_node response -> " << ep << "\n";
+  std::cout << "[rpc_manager](find_node_response) send -> " << ep << "\n";
   #endif
 }
 
@@ -133,7 +133,8 @@ int rpc_manager::income_response( k_message &k_msg, ip::udp::endpoint &ep )
 void rpc_manager::on_send_done( const boost::system::error_code &ec )
 {
   #if SS_VERBOSE
-  std::cout << "rpc_manager::on_send_done" << "\n";
+  if( !ec ); //std::cout << "[rpc_manager](send_done)" << "\n";
+  else std::cout << "(rpc_manager)" << "\x1b[31m" << " send failure" << "\x1b[39m" << "\n";
   #endif
 }
 

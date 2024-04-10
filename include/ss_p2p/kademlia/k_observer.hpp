@@ -23,9 +23,9 @@ namespace ss
 {
 namespace kademlia
 {
-  
 
-constexpr unsigned int DEFAULT_PING_RESPONSE_TIMEOUT_s = 5; // デフォルトのpong待機時間 
+
+constexpr unsigned int DEFAULT_PING_RESPONSE_TIMEOUT_s = 5; // デフォルトのpong待機時間
 class rpc_manager;
 
 
@@ -40,7 +40,7 @@ class ping : public k_observer
 {
 public:
   using on_pong_handler = std::function<void(ip::udp::endpoint)>; // 引数は勝手にバイドすること
-  using on_timeout_handler = std::function<void(ip::udp::endpoint)>; 
+  using on_timeout_handler = std::function<void(ip::udp::endpoint)>;
   ping( io_context &io_ctx, ip::udp::endpoint ep/* 一応保持しておく*/, on_pong_handler pong_handler, on_timeout_handler timeout_handler );
 
   int income_message( message &msg, ip::udp::endpoint &ep ); // このメソッドをタイマーセットしてio_ctxにポスト
@@ -50,7 +50,7 @@ public:
 
 private:
   bool _is_pong_arrived:1;
-  deadline_timer _timer; // 固有のものを作らないとエラーになる可能性が高い
+  deadline_timer _timer; 
 
   ip::udp::endpoint _dest_ep;
   on_pong_handler _pong_handler;
@@ -73,13 +73,11 @@ private:
 
 using base_observer_ptr = std::shared_ptr<base_observer>;
 const std::string generate_h_id();
-  
+
 
 };
 };
 
 
 
-#endif 
-
-
+#endif

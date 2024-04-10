@@ -28,13 +28,13 @@ ping::ping( io_context &io_ctx, ip::udp::endpoint ep, on_pong_handler pong_handl
 void ping::init()
 {
   #if SS_VERBOSE
-  std::cout << "(init observer) ping" << "\n";
+  std::cout << "[ping observer]:<" << get_id_str() << ">" << "(init)" << "\n";
   #endif
 
   _timer.expires_from_now( boost::posix_time::seconds(DEFAULT_PING_RESPONSE_TIMEOUT_s-1) ); // observerの方が先に削除されないように
   _timer.async_wait( std::bind( &ping::timeout, this, std::placeholders::_1 ) );
 
-  k_observer::extend_expire_at( DEFAULT_PING_RESPONSE_TIMEOUT_s + 1 ); 
+  k_observer::extend_expire_at( DEFAULT_PING_RESPONSE_TIMEOUT_s + 1 );
   // 指定時間経過後にpongが到着していなければswapする
 }
 
@@ -43,11 +43,10 @@ void ping::timeout( const boost::system::error_code &ec )
   if( _is_pong_arrived ) return; // pongが到着していれば特に何もしない
 
   #if SS_VERBOSE
-  std::cout << "\x1b[33m" << "(ping observer)" << "\x1b[39m" <<" timeout" << "\n";
+  std::cout << "\x1b[33m" << "[ping observer]:<" << get_id_str() << "> ::" << "\x1b[39m" <<" timeout" << "\n";
   #endif
 
   if( !_is_pong_arrived ){
-  std::cout << "\x1b[31m" << "エラー発生箇所" << "\x1b[39m" << "\n";
   _io_ctx.post( [this]() // タイムアウトした時ようのハンドラを呼び出す
 	  {
 		this->_timeout_handler(_dest_ep);
@@ -59,7 +58,7 @@ void ping::timeout( const boost::system::error_code &ec )
 int ping::income_message( message &msg, ip::udp::endpoint &ep )
 {
   #if SS_VERBOSE
-  std::cout << "\x1b[33m" << "(ping observer)" << "\x1b[39m" <<" poing arrive" << "\n";
+  std::cout << "\x1b[33m" << "[ping observer]:<"<< get_id_str() <<"> :: " << "\x1b[39m" <<" pong arrive" << "\n";
   #endif
 
   _is_pong_arrived = true;
@@ -68,6 +67,7 @@ int ping::income_message( message &msg, ip::udp::endpoint &ep )
 		this->_pong_handler(_dest_ep);
 	  });
 
+  _timer.cancel();
   this->destruct_self() ; // 実質破棄を許可する(refresh_tickで削除される)
   return 0;
 }
@@ -90,14 +90,14 @@ find_node::find_node( io_context &io_ctx, on_response_handler response_handler )
 void find_node::init()
 {
   #if SS_VERBOSE
-  std::cout << "(init observer) find_node" << "\n";
+  std::cout << "[find_node observer]:<" << get_id_str() << ">(init)" << "\n";
   #endif
 }
 
 int find_node::income_message( message &msg, ip::udp::endpoint &ep )
 {
   #if SS_VERBOSE
-  std::cout << "\x1b[31m" << "(find_node observer) find_node response arrive" << "\x1b[39m" << "\n";
+  std::cout << "\x1b[31m" << "[find_node observer]:<" << get_id_str() << ">(response arrive)" << "\x1b[39m" << "\n";
   #endif
 
   if( auto k_param = msg.get_param("kademlia"); k_param == nullptr ) return 0;

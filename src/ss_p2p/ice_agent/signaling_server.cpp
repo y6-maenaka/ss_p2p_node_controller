@@ -41,12 +41,12 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
 	auto enc_msg = ice_msg.encode(); // ルーティングテーブルにリクエストepが存在しなくてもとりあえず返信する
 	_sender.async_send( src_ep, "ice_agent", enc_msg
 		, std::bind( &signaling_response::init
-		  , *(sgnl_response_obs.get_raw()) 
-		  , std::placeholders::_1 ) 
+		  , *(sgnl_response_obs.get_raw())
+		  , std::placeholders::_1 )
 		);
 
 	#if SS_VERBOSE
-	std::cout << "(init observer)[signaling response] send -> " << src_ep << "\n";
+  std::cout << "(signaling server)[income message] init message send -> " << src_ep << "\n";
 	#endif
 
 	_obs_strage.add_observer<class signaling_response>( sgnl_response_obs ); // ストレージに追加する
@@ -68,7 +68,7 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
 		);
 
 	#if SS_VERBOSE
-	std::cout << "(observer)[signaling relay] relay fin -> " << dest_ep << "\n";
+  std::cout << "[signaling_server](income message) signaling relay fin(success) <===> " << dest_ep << "\n";
 	#endif
 
 	_obs_strage.add_observer<class signaling_relay>( sgnl_relay_obs );
@@ -94,7 +94,7 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
 		);
 
 	#if SS_VERBOSE
-	std::cout << "(observer)[signaling relay] relay -> " << itr << "\n";
+  std::cout << "[signaling_server](income_message)<self=relay_host> signaling relay message send -> " << itr << "\n";
 	#endif
   }
 
@@ -105,8 +105,8 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
 void signaling_server::on_send_done( const boost::system::error_code &ec )
 {
   #if SS_VERBOSE
-  if( !ec ) std::cout << "(signaling server) send done" << "\n";
-  else std::cout << "(signaling server) send error" << "\n";
+  if( !ec ); // std::cout << "(signaling server) send done" << "\n";
+  else std::cout << "(signaling_server)" << "\x1b[31m" << " send failure" << "\x1b[39m" << "\n";
   #endif
 }
 

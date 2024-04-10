@@ -46,8 +46,8 @@ bool sender::sync_send( ip::udp::endpoint dest_ep, std::string param, json &payl
 void sender::on_send_done( const boost::system::error_code &ec )
 {
   #if SS_VERBOSE
-  if( !ec ) std::cout << "sender::send success" << "\n";
-  else std::cout << "sender::send error" << "\n";
+  if( !ec ) ;//std::cout << "sender:: send success" << "\n";
+  else std::cout << "(sender)" << "\x1b[31m" << " send failure" << "\x1b[39m" << "\n";
   #endif
 }
 

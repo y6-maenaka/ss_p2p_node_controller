@@ -24,6 +24,7 @@
 #include <ss_p2p/message_pool.hpp>
 #include <ss_p2p/socket_manager.hpp>
 #include <ss_p2p/sender.hpp>
+#include <utils.hpp>
 
 
 using namespace boost::asio;
@@ -52,7 +53,7 @@ public:
 
   void requires_routing( bool b );
   void on_receive_packet( std::vector<std::uint8_t> raw_msg , ip::udp::endpoint &ep );
-  
+
   void init( std::vector<ip::udp::endpoint> boot_eps );
   void start( std::vector<ip::udp::endpoint> boot_eps = std::vector<ip::udp::endpoint>() );
   void stop();
@@ -68,7 +69,7 @@ public:
   kademlia::dht_manager &get_dht_manager();
   message_pool &get_message_pool();
   #endif
- 
+
   std::optional< ip::udp::endpoint > sync_get_global_address( std::vector<ip::udp::endpoint> boot_eps = std::vector<ip::udp::endpoint>() );
 
 protected:
@@ -95,4 +96,4 @@ private:
 };
 
 
-#endif 
+#endif

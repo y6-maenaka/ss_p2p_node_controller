@@ -50,7 +50,7 @@ protected:
 	{
 	  if( (*itr).is_expired() ){
 		#if SS_VERBOSE
-		std::cout << "\x1b[33m" << " | (delete observer) " <<"\x1b[39m" << (*itr).get_id() << "\n";
+		std::cout << "\x1b[33m" << " | [k observer strage](delete observer) " <<"\x1b[39m" << (*itr).get_id() << "\n";
 		#endif
 		itr = entry.erase(itr);
 	  }
@@ -101,12 +101,12 @@ public:
 	s_entry.insert(obs);
 
 	#if SS_VERBOSE
-	if constexpr (std::is_same_v<T, ping>) std::cout << "| (new observer) ping store." << "\n";
-	else if constexpr (std::is_same_v<T, find_node>) std::cout << "| (new observer) find_node store." << "\n";
-	else std::cout << "(unknown observer) store." << "\n";
+	if constexpr (std::is_same_v<T, ping>) std::cout << "| [k observer strage](pign observer) store" << "\n";
+	else if constexpr (std::is_same_v<T, find_node>) std::cout << "| [k observer strage](find_node observer) store" << "\n";
+	else std::cout << "| [k observer strage](undefined observer) store" << "\n";
 	#endif
   }
-  
+
   k_observer_strage( io_context &io_ctx );
 
   #if SS_DEBUG
@@ -120,9 +120,4 @@ public:
 };
 
 
-#endif 
-
-
-
-
-
+#endif

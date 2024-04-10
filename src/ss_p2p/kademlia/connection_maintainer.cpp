@@ -23,12 +23,14 @@ void dht_manager::connection_maintainer::tick()
   if( !(_requires_tick) ) return;
 
   #if SS_VERBOSE
-  std::cout << "\x1b[34m" << "[dht_manager / connection_maintainer]" << "\x1b[39m" << " routing table update tick" << "\n";
+  std::cout << "\x1b[34m" << "[dht_manager/connection_maintainer](tick)" << "\x1b[39m" << " routing table update" << "\n";
   #endif
-  
+
   std::time_t refresh_ping_done_time = this->send_refresh_ping(); // 生存しているノード数(実際の)をカウントする為
- 
-  std::cout << "ping respose timeout s -> " << refresh_ping_done_time + 1 << "\n";
+
+  #if SS_VERBOSE
+  std::cout << "[dht_manager/connection_maintainer] ping respose timeout -> " << refresh_ping_done_time + 1 << "[s]" << "\n";
+  #endif
   _timer.expires_from_now( boost::posix_time::seconds(refresh_ping_done_time + 1) );
   _timer.async_wait( std::bind( &dht_manager::connection_maintainer::get_remote_nodes, this ) );
 }
@@ -43,7 +45,7 @@ void dht_manager::connection_maintainer::tick_done()
   d_table_controller.print( 155 );
 
   #if SS_VERBOSE
-  std::cout << "next tick standby :: " << next_tick_time_s << "[s]" << "\n";
+  std::cout << "[dht_manager/connection_maintainer] next tick standby :: " << next_tick_time_s << "[s]" << "\n";
   #endif
 
   _timer.expires_from_now( boost::posix_time::seconds( next_tick_time_s/*適当*/) );
@@ -90,15 +92,15 @@ std::time_t dht_manager::connection_maintainer::send_refresh_ping()
   {
 	auto bucket_nodes = bucket_itr.get_nodes();
 	for( auto itr : bucket_nodes ) // 全てのノードにpingを送信する(timeoutでdelete)
-	{ 
+	{
 	  _rpc_manager.ping_request
 		( itr.get_endpoint()  // timeout->deleteのpingを送信する
 		  , std::bind( &k_bucket::move_back, std::ref(bucket_itr.get_raw()), itr )
-		  , std::bind( &k_bucket::delete_node, std::ref(bucket_itr.get_raw()), itr ) 
+		  , std::bind( &k_bucket::delete_node, std::ref(bucket_itr.get_raw()), itr )
 		);
-	  
+
 	  #if SS_VERBOSE
-	  std::cout << "\x1b[36m" << "(dht_manager/connection_maintainer) refresh_ping -> " << "\x1b[39m" << itr.get_endpoint() << "\n";
+	  std::cout << "\x1b[36m" << "[dht_manager/connection_maintainer] refresh_ping" << "\x1b[39m" << " -> " << itr.get_endpoint() << "\n";
 	  #endif
 	}
   }

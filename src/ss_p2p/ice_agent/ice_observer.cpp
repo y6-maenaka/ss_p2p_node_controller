@@ -27,12 +27,7 @@ signaling_request::signaling_request( io_context &io_ctx, class sender &sender, 
 
 void signaling_request::init( ip::udp::endpoint &dest_ep, std::string param, json payload ) // ホスト->ピア方向へのNatを開通させるためのダミーメッセージを送信する
 {
-  std::string dummy_msg_str = "signaling dummy"; json dummy_msg_json = dummy_msg_str;
-
   this->send_dummy_message( dest_ep ); // NATテーブルに覚えさせるためにダミーメッセージを送信する
-  /* _ice_sender.async_send( dest_ep, "dummy", dummy_msg_json
-	  , std::bind( &signaling_request::on_send_done, this, std::placeholders::_1 )
-  ); // nat開通用にダミーメッセージを送信する */ 
 
   // キャッシュの登録
   _msg_cache.ep = dest_ep;
@@ -49,25 +44,27 @@ void signaling_request::init( ip::udp::endpoint &dest_ep, std::string param, jso
   std::vector<ip::udp::endpoint> forward_eps = _d_routing_table_controller.collect_endpoint( dest_ep, 3/*適当*/ );
   for( auto itr : forward_eps )
   {
-	_ice_sender.async_ice_send( itr, ice_msg
-	  , std::bind( &signaling_request::on_send_done
-		, this
-		, std::placeholders::_1 )
+	   _ice_sender.async_ice_send(
+       itr
+       , ice_msg
+	     , std::bind( &signaling_request::on_send_done
+		   , this
+		   , std::placeholders::_1 )
 	  );
 
 	#if SS_VERBOSE
-	std::cout << "(init observer)[signaling request] send -> " << itr << "\n";
+  std::cout << "(signaling_request observer)[init] init message send -> " << itr << "\n";
 	#endif
   }
 
-   return;
+  return;
 }
 
 void signaling_request::on_send_done( const boost::system::error_code &ec )
 {
   #if SS_VERBOSE
-  if( !ec ) std::cout << "signaling_request::send success" << "\n";
-  else std::cout << "signaling_request::send error" << "\n";
+  if( !ec ) ;// std::cout << "(signaling_request observer)[send_done]" << "\n";
+  else std::cout << "(signaling_request observer)" << "\x1b[31m" << " send failure" << "\x1b[39m" << "\n";
   #endif
 }
 
@@ -76,7 +73,7 @@ void signaling_request::on_traversal_done( const boost::system::error_code &ec )
   _done = true;
 }
 
-void signaling_request::send_dummy_message( ip::udp::endpoint &ep ) 
+void signaling_request::send_dummy_message( ip::udp::endpoint &ep )
 {
   std::string dummy_msg_str = "signaling dummy"; json dummy_msg_json = dummy_msg_str;
   _sender.async_send( ep, "dummy", dummy_msg_json
@@ -134,7 +131,7 @@ int signaling_request::income_message( message &msg, ip::udp::endpoint &ep )
 
 void signaling_request::print() const
 {
-  std::cout << "[observer] (signaling-request) " << "<" << _id << ">";
+  std::cout << "[observer] (signaling_request) " << "<" << _id << ">";
   std::cout << " [ at: "<< signaling_observer::get_expire_time_left() <<" ]";
 }
 
@@ -148,8 +145,8 @@ signaling_response::signaling_response( io_context &io_ctx, class sender &sender
 void signaling_response::init( const boost::system::error_code &ec )
 {
   #if SS_VERBOSE
-  if( !ec ) std::cout << "signaling_response::init success" << "\n";
-  else std::cout << "signaling_response::init error" << "\n";
+  if( !ec ); // std::cout << "signaling_response::init success" << "\n";
+  else std::cout << "(signaling_request observer)" << "\x1b[31m" << " init failure" << "\x1b[39m" << "\n";
   #endif
 
   if( !ec ) extend_expire_at( 30 ); // 有効期限を30秒延長する
@@ -178,7 +175,7 @@ signaling_relay::signaling_relay( io_context &io_ctx, class sender &sender, clas
 void signaling_relay::init()
 {
   #if SS_VERBOSE
-  std::cout << "(init observer) signaling_relay" << "\n";
+  std::cout << "(signaling_relay)[init]" << "\n";
   #endif
 
   extend_expire_at( 20 );
@@ -229,7 +226,7 @@ void binding_request::init( std::shared_ptr<stun_server::sr_object> sr )
 void binding_request::async_call_sr_handler(std::optional<ip::udp::endpoint> ep )
 {
   _io_ctx.post([this, ep](){
-		this->_sr->handler( ep ); 
+		this->_sr->handler( ep );
 	  });
   _is_handler_called = true;
 }
@@ -261,9 +258,12 @@ int binding_request::income_message( message &msg, ip::udp::endpoint &ep )
   this->add_response( ep, *global_ep ); // レスポンスを保存
   auto cctx = this->global_ep_consensus(); // これまでの応答から有効なグローバルIP(判断に足る応答が不足している場合はfailureが戻る)を取得する
   if( cctx.state == binding_request::consensus_ctx::state_t::on_handling ) return 0; // 判断に足るレスポンス数に達していない
-  
+
   this->update_sr( cctx ); // sync_getで待機している場合はupdate_stateすると勝手に起きる
   if( _sr->is_async() && !(_is_handler_called) ) this->async_call_sr_handler( cctx.ep ); // 待機状態でなく,非同期でればハンドラを呼び出す
+
+  _timer.cancel(); // 全てのtimeoutハンドラを無効にする
+  this->destruct_self(); // 本observerの破棄を許可する
 
   return 0; // 結果は保存しなくて良い
 }
@@ -279,16 +279,13 @@ binding_request::consensus_ctx binding_request::global_ep_consensus( bool is_for
   if( response_count < (_responses.size()/2.5) ) return ret;
 
   std::vector<ip::udp::endpoint> vli_global_eps; // ローカルアドレスなどを排除する
-  for( auto itr : _responses ){
+  for( auto itr : _responses )
+  {
 	if( itr.second != std::nullopt  // 無効 且つ
-		&& !((*(itr.second)).address().is_loopback() ) ) { // ループバックアドレスでない場合
-	  vli_global_eps.push_back( *(itr.second) );
-	}  
-
-	#if SS_DEBUG
-	/* std::cout << "TEST TEST" << "\n";
-  	if( itr.second != std::nullopt ) vli_global_eps.push_back(*(itr.second)); */
-	#endif
+		&& !((*(itr.second)).address().is_loopback() ) )
+	  { // ループバックアドレスでない場合
+		vli_global_eps.push_back( *(itr.second) );
+	  }
   }
 
   if( !is_force ){ // 現在受信している応答のみでグローバルIPを決定する
@@ -306,7 +303,7 @@ binding_request::consensus_ctx binding_request::global_ep_consensus( bool is_for
   for( auto itr : vli_global_eps ){
 	counter_m[itr]++;
   }
-  
+
   for( auto [key, value] : counter_m ) counter_v.push_back( std::make_pair(key, value) );
   std::sort( counter_v.begin(), counter_v.end(), []( const auto& _1, auto & _2 ){
 		return _1.second > _2.second;
@@ -315,6 +312,7 @@ binding_request::consensus_ctx binding_request::global_ep_consensus( bool is_for
   // 成功結果を格納
   ret.ep = (counter_v.begin())->first; // 同数一位でも適当に先頭を返す
   ret.state = binding_request::consensus_ctx::state_t::done;
+
   return ret;
 }
 
@@ -330,19 +328,19 @@ void binding_request::on_timeout( const boost::system::error_code &ec )
 void binding_request::update_sr( const consensus_ctx &cctx )
 {
   #if SS_VERBOSE
-  std::cout << "(stun observer) update state" << "\n";
+  std::cout << "[binding_request observer][update state]" << "\n";
   #endif
- 
+
   // 状態変数の更新
   if( cctx.state == binding_request::consensus_ctx::done )
   {
-	_sr->update_state( stun_server::sr_object::done, cctx.ep ); 
+	_sr->update_state( stun_server::sr_object::done, cctx.ep );
   }
   else if( cctx.state == binding_request::consensus_ctx::error_done )
   {
 	_sr->update_state( stun_server::sr_object::notfound );
   }
-  else{ 
+  else{
 	_sr->update_state( stun_server::sr_object::pending );
   }
   return;

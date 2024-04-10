@@ -34,9 +34,9 @@ public:
 		  , handler
 		);
 
-	#if SS_CAPTURE_PACKET
+	/* #if SS_CAPTURE_PACKET
 	std::cout << "(send) -> " << dest_ep << "\n";
-	#endif
+	#endif */
   }
 
   template < typename SuccessHandler >
@@ -50,9 +50,9 @@ public:
 		  , handler
 		);
 
-	#if SS_CAPTURE_PACKET
+	/* #if SS_CAPTURE_PACKET
 	std::cout << " (send) -> " << dest_ep << "\n";
-	#endif
+	#endif */
   }
 
   bool sync_send( ip::udp::endpoint dest_ep, message &msg );
