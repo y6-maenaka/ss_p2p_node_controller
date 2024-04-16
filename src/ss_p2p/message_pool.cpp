@@ -251,7 +251,6 @@ void message_pool::message_hub::on_receive_message( std::function<message_peer_e
   auto msg_entry = pop_func();
   if( msg_entry == std::nullopt ) return;
  
-  // message_pool::_message_ msg( *msg_entry, src_ep );
   ss_message msg( *msg_entry, src_ep );
   _msg_handler( msg );
 }

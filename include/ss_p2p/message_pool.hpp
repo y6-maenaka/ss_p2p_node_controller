@@ -82,7 +82,7 @@ struct ss_message // 他アプリケーションから参照される
 {
   json body; // メッセージ本体
   
-  struct _
+  struct
   {
     ip::udp::endpoint src_endpoint; // 送信元
     std::vector< ip::udp::endpoint > relay_endpoints; // 中継ノードリスト
@@ -117,16 +117,6 @@ public:
   void requires_refresh( bool b );
   void store( std::shared_ptr<message> msg, ip::udp::endpoint &ep ); // 追加
   
-  /* struct _message_
-  {
-	bool valid:1;
-	ip::udp::endpoint src_ep;
-	std::shared_ptr<message> msg;
-	std::time_t time;
-
-	_message_( struct message_peer_entry::_message_entry_ &from, ip::udp::endpoint src_ep );
-  }; */
-
   struct message_hub
   {
 	friend message_pool;

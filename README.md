@@ -23,6 +23,20 @@ auto &message_hub = n_controller.get_message_hub();
 message_hub.start( std::function<void(ss::ss_message)> receive_handler );
 ```
 
+※ ss_message
+```cpp
+struct ss_message
+{
+ json body;
+ struct
+ {
+  ip::udp::endpoint src_endpoint;
+  std::vector<ip::udp::endpoint> relay_endpoints;
+  std::time_t timestamp;
+ } meta;
+}
+```
+
 
 <br><br><br>
 
