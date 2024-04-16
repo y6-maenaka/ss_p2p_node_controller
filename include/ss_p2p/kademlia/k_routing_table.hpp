@@ -66,9 +66,7 @@ public:
 
   k_bucket_iterator get_begin_bucket_iterator();
   
-  #if SS_DEBUG
   void print( int start_branch = 1 );
-  #endif
 };
 
 class k_bucket_iterator  // 若干bucketへの操作を制御する( 生のiteratorはk_routing_tableから取得する )

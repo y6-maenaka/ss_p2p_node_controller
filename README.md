@@ -20,7 +20,7 @@ auto recved_msg = peer.receive( std::time_t timeout_s ); // 指定無しでメ�
 (多数ピア) ホストに流入してくるメッセージ受信待機
 ```cpp
 auto &message_hub = n_controller.get_message_hub();
-message_hub.start( std::function<void(ss::message_pool::_message_)> receive_handler );
+message_hub.start( std::function<void(ss::ss_message)> receive_handler );
 ```
 
 

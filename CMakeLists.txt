@@ -8,6 +8,7 @@ find_package( Boost REQUIRED )
 
 if( OpenSSL_FOUND )
   message( STATUS "Using OpenSSL" ${OPENSSL_VERSION} )
+  message("OpenSSL include dir : " ${OPENSSL_INCLUDE_DIR})
 endif( OpenSSL_FOUND )
 if( Boost_FOUND )
   message( STATUS "Using Boost" ${Boost_VERSION} )
@@ -110,9 +111,8 @@ target_include_directories( ss_p2p PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 
-			${OPENSSL_INCLUDE_DIRS}
+			${OPENSSL_INCLUDE_DIR} # 不要
 			${Boost_INCLUDE_DIRS}
-			# include/json.hpp # use nlohmann_json
 )
 
 # if KADEMLIA FLAG

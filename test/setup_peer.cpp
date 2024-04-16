@@ -18,8 +18,8 @@
 class message_jank
 {
 public:
-  void on_receive( ss::message_pool::_message_ msg ){
-	std::cout << "(" << msg.src_ep << ") : " << msg.msg->get_param("messenger")->dump() << "\n";
+  void on_receive( ss::ss_message msg ){
+	std::cout << "(" << msg.meta.src_endpoint << ") : " << msg.body.dump() << "\n";
   }
 };
 

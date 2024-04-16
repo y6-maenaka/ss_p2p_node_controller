@@ -21,7 +21,6 @@ int setup_node_controller( int argc, const char* argv[] )
 {
   std::span args( argv, argc );
 
-
   std::string boot_nodes_file_path = "../boot_node_lists.json";
   std::ifstream f_stream( boot_nodes_file_path );
   if( !f_stream.is_open() ){

@@ -5,6 +5,15 @@ namespace ss
 {
 
 
+ss_message::ss_message( struct message_peer_entry::_message_entry_ &from, ip::udp::endpoint src_ep )
+{
+  this->body = from.msg->_body;
+  this->meta.src_endpoint = src_ep;
+  this->meta.timestamp = from.time;
+}
+
+
+
 message_peer_entry::_message_entry_::_message_entry_( std::shared_ptr<message> msg_from ) :
   msg( msg_from )
   , time( std::time(nullptr) )
@@ -175,7 +184,7 @@ void message_pool::store( std::shared_ptr<message> msg, ip::udp::endpoint &ep )
   if( _msg_hub._is_active ) // pool_observerが監視状態であれば
   { // 基本的にpeer単体でreceiveしているスレッドが優先されるようになる
 	auto pop_func = std::bind( &message_peer_entry::pop_by_id, std::ref(entry->second), msg_id );
-	_msg_hub.on_arrive_message( pop_func, ep ); // メッセージを直接渡さないのは,peer.recv()しているスレッドとの間でメッセージコピーが発生しないようにするため
+	_msg_hub.on_receive_message( pop_func, ep ); // メッセージを直接渡さないのは,peer.recv()しているスレッドとの間でメッセージコピーが発生しないようにするため
   }
   return;
 }
@@ -212,13 +221,6 @@ void message_pool::print() const
   }
 }
 
-message_pool::_message_::_message_( class message_peer_entry::_message_entry_ &from, ip::udp::endpoint src_ep )
-{
-  this->src_ep = src_ep;
-  this->msg = from.msg;
-  this->time = from.time;
-  this->valid = true;
-}
 
 
 message_pool::message_hub::~message_hub()
@@ -231,25 +233,26 @@ message_pool::message_hub &message_pool::get_message_hub()
   return _msg_hub;
 }
 
-void message_pool::message_hub::start( std::function<void(message_pool::_message_)> f )
+void message_pool::message_hub::start( std::function<void(ss_message)> f )
 {
   std::unique_lock<std::mutex> lock(_mtx);
   _msg_handler = f;
   _is_active = true;
 }
-
+ 
 void message_pool::message_hub::stop()
 {
   std::unique_lock<std::mutex> lock(_mtx);
   _is_active = false;
 }
 
-void message_pool::message_hub::on_arrive_message( std::function<message_peer_entry::message_entry(void)> pop_func, ip::udp::endpoint src_ep )
+void message_pool::message_hub::on_receive_message( std::function<message_peer_entry::message_entry(void)> pop_func, ip::udp::endpoint src_ep )
 {
   auto msg_entry = pop_func();
   if( msg_entry == std::nullopt ) return;
  
-  message_pool::_message_ msg( *msg_entry, src_ep );
+  // message_pool::_message_ msg( *msg_entry, src_ep );
+  ss_message msg( *msg_entry, src_ep );
   _msg_handler( msg );
 }
 

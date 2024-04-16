@@ -77,6 +77,22 @@ public:
   void print() const;
 };
 
+
+struct ss_message // 他アプリケーションから参照される
+{
+  json body; // メッセージ本体
+  
+  struct _
+  {
+    ip::udp::endpoint src_endpoint; // 送信元
+    std::vector< ip::udp::endpoint > relay_endpoints; // 中継ノードリスト
+	std::time_t timestamp; // 受信時間
+  } meta;
+
+  ss_message( struct message_peer_entry::_message_entry_ &from, ip::udp::endpoint src_ep );
+};
+
+
 class message_pool
 {
 private:
@@ -101,27 +117,28 @@ public:
   void requires_refresh( bool b );
   void store( std::shared_ptr<message> msg, ip::udp::endpoint &ep ); // 追加
   
-  struct _message_
+  /* struct _message_
   {
 	bool valid:1;
 	ip::udp::endpoint src_ep;
 	std::shared_ptr<message> msg;
 	std::time_t time;
 
-	_message_( class message_peer_entry::_message_entry_ &from, ip::udp::endpoint src_ep );
-  };
+	_message_( struct message_peer_entry::_message_entry_ &from, ip::udp::endpoint src_ep );
+  }; */
 
   struct message_hub
   {
 	friend message_pool;
 	public:
 	  ~message_hub();
-	  void start( std::function<void(_message_)> f );
+	  void start( std::function<void(ss_message)> f );
+	  // void start( std::function<void( json, ip::udp::endpoint, std::time_t)> f );
 	  void stop();
  
 	private:
-	  void on_arrive_message( std::function<message_peer_entry::message_entry(void)> pop_func, ip::udp::endpoint src_ep );
-	  std::function<void(message_pool::_message_)> _msg_handler;
+	  void on_receive_message( std::function<message_peer_entry::message_entry(void)> pop_func, ip::udp::endpoint src_ep );
+	  std::function<void(ss_message)> _msg_handler;
 
 	  bool _is_active = false;
 	  std::mutex _mtx;

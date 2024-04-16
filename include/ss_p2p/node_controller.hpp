@@ -63,6 +63,7 @@ public:
   message_pool::message_hub& get_message_hub();
 
   void update_global_self_endpoint( ip::udp::endpoint ep );
+
   #if SS_DEBUG
   kademlia::k_routing_table &get_routing_table();
   ice::ice_agent &get_ice_agent();
