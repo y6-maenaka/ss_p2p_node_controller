@@ -85,7 +85,7 @@ public:
   {
    auto &s_entry = std::get< observer_strage_entry<T> >(_strage);
 	for( auto &itr : s_entry )
-	  if( itr.get_id() == id ) return itr;
+	  if( itr.get_id() == id && !(itr.is_expired()) ) return itr;
 
 	return std::nullopt;
   }

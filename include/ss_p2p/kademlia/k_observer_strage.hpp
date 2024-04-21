@@ -88,8 +88,9 @@ public:
   std::optional< observer<T> > find_observer( observer_id id )
   {
    auto &s_entry = std::get< observer_strage_entry<T> >(_strage);
-	for( auto &itr : s_entry )
-	  if( itr.get_id() == id ) return itr;
+	for( auto &itr : s_entry ){
+	  if( itr.get_id() == id && !(itr.is_expired()) ) return itr; // 有効期限が切れていれば返さない
+	}
 
 	return std::nullopt;
   }
