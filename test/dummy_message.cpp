@@ -11,7 +11,6 @@
 
 int dummy_message()
 {
-
   return 0;
 }
 

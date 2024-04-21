@@ -2,7 +2,7 @@ cmake_minimum_required( VERSION 3.20 )
 
 project( SS_P2P CXX )
 
-find_package( PkgConfig REQUIRED ) # 外部パッケージを検出する準備(opensslは外部パッケージ(?))
+# find_package( PkgConfig REQUIRED ) # 外部パッケージを検出する準備(opensslは外部パッケージ(?))
 find_package( OpenSSL REQUIRED )
 find_package( Boost REQUIRED )
 

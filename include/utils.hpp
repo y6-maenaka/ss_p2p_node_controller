@@ -15,6 +15,7 @@ using namespace boost::asio;
 
 
 #ifdef __linux__
+/*
 namespace std
 {
   template<>
@@ -24,6 +25,7 @@ namespace std
 	}
   };
 }
+*/
 #endif
 
 
