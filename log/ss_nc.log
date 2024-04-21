@@ -1,0 +1,8 @@
+[2024-04-22 02:36:32]  [EMERGENCY] setup_logger.cpp:6  hello
+[2024-04-22 02:36:32]  [ALERT] setup_logger.cpp:7  hello
+[2024-04-22 02:36:32]  [CRITICAL] setup_logger.cpp:8  hello
+[2024-04-22 02:36:32]  [ERROR] setup_logger.cpp:9  hello
+[2024-04-22 02:36:32]  [WARNING] setup_logger.cpp:10  hello
+[2024-04-22 02:36:32]  [NOTICE] setup_logger.cpp:11  hello
+[2024-04-22 02:36:32]  [INFO] setup_logger.cpp:12  hello
+[2024-04-22 02:36:32]  [DEBUG] setup_logger.cpp:13  hello

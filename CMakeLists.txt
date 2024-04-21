@@ -134,6 +134,10 @@ if( _BUILD_SS )
 	)
 endif()
 
+
+add_compile_definitions(LOGGER_OUTFILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/log") # あまりよくないかも
+
+
 if( _BUILD_DEBUG )
   add_executable( node_0 ./run/node_0.cpp )
    target_link_libraries( node_0 PRIVATE

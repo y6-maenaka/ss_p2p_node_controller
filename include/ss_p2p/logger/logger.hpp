@@ -59,12 +59,14 @@ public:
 	  , BG_GREY
   };
 
-  template < typename T > inline void log( const T& data ); // ログ情報はファイルに書き込まれるだけ
-  // template < typename T > inline void log_print( const T& data ); // ログ情報はファイルに書き込まれ,さらに標準出力/エラー出力に投げる
+  template < typename T > inline void log( const T& data ); // ログ情報はターミナル,ファイルどちらにも書き込まれる
+  template < typename T > inline void log_console( const T& data, std::ostream &s = std::cout ); // 標準出力/エラー出力にのみ書き出す
+  template < typename T > inline void log_file( const T& data ); // logファイルにのみ書き出す
+
 
   static inline bool is_muted();
   static inline void print_format( std::stringstream ss );
-  static inline std::string get_prefix();
+  static inline std::string get_prefix( bool is_graphical = false );
   static inline void new_line();
 
   inline s_logger( const s_logger::log_level &level, const char* file_name, const int &line_n );
@@ -72,8 +74,8 @@ public:
 
 protected:
   struct utils;
-  struct term_io;
-  struct log_file_io;
+  struct console_io;
+  struct outputfile_io;
 
   static inline std::string get_color_code( s_logger::bg_color c );
   static inline std::string get_color_code( s_logger::fg_color c );
@@ -89,6 +91,7 @@ private:
   static inline std::string _current_current_prefix;
   static inline log_level _current_log_level = log_level::INFO;
   static inline std::string _path_to_log_output_file;
+  static inline std::ofstream _log_output_s;
   static inline bool _is_muted = false; // 基本的にtrueにしない
   static inline std::mutex _mtx;
   std::lock_guard<std::mutex> _lock_{_mtx};
@@ -100,15 +103,15 @@ struct s_logger::utils
   static inline std::string get_current_time_str();
 };
 
-struct s_logger::term_io
+struct s_logger::console_io
 {
-  static inline void print_log();
   static inline std::size_t get_console_width();
+  static inline void write( std::string str, std::ostream &s = (std::cout) );
 };
 
-struct s_logger::log_file_io
+struct s_logger::outputfile_io
 {
-  static inline void write_log();
+  static inline void write( std::ofstream ofs, std::string str );
 };
 
 

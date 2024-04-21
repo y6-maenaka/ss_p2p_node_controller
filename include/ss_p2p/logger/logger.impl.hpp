@@ -16,10 +16,13 @@ inline s_logger::s_logger( const s_logger::log_level &level, const char* file_na
   _current_line_n = line_n;
 
   // 出力ファイルの設定
-  _path_to_log_output_file = LOGGER_OUTFILE_FOLDER;
+  _path_to_log_output_file = LOGGER_OUTFILE_DIR;
   _path_to_log_output_file += "/";
   _path_to_log_output_file += LOGGER_OUTFILE_NAME_FORMAT;
-  _path_to_log_output_file = s_logger::utils::replace( _path_to_log_output_file, "{EXE}", "ss_p2p_node_controller" );
+  _path_to_log_output_file = s_logger::utils::replace( _path_to_log_output_file, "{EXE}", "ss_nc" );
+
+
+  _log_output_s.open( _path_to_log_output_file, std::ios::app );
 }
 
 inline s_logger::~s_logger()
@@ -34,17 +37,32 @@ inline bool s_logger::is_muted()
 
 template < typename T > inline void s_logger::log( const T& data )
 {
-  std::stringstream ss;
-  ss << data;
-
+  std::stringstream ss; ss << data;
   if( ss.str().empty() ) return;
-  return print_format( std::move(ss) );
+
+  std::stringstream log;
+  std::string prefix_str = get_prefix( true ); // 色付きで取得
+
+  // コンソールに出力
+  log << prefix_str << "  " << data;
+  s_logger::console_io::write( log.str() );
+
+  // フィアルに出力
+  if( !_log_output_s.is_open() ) return;
+  prefix_str = get_prefix( false );
+  log.str(""); log << prefix_str << "  " << ss.str();
+  outputfile_io::write( std::move(_log_output_s), log.str() ); // あまりよくないかも
+
 }
 
-inline void s_logger::print_format( std::stringstream ss )
+template < typename T > inline void s_logger::log_console( const T& data, std::ostream &s ) 
 {
-  std::string prefix_str = get_prefix();
-  std::cout << prefix_str << "  " << ss.str() << "\n";
+  return;  
+}
+
+template < typename T > inline void s_logger::log_file( const T& data ) 
+{
+  return; 
 }
 
 inline void s_logger::new_line()
@@ -52,25 +70,32 @@ inline void s_logger::new_line()
   std::cout << "\n";
 }
 
-inline std::string s_logger::get_prefix()
+inline std::string s_logger::get_prefix( bool is_graphical )
 {
   std::string ret = LOGGER_PREFIX_FORMAT;
 
   std::string current_time_str = s_logger::utils::get_current_time_str();
-  std::stringstream current_time_ss; current_time_ss << "[" << current_time_str << "]";
+  std::stringstream current_time_ss; 
+  current_time_ss << "[" << current_time_str << "]";
 
-  std::stringstream serity_ss;
+  std::stringstream serity_ss; 
   std::string serity_str = get_serity_str( _current_log_level );
-  std::string serity_color_code = get_serity_color_code( _current_log_level );
-  serity_ss << "[" << serity_color_code << serity_str << get_color_code( s_logger::bg_color::RESET ) << "]";
+  if( is_graphical ){
+	std::string serity_color_code = get_serity_color_code( _current_log_level );
+	serity_ss << "[" << serity_color_code << serity_str << get_color_code( s_logger::bg_color::RESET ) << "]";
+  }
+  else
+	serity_ss << "[" << serity_str << "]";
 
-  std::stringstream file_info_ss;
+  std::stringstream file_info_ss; 
   std::string file_name = _current_file_name;
   file_info_ss << file_name << ":" << _current_line_n;
 
   /*std::stringstream thread_ss;
   auto thread_id = std::this_thread::get_id();
   thread_ss << thread_id; */
+
+  std::stringstream _;
 
   ret = s_logger::utils::replace( ret, "{TIME}", current_time_ss.str() );
   ret = s_logger::utils::replace( ret, "{USER_HEADER}", "" );
@@ -142,6 +167,8 @@ inline std::string s_logger::get_serity_color_code( s_logger::log_level ll )
 	case s_logger::log_level::CRITICAL : 
 	  ret_ss << get_color_code(s_logger::bg_color::BG_YELLOW);
 	  break;
+	default :
+	  break;
   }
 
   switch( ll )
@@ -160,6 +187,8 @@ inline std::string s_logger::get_serity_color_code( s_logger::log_level ll )
 	  break;
 	case s_logger::log_level::DEBUG : 
 	  ret_ss << get_color_code( s_logger::fg_color::FG_MAGENTA );
+	  break;
+	default :
 	  break;
   }
 
@@ -191,13 +220,22 @@ inline std::string s_logger::utils::get_current_time_str()
   return ret;
 }
 
-inline std::size_t s_logger::term_io::get_console_width()
+inline std::size_t s_logger::console_io::get_console_width()
 {
   struct winsize ws;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
   return ws.ws_col;
 }
 
+inline void s_logger::console_io::write( std::string str, std::ostream &s )
+{
+  s << str << "\n"; // 本当は勝手に改行は挿入しない
+}
+
+inline void s_logger::outputfile_io::write( std::ofstream ofs, std::string str ) 
+{
+  ofs << str << "\n"; // 本当は勝手に改行は挿入しない
+}
 
 
 };
