@@ -19,6 +19,10 @@ set( basic_include_files
 	  include/json.hpp
 	  include/hash.hpp
 	  include/utils.hpp
+	  include/logger/logger.hpp
+	  include/logger/logger.impl.hpp
+	  include/logger/logger.utils.hpp
+	  include/logger/logger.params.hpp
 )
 set( basic_source_files 
 	  src/utils.cpp
@@ -34,6 +38,8 @@ set( ss_p2p_include_files
 	observer.hpp
 	observer_strage.hpp
 	sender.hpp
+	ss_logger.hpp
+	ss_logger.impl.hpp
 )
 set( ss_p2p_source_files
     node_controller.cpp

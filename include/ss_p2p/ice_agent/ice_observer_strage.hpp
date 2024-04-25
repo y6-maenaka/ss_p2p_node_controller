@@ -9,6 +9,7 @@
 #include <functional>
 
 #include <utils.hpp>
+#include <ss_p2p/ss_logger.hpp>
 #include <ss_p2p/observer.hpp>
 #include <ss_p2p/observer_strage.hpp>
 #include "./ice_observer.hpp"
@@ -56,7 +57,8 @@ protected:
   void print_entry_state( observer_strage_entry<T> &entry )
   {
 	for( int i=0; i<get_console_width()/2; i++ ){ printf("="); } std::cout << "\n";
-	if constexpr (std::is_same_v<T, signaling_request>) std::cout << "| signaling_request" << "\n";
+	if constexpr (std::is_same_v<T, signaling_request>)
+	  std::cout << "| signaling_request" << "\n";
 	else if constexpr (std::is_same_v<T, signaling_relay>) std::cout << "| signaling_relay" << "\n";
 	else if constexpr (std::is_same_v<T, signaling_response>) std::cout << "| signaling_response" << "\n";
 	else if constexpr (std::is_same_v<T, binding_request>) std::cout << "| binding_request" << "\n";
