@@ -33,7 +33,7 @@ public:
 	  , OUTGOING
   };
 
-  template <typename... Args > void log_packet( const logger::log_level &ll, const packet_direction &pd, const ip::udp::endpoint &dest_ep, Args&& ... args );
+  template <typename... Args > void log_packet( const logger::log_level &ll, const packet_direction &pd, const ip::udp::endpoint &ep, Args&& ... args );
 };
 
 

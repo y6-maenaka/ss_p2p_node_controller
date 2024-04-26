@@ -15,7 +15,6 @@ int setup_logger()
   logger lg;
   ss::ss_logger slg;
 
-
   lg.set_custom_header( "[SS_P2P]" );
   lg.log( logger::log_level::ERROR, "Apple", "ばなな", "いちご" );
   slg.log_packet( logger::log_level::ERROR, ss::ss_logger::packet_direction::OUTGOING, dest_ep, "HelloWorld" );

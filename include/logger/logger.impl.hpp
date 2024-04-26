@@ -20,8 +20,9 @@ template < typename... Args > inline void logger::log( const logger::log_level &
   std::string outfile_prefix_str = get_prefix( ll , false );
 
   // write to local log file 
+  std::stringstream logger_outfile_path; logger_outfile_path << LOGGER_OUTFILE_DIR << "/" << logger_outfile_name;
   std::ofstream ofs; 
-  ofs.open( logger_outfile_name, std::ios::app );
+  ofs.open( logger_outfile_path.str(), std::ios::app );
 
   ofs << outfile_prefix_str;
   ((ofs << std::forward<Args>(args) << ' '), ... ); ofs << "\n"; // 本当は改行はここで入れない方がいい
@@ -70,8 +71,9 @@ inline std::string logger::utils::replace( std::string base, std::string rpl_fro
 {
   std::string ret = base;
   std::size_t idx = 0;
-  while( (idx = ret.find(rpl_from, idx)) != std::string::npos )
+  while( (idx = ret.find(rpl_from, idx)) != std::string::npos ){
 	ret.replace( idx, rpl_from.length(), rpl_to );
+  }
   
   return ret;
 }
