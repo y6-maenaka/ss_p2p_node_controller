@@ -30,7 +30,6 @@ set( basic_source_files
 set( ss_p2p_include_files
     node_controller.hpp
 	peer.hpp
-	endpoint.hpp
 	message.hpp
 	message_pool.hpp
 	socket_manager.hpp
@@ -44,7 +43,6 @@ set( ss_p2p_include_files
 set( ss_p2p_source_files
     node_controller.cpp
 	peer.cpp
-	endpoint.cpp
 	message.cpp
 	message_pool.cpp
 	socket_manager.cpp
@@ -141,7 +139,8 @@ if( _BUILD_SS )
 endif()
 
 
-add_compile_definitions(LOGGER_OUTFILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/log") # あまりよくないかも
+add_compile_definitions(DEFAULT_LOGGER_OUTFILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/log") # あまりよくないかも
+# add_compile_definitions( SS_LOGGING_DISABLE )
 
 
 if( _BUILD_DEBUG )

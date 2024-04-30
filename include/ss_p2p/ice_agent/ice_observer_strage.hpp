@@ -43,9 +43,9 @@ protected:
 	{
 	  if( (*itr).is_expired() )
 	  {
-		#if SS_VERBOSE
+		/* #if SS_VERBOSE
 		std::cout << "\x1b[33m" << " | [ice observer strage](delete observer) :: " <<"\x1b[39m" << (*itr).get_id() << "\n";
-		#endif
+		#endif */
 		itr = entry.erase(itr);
 	  }
 	  else itr++;
@@ -95,13 +95,13 @@ public:
   template < typename T >
   void add_observer( observer<T> obs ) // 追加メソッド
   {
-	#if SS_VERBOSE
+	/* #if SS_VERBOSE
 	if constexpr (std::is_same_v<T, signaling_request>) std::cout << "| [ice observer strage](signaling_request observer) store" << "\n";
 	else if constexpr (std::is_same_v<T, signaling_relay>) std::cout << "| [ice observer strage](signaling_relay observer) store" << "\n";
 	else if constexpr (std::is_same_v<T, signaling_response>) std::cout << "| [ice observer strage](signaling_response observer) store" << "\n";
 	else if constexpr (std::is_same_v<T, binding_request>) std::cout << "| [ice observer strage](binding_request observer) store" << "\n";
 	else std::cout << "| [ice observer strage](undefined observer) store" << "\n";
-	#endif
+	#endif */
 
 	auto &s_entry = std::get< observer_strage_entry<T> >(_strage);
 	s_entry.insert(obs);

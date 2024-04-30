@@ -18,6 +18,7 @@
 #include "boost/lexical_cast.hpp"
 
 #include <utils.hpp>
+#include <ss_p2p/ss_logger.hpp>
 #include "./message.hpp"
 
 
@@ -106,13 +107,14 @@ private:
   io_context &_io_ctx;
   deadline_timer _refresh_tick_timer;
   bool _requires_refresh;
+  ss_logger *_logger;
 
   void call_refresh_tick();
   void refresh_tick( const boost::system::error_code& ec ); // エントリーごと削除するか検討する
   entry allocate_entry( ip::udp::endpoint &ep ); // 空のmessage_peer_entryを作成する
 
 public:
-  message_pool( io_context &io_ctx ,bool requires_refresh = true );
+  message_pool( io_context &io_ctx, ss_logger *logger, bool requires_refresh = true );
 
   void requires_refresh( bool b );
   void store( std::shared_ptr<message> msg, ip::udp::endpoint &ep ); // 追加

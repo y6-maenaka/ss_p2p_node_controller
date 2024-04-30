@@ -109,15 +109,12 @@ void message_peer_entry::print() const
 }
 
 
-message_pool::message_pool( io_context &io_ctx,  bool requires_refresh ) :
+message_pool::message_pool( io_context &io_ctx, ss_logger *logger, bool requires_refresh ) :
   _io_ctx( io_ctx )
   , _refresh_tick_timer( io_ctx )
   , _requires_refresh( requires_refresh )
+  , _logger(logger)
 {
-  #if SS_VERBOSE
-  std::cout << "[\x1b[32m start \x1b[39m] message pool " << "\n";
-  #endif
-
   return;
 }
 
@@ -147,8 +144,8 @@ void message_pool::call_refresh_tick()
 
 void message_pool::refresh_tick( const boost::system::error_code &ec )
 {
-  #if SS_VERBOSE
-  std::cout << "message pool refresh tick start" << "\n";
+  #ifndef SS_LOGGING_DISABLE
+  _logger->log( logger::log_level::INFO, "(@message pool)", "refresh tick start" );
   #endif
 
   for( auto &[key, value] : _pool )
@@ -173,10 +170,6 @@ void message_pool::store( std::shared_ptr<message> msg, ip::udp::endpoint &ep )
   { // 新たなendpointの場合
 	if( entry = this->allocate_entry(ep); entry == _pool.end() ) return; // 失敗
   }
-
-  #if SS_VERBOSE
-  std::cout << "(message pool) new message store" << "\n";
-  #endif
 
   message_peer_entry::message_entry_id msg_id = entry->second.push( msg ); // データの追加
   // _cv.notify_all();

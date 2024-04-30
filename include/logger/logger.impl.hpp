@@ -9,21 +9,20 @@ namespace
 {
 
 
+logger::logger() : 
+   _logger_outfile_dir( DEFAULT_LOGGER_OUTFILE_DIR )
+  , _logger_outfile_name( DEFAULT_LOGGER_OUTFILE_NAME )
+{
+  return;
+}
+
 template < typename... Args > inline void logger::log( const logger::log_level &ll, Args&&... args ) // 書き出しファイル設定がここで決定するので純粋仮想の方がいいかも
 {
-  std::string logger_outfile_format = LOGGER_OUTFILE_FORMAT;
-  std::string current_time_str = logger::utils::get_current_time_str( LOGGER_OUTFILE_TIME_FORMAT );
-  std::string logger_outfile_name = logger::utils::replace( logger_outfile_format, "{EXE}" ,LOGGER_OUTFILE_NAME );
-  logger_outfile_name = logger::utils::replace( logger_outfile_name, "{DATE}", current_time_str );
-
   std::string console_prefix_str = get_prefix( ll, true );
   std::string outfile_prefix_str = get_prefix( ll , false );
 
   // write to local log file 
-  std::stringstream logger_outfile_path; logger_outfile_path << LOGGER_OUTFILE_DIR << "/" << logger_outfile_name;
-  std::ofstream ofs; 
-  ofs.open( logger_outfile_path.str(), std::ios::app );
-
+  auto ofs = get_log_ofs();
   ofs << outfile_prefix_str;
   ((ofs << std::forward<Args>(args) << ' '), ... ); ofs << "\n"; // 本当は改行はここで入れない方がいい
 
@@ -42,6 +41,11 @@ void logger::set_custom_header( std::string target )
   _custom_header = target;
 }
 
+void logger::set_logger_outfile_name( std::string target )
+{
+  _logger_outfile_name = target;
+}
+
 inline bool logger::should_log()
 {
   return true; // temp
@@ -50,7 +54,7 @@ inline bool logger::should_log()
 inline std::string logger::get_prefix( const log_level &ll, bool is_graphical )
 {
   std::string ret;
-  std::string prefix_fmt = LOGGER_MINIMUM_PREFIX_FORMAT;
+  std::string prefix_fmt = LOGGER_PREFIX_FORMAT;
 
   std::string serity_str = logger::utils::get_serity_str( ll );
   if( is_graphical ){
@@ -67,12 +71,28 @@ inline std::string logger::get_prefix( const log_level &ll, bool is_graphical )
   return ret;
 }
 
+std::ofstream logger::get_log_ofs()
+{
+  std::ofstream ret;
+
+  std::string current_time_t = logger::utils::get_current_time_str( LOGGER_OUTFILE_TIME_FORMAT );
+  std::string logger_outfile_fmt = LOGGER_OUTFILE_FORMAT;
+  std::string logger_outfile_name = logger::utils::replace( logger_outfile_fmt, "{EXE}", _logger_outfile_name );
+  logger_outfile_name = logger::utils::replace( logger_outfile_name, "{DATE}", current_time_t );
+
+  std::stringstream logger_outfile_path_ss; logger_outfile_path_ss << _logger_outfile_dir << "/" << logger_outfile_name;
+
+  ret.open( logger_outfile_path_ss.str() , std::ios::app );
+  return std::move(ret);
+}
+
 inline std::string logger::utils::replace( std::string base, std::string rpl_from, std::string rpl_to )
 {
   std::string ret = base;
   std::size_t idx = 0;
   while( (idx = ret.find(rpl_from, idx)) != std::string::npos ){
 	ret.replace( idx, rpl_from.length(), rpl_to );
+	idx += rpl_to.size();
   }
   
   return ret;

@@ -24,6 +24,7 @@
 #include <ss_p2p/message_pool.hpp>
 #include <ss_p2p/socket_manager.hpp>
 #include <ss_p2p/sender.hpp>
+#include <ss_p2p/ss_logger.hpp>
 #include <utils.hpp>
 
 
@@ -91,6 +92,8 @@ private:
   std::shared_ptr<ice::ice_agent> _ice_agent;
   std::shared_ptr<kademlia::dht_manager> _dht_manager;
   message_pool _msg_pool;
+
+  ss_logger _logger;
 };
 
 
