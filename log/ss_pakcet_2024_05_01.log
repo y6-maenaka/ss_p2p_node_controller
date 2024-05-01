@@ -56,3 +56,32 @@
 [02:59:26][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
 [02:59:31][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
 [02:59:31][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node response) 
+[17:29:11][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia ping request) 
+[17:29:11][INFO] [SS_P2P] (send): 133.54.226.71:8080 (@dht_manager::connection_maintainer) refrech ping 
+[17:29:11][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:29:11][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:29:13][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:29:13][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node response) 
+[17:29:17][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node request) 
+[17:29:17][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:29:23][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:29:23][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia ping response) 
+[17:29:27][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia ping request) 
+[17:29:27][INFO] [SS_P2P] (send): 133.54.226.71:8080 (@dht_manager::connection_maintainer) refrech ping 
+[17:29:27][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:29:29][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:29:29][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node response) 
+[17:29:33][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node request) 
+[17:29:33][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:29:39][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:29:39][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia ping response) 
+[17:32:22][INFO] [SS_P2P] (send): 127.0.0.1:8100 (kademlia ping request) 
+[17:32:22][INFO] [SS_P2P] (send): 127.0.0.1:8100 (@dht_manager::connection_maintainer) refrech ping 
+[17:32:55][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia ping request) 
+[17:32:55][INFO] [SS_P2P] (send): 133.54.226.71:8080 (@dht_manager::connection_maintainer) refrech ping 
+[17:32:55][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:32:55][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:32:57][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:32:57][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node response) 
+[17:33:01][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node request) 
+[17:33:01][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
