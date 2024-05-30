@@ -17,12 +17,14 @@ endif( Boost_FOUND )
 # .hpp, .cppをまとめる
 set( basic_include_files
 	  include/json.hpp
-	  include/hash.hpp
+	  # include/hash.hpp
 	  include/utils.hpp
 	  include/logger/logger.hpp
 	  include/logger/logger.impl.hpp
 	  include/logger/logger.utils.hpp
 	  include/logger/logger.params.hpp
+
+	  include/crypto_utils/crypto_utils.hpp
 )
 set( basic_source_files 
 	  src/utils.cpp
@@ -32,6 +34,7 @@ set( ss_p2p_include_files
 	peer.hpp
 	message.hpp
 	message_pool.hpp
+	message_pool.fwd.hpp
 	socket_manager.hpp
 	udp_server.hpp
 	observer.hpp
@@ -130,59 +133,42 @@ target_sources( ss_p2p PRIVATE
 			  ${ss_p2p_ice_agent_include_files}
 )
 
-if( _BUILD_SS )
-  add_executable( host_node ./run/host_node.cpp )
-  target_link_libraries( host_node PRIVATE 
-						  ss_p2p
-						  ${OPENSSL_LIBRARIES}
-	)
-endif()
-
-
 add_compile_definitions(DEFAULT_LOGGER_OUTFILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/log") # あまりよくないかも
 # add_compile_definitions( SS_LOGGING_DISABLE )
 
 
-if( _BUILD_DEBUG )
-  add_executable( node_0 ./run/node_0.cpp )
-   target_link_libraries( node_0 PRIVATE
-                        ss_p2p
-						${OPENSSL_LIBRARIES}
-   )
+function( build_node NODE_SYMBOL ENABLE_DEBUG ENABLE_VERBOSE ENABLE_CAPTURE_PACKET )
+  message( "@ BUILD NODE :: " ${NODE_SYMBOL} )
 
-  add_executable( node_1 ./run/node_1.cpp )
-   target_link_libraries( node_1 PRIVATE
-                        ss_p2p
-						${OPENSSL_LIBRARIES}
-   )
+  set( BUILD_TARGET_NODE "node_${NODE_SYMBOL}" )
+  set( BUILD_TARGET_NODE_PATH "./run/${NODE_SYMBOL}.cpp" )
 
-  add_executable( node_2 ./run/node_2.cpp )
-   target_link_libraries( node_2 PRIVATE
-                        ss_p2p
-						${OPENSSL_LIBRARIES}
-   )
+  add_executable( ${BUILD_TARGET_NODE} ${BUILD_TARGET_NODE_PATH} )
+  target_link_libraries( ${BUILD_TARGET_NODE} PRIVATE ss_p2p ${OPENSSL_LIBRARIES} )
 
-  add_executable( node_3 ./run/node_3.cpp )
-   target_link_libraries( node_3 PRIVATE
-                        ss_p2p
-						${OPENSSL_LIBRARIES}
-   )
+  if( !ENABLE_VERBOSE )
+	target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_VERBOSE ) 
+  endif()
+  if( !ENABLE_CAPTURE_PACKET ) 
+	target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_CAPTURE_PACKET ) 
+  endif()
+	if( !ENABLE_DEBUG )
+	  target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_DEBUG )
+  endif()
+endfunction()
 
-  add_executable( node_4 ./run/node_4.cpp )
-   target_link_libraries( node_4 PRIVATE
-                        ss_p2p
-						${OPENSSL_LIBRARIES}
-   )
 
-  add_executable( stable_host ./run/stable_host.cpp )
-   target_link_libraries( stable_host PRIVATE
-                        ss_p2p
-						${OPENSSL_LIBRARIES}
-   )
+if( _BUILD_DEBUG_NODE )
+  build_node( ${_TARGET} FALSE FALSE FALSE )
+endif() # BUILD_NODE
 
-  add_compile_definitions( SS_VERBOSE )
-  add_compile_definitions( SS_CAPTURE_PACKET )
-  add_compile_definitions( SS_DEBUG )
+
+if( _BUILD_DEBUG_ALL_NODE )
+  build_node( "node_0" FALSE FALSE FALSE )
+  build_node( "node_1" FALSE FALSE FALSE )
+  build_node( "node_2" FALSE FALSE FALSE )
+  build_node( "node_3" FALSE FALSE FALSE )
+  build_node( "stable_host" FALSE FALSE FALSE )
 endif()
 
 

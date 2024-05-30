@@ -85,3 +85,9 @@
 [17:32:57][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node response) 
 [17:33:01][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node request) 
 [17:33:01][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:37:46][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia ping request) 
+[17:37:46][INFO] [SS_P2P] (send): 133.54.226.71:8080 (@dht_manager::connection_maintainer) refrech ping 
+[17:37:46][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:37:46][INFO] [SS_P2P] (receive): 133.54.226.71:8080 
+[17:37:52][INFO] [SS_P2P] (send): 133.54.226.71:8080 (kademlia find_node request) 
+[17:37:52][INFO] [SS_P2P] (receive): 133.54.226.71:8080 

@@ -12,15 +12,20 @@ node_id::node_id()
   _id.fill(0);
 }
 
-node_id::node_id( std::vector<unsigned char> id_from )
+/* node_id::node_id( std::vector<unsigned char> id_from )
 {
-  std::copy( id_from.begin(), id_from.end(), _id.begin() );
-}
-
+  std::copy( id_from.begin(), id_from.end(), _id.begin() ); 
+} */
+ 
 node_id::node_id( const node_id &nid ) 
 {
-  _id = nid._id;
-  // std::copy( nid._id.begin(), nid._id.end(), _id.begin() );
+  // _id = nid._id;
+  std::copy( nid._id.begin(), nid._id.end(), _id.begin() );
+}
+
+node_id::node_id( const void *from )
+{
+  std::memcpy( _id.data(), from, _id.size() );
 }
 
 std::string node_id::to_str() const 

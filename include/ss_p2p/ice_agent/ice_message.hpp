@@ -31,7 +31,7 @@ private:
 
 public:
   void print() const;
-    
+
   enum protocol_t
   {
 	signaling
@@ -103,7 +103,7 @@ public:
 	void decrement_ttl();
 	void print() const;
 
-	private:		
+	private:
 	  json &_body;
   };
   signaling_message_controller get_signaling_message_controller();
@@ -112,16 +112,16 @@ public:
   template <typename T>
   T get_param( std::string key )
   {
-	
+
 	auto value = _body[key];
 	if constexpr (std::is_same_v<T, observer_id>)
 	{
 	  return str_to_observer_id( value.get<std::string>() );
 	}
-	
+
 	return T{};
   }
-  
+
   void set_param( std::string key, std::string value );
   void set_observer_id( const observer_id &id );
   observer_id get_observer_id();
@@ -133,6 +133,4 @@ public:
 };
 
 
-#endif 
-
-
+#endif

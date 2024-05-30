@@ -58,7 +58,7 @@ public:
   void init( std::vector<ip::udp::endpoint> boot_eps );
   void start( std::vector<ip::udp::endpoint> boot_eps = std::vector<ip::udp::endpoint>() );
   void stop();
-  peer get_peer( ip::udp::endpoint &ep );
+  peer get_peer( ip::udp::endpoint ep );
   udp_socket_manager& get_socket_manager();
   kademlia::direct_routing_table_controller &get_direct_routing_table_controller();
   message_pool::message_hub& get_message_hub();

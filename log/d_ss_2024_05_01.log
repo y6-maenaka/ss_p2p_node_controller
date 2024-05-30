@@ -15,3 +15,6 @@
 [17:32:55][INFO] [SS_P2P] (@node_controller) start 
 [17:32:55][INFO] [SS_P2P] (@node_controller) self endpoint: 0.0.0.0:9000 
 [17:32:55][INFO] [SS_P2P] (@dht_manager) update global self endpoint 0.0.0.0:9000  ->  133.54.32.150:9000 
+[17:37:46][INFO] [SS_P2P] (@node_controller) start 
+[17:37:46][INFO] [SS_P2P] (@node_controller) self endpoint: 0.0.0.0:9000 
+[17:37:46][INFO] [SS_P2P] (@dht_manager) update global self endpoint 0.0.0.0:9000  ->  133.54.32.150:9000 

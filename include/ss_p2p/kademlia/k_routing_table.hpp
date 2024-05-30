@@ -14,7 +14,6 @@
 #include "openssl/evp.h"
 #include "boost/asio.hpp"
 
-#include <hash.hpp>
 #include <utils.hpp>
 #include <ss_p2p/ss_logger.hpp>
 #include "./k_bucket.hpp"

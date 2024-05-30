@@ -152,9 +152,9 @@ void node_controller::call_tick( std::time_t tick_time_s )
   _tick_timer.async_wait( std::bind( &node_controller::tick, this) );
 }
 
-peer node_controller::get_peer( ip::udp::endpoint &ep )
+peer node_controller::get_peer( ip::udp::endpoint ep )
 {
-  peer ret( ep, _msg_pool.get_symbolic(ep), _ice_agent->get_signaling_send_func() );
+  peer ret( ep, _msg_pool.get_peer_message_buffer( peer::calc_peer_id(ep) ), _ice_agent->get_signaling_send_func() );
   return ret;
 }
 

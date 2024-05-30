@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <memory>
 
 #include <json.hpp>
 
@@ -24,9 +25,11 @@ class ss_message;
 
 
 class message
+/* Endpointのコントローラ間のメッセージ */
 {
   friend ss_message;
 public:
+  using ref = std::shared_ptr<class message>;
   using app_id = std::array<char, 8>;
   message( app_id id );
   message( json from );

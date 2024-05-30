@@ -6,7 +6,6 @@
 #include <memory>
 #include <string>
 
-#include <hash.hpp>
 #include <ss_p2p/observer.hpp>
 #include <ss_p2p/sender.hpp>
 #include <ss_p2p/ss_logger.hpp>
