@@ -15,12 +15,31 @@ ss_message::ss_message( peer_message_buffer::received_message::ref msg_from, con
 }
 
 
-peer_message_buffer::received_message::received_message( message::ref msg_from ) :
+peer_message_buffer::received_message::received_message( message::ref msg_from ) : 
   msg( msg_from )
   , time( std::time(nullptr) ) // 現在の時刻を受信時刻として挿入
-  , id( random_generator()() )
+  , id( random_generator()() ) // generate message_id(random)
 {
   return;
+}
+
+peer_message_buffer::received_message::received_message( std::time_t timestamp ) : 
+  time( timestamp  )
+  , id( random_generator()() )
+  , msg( nullptr )
+{
+  return;
+}
+
+peer_message_buffer::received_message::message_id peer_message_buffer::received_message::invalid_message_id()
+{
+  uuid nil = nil_generator{}();
+  return nil;
+}
+
+bool peer_message_buffer::received_message::is_invalid() const
+{
+  return this->id == peer_message_buffer::received_message::invalid_message_id();
 }
 
 void peer_message_buffer::received_message::print() const
@@ -29,8 +48,9 @@ void peer_message_buffer::received_message::print() const
 }
 
 
-peer_message_buffer::peer_message_buffer( ip::udp::endpoint ep ) :
+peer_message_buffer::peer_message_buffer( ip::udp::endpoint ep ) : // generate message buffer binding peer 
   _binding_ep( ep )
+  , _last_received_at( 0 )
   , _last_binded_at( 0 )
 {
   return;
@@ -43,7 +63,10 @@ peer_message_buffer::received_message::message_id peer_message_buffer::push( mes
 
   received_message::ref entry_ref = std::make_shared<received_message>(msg_ref);
   _msg_queue.push_back( entry_ref );
-  this->_cv.notify_all(); // 待機しているスレッドあがれば起こす
+  this->_bcv.notify_all(); // 待機しているスレッドあがれば起こす
+
+  _dynamic_mem_usage_bytes += 1; // 一旦仮(本来はメッセージサイズを計算する)
+  _last_received_at = std::time(nullptr);
 
   return entry_ref->id;
 }
@@ -57,6 +80,8 @@ peer_message_buffer::received_message::ref peer_message_buffer::pop( unsigned in
   {
 	auto ret = _msg_queue.at(idx);
 	_msg_queue.erase( _msg_queue.begin() + idx );
+
+	_dynamic_mem_usage_bytes -= 1; // 一旦仮(本来はメッセージサイズを計算する)
 	return ret;
   }
   else if( flag == pop_flag::peek )
@@ -67,29 +92,40 @@ peer_message_buffer::received_message::ref peer_message_buffer::pop( unsigned in
   return nullptr;
 }
 
-/* message_pool_entry::message_entry_ref message_pool_entry::pop_by_id( message_pool_entry::message_entry_id id )
+
+bool message_pool_entry::compare_received_at( const std::time_t &base_time, const peer_message_buffer::received_message::ref msg_ref )
 {
-  // std::unique_lock<std::mutex> lock(this->guard.mtx);
+  return base_time < msg_ref->time;
+}
 
-  auto itr = std::find_if( _msg_queue.begin(), _msg_queue.end(), [id]( const received_message &entry ){
-		  return entry.id == id;
-	  });
-  if( itr == _msg_queue.end() ) return nullptr;
+peer_message_buffer::received_message::ref peer_message_buffer::pop_since( std::time_t since )
+{
+  std::unique_lock<boost::recursive_mutex> lock(_rmtx);
 
-  received_message ret = *itr;
-  _msg_queue.erase(itr);
+  if( since == 0 ) since = _last_binded_at;
 
-  return std::make_shared<message_entry>(ret);
-} */
+  if( auto ret = std::upper_bound( _msg_queue.begin(), _msg_queue.end(), since, message_pool_entry::compare_received_at ); ret != _msg_queue.end() ) return *ret;
+  return nullptr;
+}
 
 void peer_message_buffer::clear()
 {
   _msg_queue.clear();
 }
 
-ip::udp::endpoint peer_message_buffer::get_endpoint() const
+ip::udp::endpoint peer_message_buffer::get_binding_endpoint() const
 {
   return _binding_ep;
+}
+
+const std::time_t peer_message_buffer::get_last_received_at() const
+{
+  return _last_received_at;
+}
+
+void peer_message_buffer::update_last_binded_at()
+{
+  _last_binded_at = std::time(nullptr);
 }
 
 /* std::size_t peer_message_buffer::calc_id( ip::udp::endpoint &ep )
@@ -149,79 +185,78 @@ void message_pool::call_refresh_tick()
   _refresh_tick_timer.async_wait( std::bind(&message_pool::refresh_tick, this , std::placeholders::_1) ); // node_controller::tickの起動
 }
 
-void message_pool::refresh_tick( const boost::system::error_code &ec )
+void message_pool::refresh_tick( const boost::system::error_code &ec ) // 有効期限が切れているメッセージを削除する
 {
   #ifndef SS_LOGGING_DISABLE
   _logger->log( logger::log_level::INFO, "(@message pool)", "refresh tick start" );
   #endif
 
-  /* for( auto &[key, value] : _pool )
+  // 有効期限切れのメッセージを全て削除する
+  auto &idx_pool = _pool.get<by_received_at>();
+  for( auto itr = idx_pool.begin(); itr != idx_pool.end(); ++itr )
   {
-	std::unique_lock<std::mutex> lock(value.guard.mtx); // ロックの獲得 ロックフラグは立てない
-	for( auto itr = value._msg_queue.begin(); itr != value._msg_queue.end(); )
+	idx_pool.modify( itr, []( message_pool_entry &entry ) 
 	{
-	  const auto diff_t_s = std::abs( std::time(nullptr) - itr->time );
-	  if( diff_t_s >= (DEFAULT_MESSAGE_LIFETIME_M*60) ) itr = value._msg_queue.erase(itr); // メッセージの到着が指定時間より前だったら削除
-	  else ++itr;
-	}
-  } */
+	  auto lower_itr = std::upper_bound( entry._msg_queue.begin(), entry._msg_queue.end(), std::time(nullptr) + (DEFAULT_MESSAGE_LIFETIME_M*60), message_pool_entry::compare_received_at );
+	  // entry.drop( std::reverse_iterator<message_pool::indexed_message_set::iterator>(lower_itr), entry._msg_queue.end() );
+	  entry.drop( lower_itr, entry._msg_queue.end() );
+	});
+  }
+
+
   if( _requires_refresh ) this->call_refresh_tick();
 }
 
 void message_pool::store( message::ref msg, const ip::udp::endpoint &ep )
 {
-  /* std::size_t id = message_pool_entry::calc_id(ep); // idの算出
-  message_pool::entry entry = _pool.end();
+  /*
+	- 基本的にpeer単体でreceiveしているスレッドが優先的にreceiveできるようになる
+	- メッセージを直接渡さないのは, peer.receive()しているスレッドとの間でメッセージのコピーが発生しないようにする為
+  */
 
-  if( entry = _pool.find(id); entry == _pool.end() )
-  { // 新たなendpointの場合
-	if( entry = this->allocate_entry(ep); entry == _pool.end() ) return; // 失敗
+  const peer::id peer_id = peer::calc_peer_id(ep); // peer_id == message_pool key
+  auto &idx_pool = _pool.get<by_peer_id>();
+  auto entry = idx_pool.find( peer_id ); // 指定したpeerにバインドされているpeer_message_bufferを検索
+  
+  if( entry == _pool.end() ) // 新規にエントリを作成する
+  {  
+	auto new_entry = this->allocate_new_entry(ep);
+	if( new_entry == _pool.end() ) return; // failure
+	entry = new_entry;
   }
+  
+  message_pool_entry::received_message::message_id msg_id;
+  idx_pool.modify( entry, [&msg, &msg_id]( message_pool_entry &entry ){
+	msg_id = entry.push( msg ); // push内部でcondition_variableでwaitしているスレッドは起こされる
+	  });
 
-  message_pool_entry::message_entry_id msg_id = entry->second.push( msg ); // データの追加
-  // _cv.notify_all();
-
-  if( _msg_hub._is_active ) // pool_observerが監視状態であれば
+ if( _msg_hub.is_active() ) // pool_observerが監視状態であれば
   { // 基本的にpeer単体でreceiveしているスレッドが優先されるようになる
-	auto pop_func = std::bind( &message_pool_entry::pop_by_id, std::ref(entry->second), msg_id );
-	_msg_hub.on_receive_message( pop_func, ep ); // メッセージを直接渡さないのは,peer.recv()しているスレッドとの間でメッセージコピーが発生しないようにするため
+	// auto pop_func = std::bind( &message_pool_entry::pop_by_id, std::ref(*entry), msg_id ); 
+	// std::function<message_pool_entry::received_message::ref(void)> pop_func = std::bind( &message_pool_entry::pop_by_id, std::ref(*entry), msg_id );
+	// あえてmessage_idでpopする関数を指定しているのは, peer.receive()で既にメッセージがpopされていた場合,その次に到着したメッセージを誤ってpopしてしまうことを避ける為
+	// _msg_hub.on_receive_message( pop_func, ep ); // メッセージを直接渡さないのは,peer.recv()しているスレッドとの間でメッセージコピーが発生しないようにするため
   }
-  return; */
 }
 
-/* message_pool::symbolic message_pool::get_symbolic( ip::udp::endpoint &ep, bool requires_clear )
-{
-  std::size_t id = message_pool_entry::calc_id(ep);
-  message_pool::entry entry = _pool.end();
-
-  if( entry = _pool.find(id); entry == _pool.end() ) entry = allocate_entry(ep); // 新たにエントリーを作成
-  if( entry == _pool.end() )  return nullptr;
-
-  if( requires_clear ) entry->second.clear();
-  entry->second.ref_count += 1;
-  return &(entry->second);
-} */
-
-/* void message_pool::release_symbolic( ip::udp::endpoint &ep )
-{
-  std::size_t id = message_pool_entry::calc_id(ep);
-  message_pool::entry entry = _pool.end();
-  if( entry = _pool.find(id); entry == _pool.end() ) return;
-  if( entry->second.ref_count > 0 ) entry->second.ref_count -= 1;
-} */
 
 void message_pool::print() const
 {
-  /* for( auto &[key, value] : _pool ) 
-  {
-	for( int i=0; i < get_console_width() / 2; i++) printf("-");
-	printf("\n");
-	std::cout << "(msg_entry) :" << key << "\n";
-	value.print();
-  } */
+  std::for_each( _pool.begin(), _pool.end(), []( const message_pool_entry &entry )
+	  {
+		for( int i=0; i < get_console_width() / 2; i++) printf("-");
+		printf("\n");
+		std::cout << "(msg_entry) :" << endpoint_to_str(entry.get_binding_endpoint()) << "\n";
+		entry.print();
+	  });
 }
 
 
+message_pool::message_hub::message_hub() : 
+  _is_active(false)
+{
+  return;
+}
 
 message_pool::message_hub::~message_hub()
 {
@@ -235,24 +270,30 @@ message_pool::message_hub &message_pool::get_message_hub()
 
 void message_pool::message_hub::start( std::function<peer::ref(ss_message::ref)> f )
 {
-  std::unique_lock<std::mutex> lock(_mtx);
+  std::unique_lock<boost::recursive_mutex> lock(_rmtx);
   _msg_handler = f;
   _is_active = true;
 }
  
 void message_pool::message_hub::stop()
 {
-  std::unique_lock<std::mutex> lock(_mtx);
+  std::unique_lock<boost::recursive_mutex> lock(_rmtx);
   _is_active = false;
 }
 
 void message_pool::message_hub::on_receive_message( std::function<peer_message_buffer::received_message::ref(void)> pop_func, ip::udp::endpoint src_ep )
 {
-  auto received_msg_ref = pop_func();
+  auto received_msg_ref = pop_func(); // メッセージの取得
   if( received_msg_ref == nullptr ) return;
  
-  ss_message::ref msg_ref = std::make_shared<ss_message>( received_msg_ref, src_ep );
-  _msg_handler( msg_ref );
+  ss_message::ref msg_ref = std::make_shared<ss_message>( received_msg_ref, src_ep ); // ss_message::refに変換
+  _msg_handler( msg_ref ); // message_hubに設定されている受信時イベントハンドラを起動
+}
+
+bool message_pool::message_hub::is_active() const
+{
+  std::unique_lock<boost::recursive_mutex> lock(_rmtx);
+  return _is_active;
 }
 
 

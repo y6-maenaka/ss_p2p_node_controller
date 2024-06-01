@@ -17,6 +17,7 @@
 #include "boost/uuid/uuid_generators.hpp"
 #include "boost/lexical_cast.hpp"
 #include "boost/thread/recursive_mutex.hpp"
+#include "boost/thread/condition_variable.hpp"
 
 // for multi_index_container
 #include "boost/multi_index_container.hpp"
@@ -26,6 +27,7 @@
 #include "boost/multi_index/hashed_index.hpp"
 #include "boost/multi_index/ordered_index.hpp"
 #include "boost/multi_index/sequenced_index.hpp"
+#include "boost/chrono.hpp"
 
 #include <utils.hpp>
 #include <ss_p2p/ss_logger.hpp>
@@ -49,9 +51,11 @@ constexpr std::size_t MAX_RECEIVE_BUFFER_SIZE = 8388608; // 8メガバイト
 
 class peer_message_buffer // peer毎のメッセージバッファを管理する
 {
+  friend message_pool;
+  friend peer;
 private:
   mutable boost::recursive_mutex _rmtx;
-  std::condition_variable _cv;
+  boost::condition_variable_any _bcv;
 
 public:
   using ref = std::shared_ptr<peer_message_buffer>; // as peer message buffer symbol
@@ -61,14 +65,18 @@ public:
 	using ref = std::shared_ptr<struct received_message>;
 	using message_id = uuid;
 	received_message( const message::ref msg_from );
+	received_message( std::time_t timestampe );
 
 	const message_id id; // 必要ないかも
 	const message::ref msg;
 	const std::time_t time; // 受信した時間
-
+  
+	static message_id (invalid_message_id)();
+	bool is_invalid() const;
 	void print() const;
   };
   using message_queue = std::vector< received_message::ref >;
+  static bool compare_received_at( const std::time_t &base_time, const peer_message_buffer::received_message::ref msg_ref ); // for pop_since, drop
   message_queue _msg_queue; // メッセージバッファ本体
 
   const ip::udp::endpoint _binding_ep; // このバッファを所有するエンドポイント
@@ -83,14 +91,17 @@ public:
 	none, // 取得と同時にdequeueする
 	peek // 要素の取得のみ行う(dequeueしない)
   };
-  received_message::ref pop( unsigned int idx = 0, pop_flag = pop_flag::none ); // 存在しない場合でも即座に返す
+  received_message::ref pop( unsigned int idx = 0 /*先頭(古い)からのインデックス*/, pop_flag = pop_flag::none ); // 存在しない場合でも即座に返す
+  received_message::ref pop_by_id( received_message::message_id id ); // message_idでメッセージをpopする
   received_message::ref pop_since( std::time_t since = 0 ); // 0: binded_at以降のメッセージ指定
   /* 指定時間後に受信したメッセージ以降を取得する */ 
   received_message::message_id push( message::ref msg_ref );
   void clear();
+  void drop( message_queue::iterator begin, message_queue::iterator end ); // 指定範囲を削除する
 
-  ip::udp::endpoint get_endpoint() const;
+  ip::udp::endpoint get_binding_endpoint() const;
   const std::time_t get_last_received_at() const;
+  void update_last_binded_at();
 
   bool operator ==( const peer_message_buffer &pe ) const;
   bool operator !=( const peer_message_buffer &pe ) const;
@@ -143,7 +154,7 @@ public:
   typedef peer::id result_type;
   result_type operator()( const peer_message_buffer &input ) const
   {
-	return peer::calc_peer_id( input.get_endpoint() );
+	return peer::calc_peer_id( input.get_binding_endpoint() );
   }
 };
 using message_pool_entry_peer_id = class peer_message_buffer_peer_id;
@@ -171,7 +182,7 @@ private:
   using indexed_message_set = boost::multi_index_container<
 		message_pool_entry
 	  , boost::multi_index::indexed_by<
-		  boost::multi_index::hashed_unique< message_pool_entry_peer_id, peer_id_linear_hasher > // index by peer_id
+		  boost::multi_index::hashed_unique< boost::multi_index::tag<by_peer_id>, message_pool_entry_peer_id, peer_id_linear_hasher > // index by peer_id
 		  , boost::multi_index::ordered_non_unique< boost::multi_index::tag<by_received_at>, boost::multi_index::identity<message_pool_entry>, message_pool_entry_compare_received_at > // index by received_at
 	  > // peer_id or 最終取得が近いエントリから取得する
 	>;
@@ -186,6 +197,7 @@ private:
   void call_refresh_tick();
   void refresh_tick( const boost::system::error_code& ec ); // エントリーごと削除するか検討する
   peer_message_buffer::ref allocate_new_buffer( const ip::udp::endpoint &ep ); // 空のpeer_message_bufferを作成する
+  entry allocate_new_entry( const ip::udp::endpoint &ep );
 
 public:
   message_pool( io_context &io_ctx, ss_logger *logger, bool requires_refresh = true );
@@ -198,6 +210,8 @@ public:
   {
 	friend message_pool;
 	public:
+	  bool is_active() const;
+	  message_hub();
 	  ~message_hub();
 	  void start( std::function<peer::ref(ss_message::ref)> f ); // イベント稼働型
 	  void stop(); 
@@ -206,9 +220,9 @@ public:
 	  void on_receive_message( std::function<peer_message_buffer::received_message::ref(void)> pop_func, ip::udp::endpoint src_ep );
 	  std::function<peer::ref(ss_message::ref)> _msg_handler;
 
-	  bool _is_active = false;
-	  mutable std::mutex _mtx;
-	  std::condition_variable cv;
+	  mutable boost::recursive_mutex _rmtx;
+	  boost::condition_variable_any _bcv;
+	  bool _is_active __attribute__((guarded_by(_rmtx)));
   } _msg_hub;
 
   message_hub &get_message_hub();
