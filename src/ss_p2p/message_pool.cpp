@@ -23,13 +23,13 @@ peer_message_buffer::received_message::received_message( message::ref msg_from )
   return;
 }
 
-peer_message_buffer::received_message::received_message( std::time_t timestamp ) : 
+/* peer_message_buffer::received_message::received_message( std::time_t timestamp ) : 
   time( timestamp  )
   , id( random_generator()() )
   , msg( nullptr )
 {
   return;
-}
+} */ 
 
 peer_message_buffer::received_message::message_id peer_message_buffer::received_message::invalid_message_id()
 {
@@ -66,7 +66,7 @@ peer_message_buffer::received_message::message_id peer_message_buffer::push( mes
   this->_bcv.notify_all(); // 待機しているスレッドあがれば起こす
 
   _dynamic_mem_usage_bytes += 1; // 一旦仮(本来はメッセージサイズを計算する)
-  _last_received_at = std::time(nullptr);
+  _last_received_at = std::time(nullptr); // received_atの更新
 
   return entry_ref->id;
 }
@@ -92,13 +92,12 @@ peer_message_buffer::received_message::ref peer_message_buffer::pop( unsigned in
   return nullptr;
 }
 
-
-bool message_pool_entry::compare_received_at( const std::time_t &base_time, const peer_message_buffer::received_message::ref msg_ref )
+/* peer_message_buffer::received_message::ref peer_message_buffer::pop_by_id( peer_message_buffer::received_message::message_id id, pop_flag )
 {
-  return base_time < msg_ref->time;
-}
+  return nullptr;
+} */
 
-peer_message_buffer::received_message::ref peer_message_buffer::pop_since( std::time_t since )
+peer_message_buffer::received_message::ref peer_message_buffer::pop_since( std::time_t since, pop_flag )
 {
   std::unique_lock<boost::recursive_mutex> lock(_rmtx);
 
@@ -106,6 +105,11 @@ peer_message_buffer::received_message::ref peer_message_buffer::pop_since( std::
 
   if( auto ret = std::upper_bound( _msg_queue.begin(), _msg_queue.end(), since, message_pool_entry::compare_received_at ); ret != _msg_queue.end() ) return *ret;
   return nullptr;
+}
+
+bool message_pool_entry::compare_received_at( const std::time_t &base_time, const peer_message_buffer::received_message::ref msg_ref )
+{
+  return base_time < msg_ref->time;
 }
 
 void peer_message_buffer::clear()
@@ -159,12 +163,20 @@ message_pool::message_pool( io_context &io_ctx, ss_logger *logger, bool requires
   return;
 }
 
-peer_message_buffer::ref message_pool::allocate_new_buffer( const ip::udp::endpoint &ep )
+message_pool::entry message_pool::allocate_new_entry( const ip::udp::endpoint &ep )
 {
   if( auto ret = _pool.emplace( ep ); ret.second ) {
-	return std::make_shared<peer_message_buffer>( *(ret.first) );
+	return ret.first;
   }
-  return nullptr;
+  return _pool.end();
+}
+
+peer_message_buffer::ref message_pool::allocate_new_buffer( const ip::udp::endpoint &ep )
+{
+  message_pool::entry new_entry = this->allocate_new_entry(ep);
+  if( new_entry == _pool.end() ) return nullptr;
+
+  return std::make_shared<peer_message_buffer>(*new_entry);
 }
 
 void message_pool::requires_refresh( bool b )
@@ -192,17 +204,15 @@ void message_pool::refresh_tick( const boost::system::error_code &ec ) // 有効
   #endif
 
   // 有効期限切れのメッセージを全て削除する
-  auto &idx_pool = _pool.get<by_received_at>();
+  auto &idx_pool = _pool.get<by_received_at>(); 
   for( auto itr = idx_pool.begin(); itr != idx_pool.end(); ++itr )
   {
 	idx_pool.modify( itr, []( message_pool_entry &entry ) 
 	{
-	  auto lower_itr = std::upper_bound( entry._msg_queue.begin(), entry._msg_queue.end(), std::time(nullptr) + (DEFAULT_MESSAGE_LIFETIME_M*60), message_pool_entry::compare_received_at );
-	  // entry.drop( std::reverse_iterator<message_pool::indexed_message_set::iterator>(lower_itr), entry._msg_queue.end() );
-	  entry.drop( lower_itr, entry._msg_queue.end() );
+	  auto lower_ritr = std::make_reverse_iterator( std::upper_bound( entry._msg_queue.begin(), entry._msg_queue.end(), std::time(nullptr) + (DEFAULT_MESSAGE_LIFETIME_M*60), message_pool_entry::compare_received_at ) );
+	  entry.drop( lower_ritr, entry._msg_queue.rend() );
 	});
   }
-
 
   if( _requires_refresh ) this->call_refresh_tick();
 }
@@ -232,10 +242,11 @@ void message_pool::store( message::ref msg, const ip::udp::endpoint &ep )
 
  if( _msg_hub.is_active() ) // pool_observerが監視状態であれば
   { // 基本的にpeer単体でreceiveしているスレッドが優先されるようになる
-	// auto pop_func = std::bind( &message_pool_entry::pop_by_id, std::ref(*entry), msg_id ); 
-	// std::function<message_pool_entry::received_message::ref(void)> pop_func = std::bind( &message_pool_entry::pop_by_id, std::ref(*entry), msg_id );
+	// auto pop_func = std::bind( &message_pool_entry::pop_by_id, std::ref(entry), std::ref(msg_id) ); 
+	message_pool_entry temp_entry = *entry	;
+	std::function<peer_message_buffer::received_message::ref(void)> pop_func = std::bind( &message_pool_entry::pop_by_id, std::ref(temp_entry), std::cref(msg_id), message_pool_entry::pop_flag::none );
 	// あえてmessage_idでpopする関数を指定しているのは, peer.receive()で既にメッセージがpopされていた場合,その次に到着したメッセージを誤ってpopしてしまうことを避ける為
-	// _msg_hub.on_receive_message( pop_func, ep ); // メッセージを直接渡さないのは,peer.recv()しているスレッドとの間でメッセージコピーが発生しないようにするため
+	_msg_hub.on_receive_message( pop_func, ep ); // メッセージを直接渡さないのは,peer.recv()しているスレッドとの間でメッセージコピーが発生しないようにするため
   }
 }
 
