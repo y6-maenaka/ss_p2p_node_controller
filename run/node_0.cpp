@@ -6,6 +6,7 @@
 #include "openssl/evp.h"
 #include "boost/asio.hpp"
 
+#include "../test/setup_message_pool.cpp"
 #include "../test/setup_peer.cpp"
 
 using boost::asio::ip::udp;
@@ -14,7 +15,8 @@ int main( int argc, const char* argv[] )
 {
   std::cout << "Hello node_0" << "\n";
 
-  setup_peer( argc, argv );
+  setup_message_pool();
+  // setup_peer( argc, argv );
   // setup_k_bucket_iterator();
   // setup_ice_agent();
   // setup_ice_observer();

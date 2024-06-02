@@ -4,7 +4,8 @@ project( SS_P2P CXX )
 
 # find_package( PkgConfig REQUIRED ) # 外部パッケージを検出する準備(opensslは外部パッケージ(?))
 find_package( OpenSSL REQUIRED )
-find_package( Boost REQUIRED )
+find_package( Boost COMPONENTS chrono date_time timer thread REQUIRED )
+
 
 if( OpenSSL_FOUND )
   message( STATUS "Using OpenSSL" ${OPENSSL_VERSION} )
@@ -140,11 +141,11 @@ add_compile_definitions(DEFAULT_LOGGER_OUTFILE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/
 function( build_node NODE_SYMBOL ENABLE_DEBUG ENABLE_VERBOSE ENABLE_CAPTURE_PACKET )
   message( "@ BUILD NODE :: " ${NODE_SYMBOL} )
 
-  set( BUILD_TARGET_NODE "node_${NODE_SYMBOL}" )
+  set( BUILD_TARGET_NODE "${NODE_SYMBOL}" )
   set( BUILD_TARGET_NODE_PATH "./run/${NODE_SYMBOL}.cpp" )
 
   add_executable( ${BUILD_TARGET_NODE} ${BUILD_TARGET_NODE_PATH} )
-  target_link_libraries( ${BUILD_TARGET_NODE} PRIVATE ss_p2p ${OPENSSL_LIBRARIES} )
+  target_link_libraries( ${BUILD_TARGET_NODE} PRIVATE ss_p2p ${OPENSSL_LIBRARIES} ${Boost_LIBRARIES} )
 
   if( !ENABLE_VERBOSE )
 	target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_VERBOSE ) 
@@ -155,6 +156,7 @@ function( build_node NODE_SYMBOL ENABLE_DEBUG ENABLE_VERBOSE ENABLE_CAPTURE_PACK
 	if( !ENABLE_DEBUG )
 	  target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_DEBUG )
   endif()
+  target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_DEBUG )
 endfunction()
 
 

@@ -30,7 +30,6 @@
 #include "boost/multi_index/sequenced_index.hpp"
 #include "boost/chrono.hpp"
 
-#include <utils.hpp>
 #include <ss_p2p/ss_logger.hpp>
 #include <ss_p2p/peer.hpp>
 #include "./message.hpp"
@@ -49,12 +48,11 @@ constexpr std::time_t DEFAULT_MESSAGE_LIFETIME_M = 20/*[minute]*/;
 constexpr std::size_t MAX_RECEIVE_BUFFER_SIZE = 8388608; // 8メガバイト
 
 
-
 class peer_message_buffer 
   /* Peer毎のメッセージバッファ
 	 message_poolのエントリ */
 {
-  friend message_pool;
+  // friend message_pool;
   friend peer;
 
 private:
@@ -77,6 +75,7 @@ public:
   
 	static message_id (invalid_message_id)();
 	bool is_invalid() const;
+
 	void print() const;
   };
   using message_queue = std::vector< received_message::ref >;
@@ -122,12 +121,12 @@ template< typename Iterator > void peer_message_buffer::drop( Iterator begin, It
   static_assert(  std::is_same<
 	  typename std::iterator_traits<Iterator>::value_type
 	  , peer_message_buffer::message_queue::value_type>::value
-	  , "drop can get iterator message_queue" );
+	  , "drop can get iterator of message_queue" );
 
   if constexpr (std::is_same_v<Iterator, std::reverse_iterator<typename message_queue::iterator>> ||
 		        std::is_same_v<Iterator, std::reverse_iterator<typename message_queue::const_iterator>>) 
   {
-	_msg_queue.erase( begin.base(), end.base() );
+	_msg_queue.erase( end.base(), begin.base() );
   }
   else {
 	_msg_queue.erase( begin, end );
@@ -207,9 +206,12 @@ private:
   bool _requires_refresh; // 更新を行うな否か
   ss_logger *_logger;
 
+#if SS_DEBUG
+public:
+#endif 
   void call_refresh_tick();
   void refresh_tick( const boost::system::error_code& ec ); // エントリーごと削除するか検討する
-  
+
   entry allocate_new_entry( const ip::udp::endpoint &ep );
   peer_message_buffer::ref allocate_new_buffer( const ip::udp::endpoint &ep ); // 空のpeer_message_bufferを作成する
 
@@ -244,6 +246,8 @@ public:
   peer_message_buffer::ref deallocate( const peer::id &pid );
   
   void print() const;
+  void print_by_peer_id() const;
+  void print_by_received_at() const;
 };
 using message_hub = message_pool::message_hub;
 

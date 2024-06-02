@@ -46,6 +46,10 @@ public:
 
   json& operator()();
   void print();
+
+  #if SS_DEBUG
+  void update_timestamp( std::time_t t );
+  #endif
 private:
   json _body;
 

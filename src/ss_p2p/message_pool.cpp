@@ -56,6 +56,16 @@ peer_message_buffer::peer_message_buffer( ip::udp::endpoint ep ) : // generate m
   return;
 }
 
+peer_message_buffer::peer_message_buffer( const peer_message_buffer &from ) :
+  _msg_queue( from._msg_queue )
+  , _binding_ep( from._binding_ep )
+  , _dynamic_mem_usage_bytes( from._dynamic_mem_usage_bytes )
+  , _last_binded_at( from._last_binded_at )
+  , _last_received_at( from._last_received_at )
+{
+  return;
+}
+
 peer_message_buffer::received_message::message_id peer_message_buffer::push( message::ref msg_ref )
 {
   // std::unique_lock<std::mutex> lock(this->guard.mtx); // ロックの獲得
@@ -92,10 +102,10 @@ peer_message_buffer::received_message::ref peer_message_buffer::pop( unsigned in
   return nullptr;
 }
 
-/* peer_message_buffer::received_message::ref peer_message_buffer::pop_by_id( peer_message_buffer::received_message::message_id id, pop_flag )
+peer_message_buffer::received_message::ref peer_message_buffer::pop_by_id( const peer_message_buffer::received_message::message_id &id, pop_flag )
 {
   return nullptr;
-} */
+}
 
 peer_message_buffer::received_message::ref peer_message_buffer::pop_since( std::time_t since, pop_flag )
 {
@@ -209,8 +219,8 @@ void message_pool::refresh_tick( const boost::system::error_code &ec ) // 有効
   {
 	idx_pool.modify( itr, []( message_pool_entry &entry ) 
 	{
-	  auto lower_ritr = std::make_reverse_iterator( std::upper_bound( entry._msg_queue.begin(), entry._msg_queue.end(), std::time(nullptr) + (DEFAULT_MESSAGE_LIFETIME_M*60), message_pool_entry::compare_received_at ) );
-	  entry.drop( lower_ritr, entry._msg_queue.rend() );
+	  auto lower_ritr = std::make_reverse_iterator( std::upper_bound( entry._msg_queue.begin(), entry._msg_queue.end(), std::time(nullptr) - (DEFAULT_MESSAGE_LIFETIME_M*60), message_pool_entry::compare_received_at ) ); // 指定した時間より前のメッセージ先頭を取得
+	  entry.drop( lower_ritr, entry._msg_queue.rend() ); // 指定時間より前に到着したメッセージを全部削除する
 	});
   }
 
@@ -223,7 +233,6 @@ void message_pool::store( message::ref msg, const ip::udp::endpoint &ep )
 	- 基本的にpeer単体でreceiveしているスレッドが優先的にreceiveできるようになる
 	- メッセージを直接渡さないのは, peer.receive()しているスレッドとの間でメッセージのコピーが発生しないようにする為
   */
-
   const peer::id peer_id = peer::calc_peer_id(ep); // peer_id == message_pool key
   auto &idx_pool = _pool.get<by_peer_id>();
   auto entry = idx_pool.find( peer_id ); // 指定したpeerにバインドされているpeer_message_bufferを検索
@@ -243,7 +252,7 @@ void message_pool::store( message::ref msg, const ip::udp::endpoint &ep )
  if( _msg_hub.is_active() ) // pool_observerが監視状態であれば
   { // 基本的にpeer単体でreceiveしているスレッドが優先されるようになる
 	// auto pop_func = std::bind( &message_pool_entry::pop_by_id, std::ref(entry), std::ref(msg_id) ); 
-	message_pool_entry temp_entry = *entry	;
+	message_pool_entry temp_entry = *entry;
 	std::function<peer_message_buffer::received_message::ref(void)> pop_func = std::bind( &message_pool_entry::pop_by_id, std::ref(temp_entry), std::cref(msg_id), message_pool_entry::pop_flag::none );
 	// あえてmessage_idでpopする関数を指定しているのは, peer.receive()で既にメッセージがpopされていた場合,その次に到着したメッセージを誤ってpopしてしまうことを避ける為
 	_msg_hub.on_receive_message( pop_func, ep ); // メッセージを直接渡さないのは,peer.recv()しているスレッドとの間でメッセージコピーが発生しないようにするため
@@ -260,6 +269,31 @@ void message_pool::print() const
 		std::cout << "(msg_entry) :" << endpoint_to_str(entry.get_binding_endpoint()) << "\n";
 		entry.print();
 	  });
+}
+
+void message_pool::print_by_peer_id() const
+{
+  auto &indexed_pool = _pool.get<by_peer_id>();
+  std::for_each( indexed_pool.begin(), indexed_pool.end(), []( const message_pool_entry &entry )
+	  {
+		for( int i=0; i < get_console_width() / 2; i++) printf("-");
+		printf("\n");
+		std::cout << "(msg_entry) :" << endpoint_to_str(entry.get_binding_endpoint()) << "\n";
+		entry.print();
+	  });
+}
+
+void message_pool::print_by_received_at() const
+{
+  auto &indexed_pool = _pool.get<by_received_at>();
+  std::for_each( indexed_pool.begin(), indexed_pool.end(), []( const message_pool_entry &entry )
+	  {
+		for( int i=0; i < get_console_width() / 2; i++) printf("-");
+		printf("\n");
+		std::cout << "(msg_entry) :" << endpoint_to_str(entry.get_binding_endpoint()) << "\n";
+		entry.print();
+	  });
+
 }
 
 

@@ -1,8 +1,9 @@
 #include <ss_p2p/peer.hpp>
-#include <crypto_utils/crypto_utils.hpp>
 #include <ss_p2p/message_pool.hpp>
 #include "boost/thread/recursive_mutex.hpp"
 #include "boost/thread/condition_variable.hpp"
+#include <utils.hpp>
+#include <crypto_utils/crypto_utils.hpp>
 
 
 namespace ss
@@ -63,7 +64,7 @@ ip::udp::endpoint peer::get_endpoint() const
   return _ep;
 }
 
-peer::id calc_peer_id( const ip::udp::endpoint &ep )
+peer::id peer::calc_peer_id( const ip::udp::endpoint &ep )
 {
   return (cu::sha1::hash( endpoint_to_str(ep) ).to_array< peer::id::value_type, PEER_ID_LENGTH_BYTES>());
 }
