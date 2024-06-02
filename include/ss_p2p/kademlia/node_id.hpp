@@ -7,9 +7,6 @@
 #include <algorithm>
 #include <iostream>
 
-#include <utils.hpp>
-#include <crypto_utils/crypto_utils.hpp>
-
 #include "boost/asio.hpp"
 
 
@@ -20,6 +17,7 @@ namespace kademlia
 
 
 constexpr unsigned short K_NODE_ID_LENGTH = 160 / 8 ;
+using namespace boost::asio;
 
 
 class node_id
@@ -44,19 +42,9 @@ public:
 };
 
 
-template <typename T> node_id calc_node_id( T* ep_bin, std::size_t ep_bin_len )
-{
-  unsigned char in[ep_bin_len]; std::memcpy( in, ep_bin, ep_bin_len );
-  auto ep_md = cu::sha1::hash( in, ep_bin_len );
-
-  auto node_id_from = (ep_md.to_array< std::uint8_t, K_NODE_ID_LENGTH >());
-  return node_id( node_id_from.data() );
-}
-
 node_id calc_node_id( ip::udp::endpoint &ep );
 unsigned short calc_node_xor_distance( const node_id &nid_1, const node_id &nid_2 );
 node_id str_to_node_id( std::string from );
-
 
 
 };

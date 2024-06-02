@@ -13,7 +13,7 @@
 #include <chrono>
 
 #include <json.hpp>
-#include <ss_p2p/message.hpp>
+// #include <ss_p2p/message.hpp>
 #include <ss_p2p/message_pool.fwd.hpp>
 
 #include "boost/asio.hpp"

@@ -189,6 +189,15 @@ peer_message_buffer::ref message_pool::allocate_new_buffer( const ip::udp::endpo
   return std::make_shared<peer_message_buffer>(*new_entry);
 }
 
+peer_message_buffer::ref message_pool::get_peer_message_buffer( const peer::id &pid ) const
+{
+  auto &indexed_pool = _pool.get<by_peer_id>();
+  auto ret = indexed_pool.find(pid);
+
+  if( ret != _pool.end() ) return std::make_shared<peer_message_buffer>(*ret);
+  return nullptr;
+}
+
 void message_pool::requires_refresh( bool b )
 {
   if( b )

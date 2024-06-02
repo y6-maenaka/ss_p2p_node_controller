@@ -1,5 +1,3 @@
-#include <ss_p2p/kademlia/k_routing_table.hpp>
-#include <ss_p2p/node_controller.hpp>
 #include <string>
 #include <chrono>
 #include <mutex>
@@ -8,15 +6,15 @@
 #include "openssl/evp.h"
 #include "boost/asio.hpp"
 
-#include "../test/setup_node_controller.cpp"
-#include "../test/dummy_message.cpp"
-#include "../test/setup_peer.cpp"
-#include "../test/setup_k_routing_table.cpp"
-#include "../test/setup_ice_observer.cpp"
-#include "../test/setup_ice_agent.cpp"
-#include "../test/setup_signaling_relay_host.cpp"
-#include "../test/setup_k_bucket_iterator.cpp"
 #include "../test/setup_logger.cpp"
+#include "../test/setup_node_controller.cpp"
+// #include "../test/dummy_message.cpp"
+// #include "../test/setup_peer.cpp"
+// #include "../test/setup_k_routing_table.cpp"
+// #include "../test/setup_ice_observer.cpp"
+// #include "../test/setup_ice_agent.cpp"
+// #include "../test/setup_signaling_relay_host.cpp"
+// #include "../test/setup_k_bucket_iterator.cpp"
 
 
 using boost::asio::ip::udp;

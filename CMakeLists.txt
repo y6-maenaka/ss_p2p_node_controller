@@ -147,16 +147,10 @@ function( build_node NODE_SYMBOL ENABLE_DEBUG ENABLE_VERBOSE ENABLE_CAPTURE_PACK
   add_executable( ${BUILD_TARGET_NODE} ${BUILD_TARGET_NODE_PATH} )
   target_link_libraries( ${BUILD_TARGET_NODE} PRIVATE ss_p2p ${OPENSSL_LIBRARIES} ${Boost_LIBRARIES} )
 
-  if( !ENABLE_VERBOSE )
-	target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_VERBOSE ) 
-  endif()
-  if( !ENABLE_CAPTURE_PACKET ) 
-	target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_CAPTURE_PACKET ) 
-  endif()
-	if( !ENABLE_DEBUG )
-	  target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_DEBUG )
-  endif()
-  target_compile_definitions( ${BUILD_TARGET_NODE} PRIVATE SS_DEBUG )
+  # 良い方法ではない
+  add_compile_definitions( SS_VERBOSE ) 
+  add_compile_definitions( SS_CAPTURE_PACKET ) 
+  add_compile_definitions( SS_DEBUG )
 endfunction()
 
 
@@ -170,6 +164,7 @@ if( _BUILD_DEBUG_ALL_NODE )
   build_node( "node_1" FALSE FALSE FALSE )
   build_node( "node_2" FALSE FALSE FALSE )
   build_node( "node_3" FALSE FALSE FALSE )
+  build_node( "node_4" FALSE FALSE FALSE )
   build_node( "stable_host" FALSE FALSE FALSE )
 endif()
 
