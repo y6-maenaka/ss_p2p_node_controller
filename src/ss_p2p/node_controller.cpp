@@ -10,7 +10,7 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
   , _core_io_ctx( io_ctx )
   , _u_sock_manager( self_ep, std::ref(*io_ctx) )
   , _tick_timer( *io_ctx )
-  , _msg_pool( *io_ctx, &_logger, true )
+  , _msg_pool( *io_ctx, std::bind( &node_controller::get_peer_ref, this, std::placeholders::_1 ) ,&_logger, true )
   , _sender( _u_sock_manager, _id )
 {
   ip::udp::endpoint init_ep( ip::address::from_string("0.0.0.0"), 0 ); // 一旦適当な初期値で開始する
@@ -152,10 +152,15 @@ void node_controller::call_tick( std::time_t tick_time_s )
   _tick_timer.async_wait( std::bind( &node_controller::tick, this) );
 }
 
-peer node_controller::get_peer( ip::udp::endpoint ep )
+peer node_controller::get_peer( const ip::udp::endpoint &ep )
 {
   peer ret( ep, _msg_pool.get_peer_message_buffer( peer::calc_peer_id(ep) ), _ice_agent->get_signaling_send_func() );
   return ret;
+}
+
+peer::ref node_controller::get_peer_ref( const ip::udp::endpoint &ep )
+{
+  return std::make_shared<peer>( ep, _msg_pool.get_peer_message_buffer( peer::calc_peer_id(ep)), _ice_agent->get_signaling_send_func() );
 }
 
 void node_controller::on_receive_packet( std::vector<std::uint8_t> raw_msg, ip::udp::endpoint &ep )

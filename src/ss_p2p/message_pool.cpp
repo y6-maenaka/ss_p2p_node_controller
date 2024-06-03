@@ -164,11 +164,13 @@ peer_message_buffer generate_peer_message_buffer( ip::udp::endpoint ep )
 }
 
 
-message_pool::message_pool( io_context &io_ctx, ss_logger *logger, bool requires_refresh ) :
+message_pool::message_pool( io_context &io_ctx, const message_pool::endpoint_to_peer_func &ep_to_peer_func, ss_logger *logger, bool requires_refresh ) :
   _io_ctx( io_ctx )
   , _refresh_tick_timer( io_ctx )
+  , _ep_to_peer_func( ep_to_peer_func )
   , _requires_refresh( requires_refresh )
   , _logger(logger)
+  , _msg_hub( ep_to_peer_func )
 {
   return;
 }
@@ -306,8 +308,9 @@ void message_pool::print_by_received_at() const
 }
 
 
-message_pool::message_hub::message_hub() : 
+message_pool::message_hub::message_hub( const message_pool::endpoint_to_peer_func &ep_to_peer_func ) : 
   _is_active(false)
+  , _ep_to_peer_func( ep_to_peer_func )
 {
   return;
 }
@@ -322,13 +325,13 @@ message_pool::message_hub &message_pool::get_message_hub()
   return _msg_hub;
 }
 
-void message_pool::message_hub::start( std::function<void(ss_message::ref)> f )
+void message_pool::message_hub::start( std::function<void(peer::ref, ss_message::ref)> f )
 {
   std::unique_lock<boost::recursive_mutex> lock(_rmtx);
   _msg_handler = f;
   _is_active = true;
 }
- 
+
 void message_pool::message_hub::stop()
 {
   std::unique_lock<boost::recursive_mutex> lock(_rmtx);
@@ -341,7 +344,8 @@ void message_pool::message_hub::on_receive_message( std::function<peer_message_b
   if( received_msg_ref == nullptr ) return;
  
   ss_message::ref msg_ref = std::make_shared<ss_message>( received_msg_ref, src_ep ); // ss_message::refに変換
-  _msg_handler( msg_ref ); // message_hubに設定されている受信時イベントハンドラを起動
+  peer::ref src_peer_ref = _ep_to_peer_func(src_ep);
+  _msg_handler( src_peer_ref, msg_ref ); // message_hubに設定されている受信時イベントハンドラを起動
 }
 
 bool message_pool::message_hub::is_active() const

@@ -1,6 +1,7 @@
 #include <ss_p2p/message_pool.hpp>
 #include <ss_p2p/ss_logger.hpp>
 #include <ss_p2p/message.hpp>
+#include <ss_p2p/node_controller.hpp>
 #include <iostream>
 #include <memory>
 #include <array>
@@ -16,9 +17,10 @@ int setup_message_pool()
 {
   std::cout << "setup_message_pool start" << "\n";
 
+  ip::udp::endpoint self_ep;
   std::shared_ptr<boost::asio::io_context> io_ctx = std::make_shared<boost::asio::io_context>();
-  ss::ss_logger logger;
-  ss::message_pool msg_pool( *io_ctx, &logger );
+  ss::node_controller nc( self_ep, io_ctx );
+  auto &msg_pool = nc.get_message_pool();
 
 
   std::array<char, 8> app_id = {'a','b','c','d','e','f','g','h'};

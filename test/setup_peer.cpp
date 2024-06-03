@@ -5,6 +5,7 @@
 #include <hash.hpp>
 #include <utils.hpp>
 */
+#include <ss_p2p/node_controller.hpp>
 #include <ss_p2p/peer.hpp>
 #include <ss_p2p/message_pool.hpp>
 
@@ -22,7 +23,7 @@
 class message_jank
 {
 public:
-  void on_receive( ss::ss_message::ref msg_ref ){
+  void on_receive( ss::peer::ref peer_ref, ss::ss_message::ref msg_ref ){
 	std::cout << "(" << msg_ref->meta.src_endpoint << ") : " << msg_ref->body.dump() << "\n";
   }
 };
@@ -30,6 +31,13 @@ public:
 
 int setup_peer( int argc, const char *argv[] )
 {
+  message_jank mj;
+
+  ip::udp::endpoint self_ep;
+  ss::node_controller nc( self_ep );
+
+  auto &msg_hub = nc.get_message_hub();
+  msg_hub.start( std::bind( &message_jank::on_receive, mj, std::placeholders::_1, std::placeholders::_2 ) );
 
 
   /*

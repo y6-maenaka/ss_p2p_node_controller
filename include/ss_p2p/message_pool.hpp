@@ -189,6 +189,8 @@ public:
 
 class message_pool
 {
+public:
+  using endpoint_to_peer_func = std::function<peer::ref(const ip::udp::endpoint &ep)>;
 private:
   mutable boost::recursive_mutex _rmtx;
   using indexed_message_set = boost::multi_index_container<
@@ -202,6 +204,7 @@ private:
   using entry = indexed_message_set::iterator;
 
   io_context &_io_ctx;
+  const endpoint_to_peer_func &_ep_to_peer_func;
   deadline_timer _refresh_tick_timer;
   bool _requires_refresh; // 更新を行うな否か
   ss_logger *_logger;
@@ -216,7 +219,7 @@ public:
   peer_message_buffer::ref allocate_new_buffer( const ip::udp::endpoint &ep ); // 空のpeer_message_bufferを作成する
 
 public:
-  message_pool( io_context &io_ctx, ss_logger *logger, bool requires_refresh = true );
+  message_pool( io_context &io_ctx, const endpoint_to_peer_func &ep_to_peer_func, ss_logger *logger, bool requires_refresh = true );
 
   void requires_refresh( bool b );
   void store( message::ref msg_ref, const ip::udp::endpoint &ep ); // 受信したメッセージを追加
@@ -226,18 +229,19 @@ public:
 	friend message_pool;
 	public:
 	  bool is_active() const;
-	  message_hub();
+	  message_hub( const message_pool::endpoint_to_peer_func &ep_to_peer_func );
 	  ~message_hub();
-	  void start( std::function<void(ss_message::ref)> f ); // イベント稼働型
+	  void start( std::function<void(peer::ref, ss_message::ref)> f ); // イベント稼働型
 	  void stop(); 
 
 	private:
 	  void on_receive_message( std::function<peer_message_buffer::received_message::ref(void)> pop_func, ip::udp::endpoint src_ep );
-	  std::function<void(ss_message::ref)> _msg_handler;
+	  std::function<void(peer::ref, ss_message::ref)> _msg_handler;
 
 	  mutable boost::recursive_mutex _rmtx;
 	  boost::condition_variable_any _bcv;
 	  bool _is_active __attribute__((guarded_by(_rmtx)));
+	  const message_pool::endpoint_to_peer_func &_ep_to_peer_func; // この方法あまりよくないかも
   } _msg_hub;
 
   message_hub &get_message_hub();
