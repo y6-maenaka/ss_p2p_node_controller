@@ -322,7 +322,7 @@ message_pool::message_hub &message_pool::get_message_hub()
   return _msg_hub;
 }
 
-void message_pool::message_hub::start( std::function<peer::ref(ss_message::ref)> f )
+void message_pool::message_hub::start( std::function<void(ss_message::ref)> f )
 {
   std::unique_lock<boost::recursive_mutex> lock(_rmtx);
   _msg_handler = f;

@@ -228,12 +228,12 @@ public:
 	  bool is_active() const;
 	  message_hub();
 	  ~message_hub();
-	  void start( std::function<peer::ref(ss_message::ref)> f ); // イベント稼働型
+	  void start( std::function<void(ss_message::ref)> f ); // イベント稼働型
 	  void stop(); 
 
 	private:
 	  void on_receive_message( std::function<peer_message_buffer::received_message::ref(void)> pop_func, ip::udp::endpoint src_ep );
-	  std::function<peer::ref(ss_message::ref)> _msg_handler;
+	  std::function<void(ss_message::ref)> _msg_handler;
 
 	  mutable boost::recursive_mutex _rmtx;
 	  boost::condition_variable_any _bcv;

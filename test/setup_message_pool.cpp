@@ -50,7 +50,6 @@ int setup_message_pool()
 
 
 
-
   msg_pool.print_by_peer_id();
 
 
