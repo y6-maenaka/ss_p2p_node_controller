@@ -32,11 +32,13 @@
 
 #include <ss_p2p/ss_logger.hpp>
 #include <ss_p2p/peer.hpp>
+#include <json.hpp>
 #include "./message.hpp"
 
 
 using namespace boost::asio;
 using namespace boost::uuids;
+using json = nlohmann::json;
 
 
 namespace ss
@@ -137,7 +139,7 @@ template< typename Iterator > void peer_message_buffer::drop( Iterator begin, It
 struct ss_message // 他アプリケーションから参照される
 {
   using ref = std::shared_ptr<ss_message>;
-  json body; // メッセージ本体
+  json body; // メッセージ本体(ss_p2p自体のルーティング情報も含む)
   
   struct
   {
@@ -148,6 +150,9 @@ struct ss_message // 他アプリケーションから参照される
   } meta;
 
   ss_message( peer_message_buffer::received_message::ref msg_from, const ip::udp::endpoint &src_ep );
+  const json get( std::string app_id ) const; // bodyから,高アプリケーションのメッセージを取り出す
+  template < typename T > const std::optional<T> cast_get( std::string app_id ) const;
+  static bool (is_invalid)( const json &j );
 };
 
 

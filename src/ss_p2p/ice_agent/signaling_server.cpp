@@ -134,7 +134,7 @@ void signaling_server::signaling_send( ip::udp::endpoint &dest_ep, std::string r
   observer<class signaling_request> sgnl_req_obs( _io_ctx, _sender, _ice_sender, _glob_self_ep, _d_routing_table_controller );
   sgnl_req_obs.init( dest_ep, root_param, payload );
 
-  _obs_strage.add_observer<class signaling_request>( sgnl_req_obs ); // store
+  _obs_strage.add_observer<class signaling_request>( sgnl_req_obs ); // (送信予約)
 }
 
 signaling_server::s_send_func signaling_server::get_signaling_send_func()
@@ -147,7 +147,6 @@ signaling_server::s_send_func signaling_server::get_signaling_send_func()
 		, std::placeholders::_3
 	  );
 }
-
 
 
 }; // namespace ice

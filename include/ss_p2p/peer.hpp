@@ -31,7 +31,7 @@ class peer
 {
 public:
   using ref = std::shared_ptr<class peer>;
-  using s_send_func = std::function<void(ip::udp::endpoint&, std::string, json)>;
+  using s_send_func = std::function<void(ip::udp::endpoint&, std::string, json /*高レイヤアプリケーションのダンプされた完全なメッセージ*/)>;
   using transport_id = std::array< std::uint8_t, PEER_ID_LENGTH_BYTES >; // this is made from peer( ip + port )
   using id = transport_id;
   
@@ -56,7 +56,6 @@ public:
   static peer::id calc_peer_id( const ip::udp::endpoint &ep );
 
   void print() const;
-
 private:
   peer_message_buffer_ref _msg_pool_entry_ref; // 自身の受信バッファ
   s_send_func _s_send_func;

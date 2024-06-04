@@ -40,7 +40,7 @@ class ice_observer_strage;
 class signaling_server
 {
 private:
-  void signaling_send( ip::udp::endpoint &dest_ep, std::string root_param, json payload );
+  void signaling_send( ip::udp::endpoint &dest_ep, std::string root_param, json payload/*ss_p2pパラメータやルーティング情報も乗ったけ全てのペイロード*/ ); // 中継や新規にノード検索を行ってほぼ確実にメッセージを到達させるメッセージ
 
   void async_hello( const boost::system::error_code &ec ); // debug
   void send_done( const boost::system::error_code &ec );

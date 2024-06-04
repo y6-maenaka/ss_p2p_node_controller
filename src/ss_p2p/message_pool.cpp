@@ -14,6 +14,16 @@ ss_message::ss_message( peer_message_buffer::received_message::ref msg_from, con
   // 本来はここで, relay_entpoindsも展開する
 }
 
+const json ss_message::get( std::string app_name ) const 
+{
+  if( body.contains(app_name) ) return body[app_name];
+  return json({});
+}
+
+bool ss_message::is_invalid( const json &j )
+{
+  return j.empty();
+}
 
 peer_message_buffer::received_message::received_message( message::ref msg_from ) : 
   msg( msg_from )
