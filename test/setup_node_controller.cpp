@@ -1,4 +1,6 @@
 #include <ss_p2p/node_controller.hpp>
+#include <ss_p2p/kademlia/dht_manager.hpp>
+#include <ss_p2p/ice_agent/ice_agent.hpp>
 #include <ss_p2p/kademlia/k_node.hpp>
 
 #include "boost/asio.hpp"

@@ -1,6 +1,7 @@
 #include <utils.hpp>
 #include <ss_p2p/node_controller.hpp>
 #include <ss_p2p/kademlia/k_node.hpp>
+#include <ss_p2p/kademlia/direct_routing_table_controller.hpp>
 
 #include "boost/asio.hpp"
 

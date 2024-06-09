@@ -48,7 +48,7 @@ void stun_server::on_send_done( const boost::system::error_code &ec, std::size_t
 	for( auto itr : collected_nodes ) request_nodes.push_back( itr );
   }
 
-  if( request_nodes.empty() ) return std::make_shared<stun_server::sr_object>(stun_server::sr_object::_error_());
+  if( request_nodes.empty() ) return std::make_shared<sr_object>(sr_object::_error_());
 
   std::shared_ptr<sr_object> sr = std::make_shared<sr_object>(); // 予約オブジェクトの作成
   observer<class binding_request> binding_req_obs( _io_ctx, _sender, _ice_sender, _d_routing_table_controller ); // binding_request observerの作成
@@ -94,64 +94,64 @@ int stun_server::income_message( std::shared_ptr<message> msg, ip::udp::endpoint
 }
 
 
-stun_server::sr_object::sr_object() :
+sr_object::sr_object() :
   _is_async( false )
-  , _state( stun_server::sr_object::state_t::notfound )
+  , _state( sr_object::state_t::notfound )
   , _mtx( std::make_shared<std::mutex>() )
   , _cv( std::make_shared<std::condition_variable>() )
 {
   _global_ep = ip::udp::endpoint( ip::address::from_string("0.0.0.0"), 0 ); // 一応無効なアドレスとして
 }
 
-std::optional< ip::udp::endpoint> stun_server::sr_object::sync_get()
+std::optional< ip::udp::endpoint> sr_object::sync_get()
 {
   std::unique_lock<std::mutex> lock(*_mtx);
-  if( _state != stun_server::sr_object::state_t::pending ) // 待機状態以外(処理済み)だったら速攻返す
+  if( _state != sr_object::state_t::pending ) // 待機状態以外(処理済み)だったら速攻返す
 	_cv->wait( lock );
 
-  if( _state == stun_server::sr_object::state_t::done ) return std::optional(_global_ep);
+  if( _state == sr_object::state_t::done ) return std::optional(_global_ep);
   else return std::nullopt;
 }
 
-void stun_server::sr_object::async_get( on_nat_traversal_success_handler handler )
+void sr_object::async_get( on_nat_traversal_success_handler handler )
 {
   this->handler = handler;
   _is_async = true;
 }
 
-void stun_server::sr_object::update_state( state_t s, std::optional<ip::udp::endpoint> ep )
+void sr_object::update_state( state_t s, std::optional<ip::udp::endpoint> ep )
 {
-  if( s == stun_server::sr_object::state_t::done && ep != std::nullopt ){
-	_state = stun_server::sr_object::state_t::done;
+  if( s == sr_object::state_t::done && ep != std::nullopt ){
+	_state = sr_object::state_t::done;
 	_global_ep = *ep;
   }
   else{
-	_state = stun_server::sr_object::state_t::notfound;
+	_state = sr_object::state_t::notfound;
   }
 
   if( !(this->is_async()) ) _cv->notify_all(); // 成功でも失敗でも起こす
 }
 
-stun_server::sr_object::state_t stun_server::sr_object::get_state() const
+sr_object::state_t sr_object::get_state() const
 {
   return _state;
 }
 
-stun_server::sr_object stun_server::sr_object::_error_()
+sr_object sr_object::_error_()
 {
   sr_object ret;
-  ret._state = stun_server::sr_object::state_t::notfound;
+  ret._state = sr_object::state_t::notfound;
   return ret;
 }
 
-stun_server::sr_object stun_server::sr_object::_pending_()
+sr_object sr_object::_pending_()
 {
   sr_object ret;
-  ret._state = stun_server::sr_object::state_t::pending;
+  ret._state = sr_object::state_t::pending;
   return ret;
 }
 
-bool stun_server::sr_object::is_async() const
+bool sr_object::is_async() const
 {
   return _is_async;
 }

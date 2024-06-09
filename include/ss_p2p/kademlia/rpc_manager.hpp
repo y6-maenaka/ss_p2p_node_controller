@@ -9,7 +9,7 @@
 #include <ss_p2p/observer.hpp>
 #include <ss_p2p/sender.hpp>
 #include <ss_p2p/ss_logger.hpp>
-#include "./k_observer.hpp"
+// #include "./k_observer.hpp"
 #include "./k_observer_strage.hpp"
 #include "./node_id.hpp"
 #include "./k_routing_table.hpp"
@@ -28,8 +28,7 @@ namespace kademlia
 
 
 constexpr unsigned short DEFAULT_FIND_NODE_SIZE = 5; // find_nodeで応答するノード数
-class k_observer_strage;
-  
+
 
 class rpc_manager
 {

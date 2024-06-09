@@ -15,17 +15,12 @@
 
 #include "boost/asio.hpp"
 
-#include <ss_p2p/kademlia/dht_manager.hpp>
-#include <ss_p2p/kademlia/direct_routing_table_controller.hpp>
-#include <ss_p2p/ice_agent/ice_agent.hpp>
 #include <ss_p2p/peer.hpp>
-#include <ss_p2p/udp_server.hpp>
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/message_pool.hpp>
 #include <ss_p2p/socket_manager.hpp>
 #include <ss_p2p/sender.hpp>
 #include <ss_p2p/ss_logger.hpp>
-#include <utils.hpp>
 
 
 using namespace boost::asio;
@@ -33,6 +28,22 @@ using namespace boost::asio;
 
 namespace ss
 {
+
+
+class udp_server;
+
+
+namespace kademlia
+{
+  class dht_manager;
+  class direct_routing_table_controller;
+  class k_routing_table; // for debug
+};
+
+namespace ice
+{
+  class ice_agent;
+};
 
 
 constexpr std::time_t DEFAULT_NODE_CONTROLLER_TICK_TIME_S = 30/*[s]*/; // 時間周期処理
@@ -46,11 +57,8 @@ public:
   const ip::udp::socket &self_sock();
   node_controller( ip::udp::endpoint &self_ep , std::shared_ptr<io_context> io_ctx = std::make_shared<boost::asio::io_context>() );
 
-  template <typename Func, typename ... Args>
-  void sync_call( Func f, Args ... a );
-
-  template < typename Func, typename ... Args>
-  void async_call( Func f, Args ... a );
+  template <typename Func, typename ... Args> void sync_call( Func f, Args ... a );
+  template < typename Func, typename ... Args> void async_call( Func f, Args ... a );
 
   void requires_routing( bool b );
   void on_receive_packet( std::vector<std::uint8_t> raw_msg , ip::udp::endpoint &ep );

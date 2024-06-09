@@ -1,5 +1,8 @@
 #include <ss_p2p/kademlia/rpc_manager.hpp>
 #include <ss_p2p/kademlia/k_message.hpp>
+#include <ss_p2p/kademlia/rpc_manager.hpp>
+// #include <ss_p2p/kademlia/observer.hpp>
+// #include <ss_p2p/kademlia/observer_strage.hpp>
 #include <utils.hpp>
 
 

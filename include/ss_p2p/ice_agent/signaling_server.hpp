@@ -15,6 +15,7 @@
 #include <ss_p2p/kademlia/k_routing_table.hpp>
 #include <ss_p2p/kademlia/direct_routing_table_controller.hpp>
 #include <ss_p2p/ss_logger.hpp>
+#include <ss_p2p/ice_agent/ice_observer_strage.hpp>
 #include <json.hpp>
 
 #include "./ice_message.hpp"
@@ -34,7 +35,6 @@ namespace ice
 
 
 class ice_sender;
-class ice_observer_strage;
 
 
 class signaling_server

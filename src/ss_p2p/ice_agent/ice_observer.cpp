@@ -1,5 +1,6 @@
 #include <ss_p2p/ice_agent/ice_observer.hpp>
 #include <ss_p2p/ice_agent/ice_agent.hpp>
+#include <ss_p2p/ice_agent/stun_server.hpp>
 
 
 namespace ss
@@ -8,8 +9,8 @@ namespace ice
 {
 
 
-signaling_observer::signaling_observer( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
-  base_observer( io_ctx )
+signaling_observer::signaling_observer( io_context &io_ctx, std::string t_name, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+  base_observer( io_ctx, t_name )
   , _sender( sender )
   , _ice_sender(ice_sender)
   , _glob_self_ep( glob_self_ep )
@@ -20,7 +21,7 @@ signaling_observer::signaling_observer( io_context &io_ctx, class sender &sender
 
 
 signaling_request::signaling_request( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
-  signaling_observer( io_ctx, sender, ice_sender, glob_self_ep, d_routing_table_controller )
+  signaling_observer( io_ctx, "signaling:signaling_request", sender, ice_sender, glob_self_ep, d_routing_table_controller )
 {
   return;
 }
@@ -139,7 +140,7 @@ void signaling_request::print() const
 
 
 signaling_response::signaling_response( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller ) :
-  signaling_observer( io_ctx, sender, ice_sender, glob_self_ep, d_routing_table_controller )
+  signaling_observer( io_ctx, "signaling_response", sender, ice_sender, glob_self_ep, d_routing_table_controller )
 {
   return;
 }
@@ -169,7 +170,7 @@ void signaling_response::print() const
 
 
 signaling_relay::signaling_relay( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, direct_routing_table_controller &d_routing_table_controller ) :
-  signaling_observer( io_ctx, sender, ice_sender, glob_self_ep, d_routing_table_controller )
+  signaling_observer( io_ctx, "signaling_observer:signaling_relay", sender, ice_sender, glob_self_ep, d_routing_table_controller )
 {
   return;
 }
@@ -193,8 +194,8 @@ void signaling_relay::print() const
 }
 
 
-stun_observer::stun_observer( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
-  base_observer( io_ctx )
+stun_observer::stun_observer( io_context &io_ctx, std::string t_name, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
+  base_observer( io_ctx, t_name )
   , _sender( sender )
   , _ice_sender( ice_sender )
   , _d_routing_table_controller( d_routing_table_controller )
@@ -203,7 +204,7 @@ stun_observer::stun_observer( io_context &io_ctx, class sender &sender, class ic
 }
 
 binding_request::binding_request( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &d_routing_table_controller ) :
-  stun_observer( io_ctx, sender, ice_sender, d_routing_table_controller )
+  stun_observer( io_ctx, "stun_observer:binding_request", sender, ice_sender, d_routing_table_controller )
   , _timer( io_ctx )
   , _is_timeout( false )
   , _is_handler_called( false )
@@ -211,10 +212,10 @@ binding_request::binding_request( io_context &io_ctx, class sender &sender, clas
   return;
 }
 
-void binding_request::init( std::shared_ptr<stun_server::sr_object> sr )
+void binding_request::init( std::shared_ptr<sr_object> sr )
 {
   _sr = sr; // sr objectのセット
-  _sr->update_state( stun_server::sr_object::state_t::pending ); // srの実質activate化
+  _sr->update_state( sr_object::state_t::pending ); // srの実質activate化
 
   // タイムアウトを予約する
   _timer.expires_from_now( boost::posix_time::seconds(DEFAULT_BINDING_REQUEST_TIMEOUT_s) );
@@ -328,14 +329,14 @@ void binding_request::update_sr( const consensus_ctx &cctx )
   // 状態変数の更新
   if( cctx.state == binding_request::consensus_ctx::done )
   {
-	_sr->update_state( stun_server::sr_object::done, cctx.ep );
+	_sr->update_state( sr_object::done, cctx.ep );
   }
   else if( cctx.state == binding_request::consensus_ctx::error_done )
   {
-	_sr->update_state( stun_server::sr_object::notfound );
+	_sr->update_state( sr_object::notfound );
   }
   else{
-	_sr->update_state( stun_server::sr_object::pending );
+	_sr->update_state( sr_object::pending );
   }
   return;
 }

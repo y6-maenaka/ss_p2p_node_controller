@@ -7,15 +7,15 @@ namespace kademlia
 {
 
 
-k_observer::k_observer( io_context &io_ctx )
-  : base_observer( io_ctx )
+k_observer::k_observer( io_context &io_ctx, std::string t_name )
+  : base_observer( io_ctx, t_name )
 {
   return;
 }
 
 
 ping::ping( io_context &io_ctx, ip::udp::endpoint ep, on_pong_handler pong_handler, on_timeout_handler timeout_handler ) :
-  k_observer( io_ctx )
+  k_observer( io_ctx, "k_observer:ping" )
   , _timer( io_ctx )
   , _dest_ep(ep)
   , _pong_handler( pong_handler )
@@ -76,7 +76,7 @@ void ping::print() const
 
 
 find_node::find_node( io_context &io_ctx, on_response_handler response_handler ) :
-  k_observer( io_ctx )
+  k_observer( io_ctx, "k_observer:find_node" )
   // , _rpc_manager( rpc_manager )
   , _response_handler( response_handler )
 {

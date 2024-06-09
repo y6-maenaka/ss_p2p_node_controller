@@ -52,7 +52,6 @@ set( ss_p2p_source_files
 	socket_manager.cpp
 	udp_server.cpp
 	observer.cpp
-	observer_strage.cpp
 	sender.cpp
 )
 set( ss_p2p_kademlia_include_files
@@ -74,7 +73,6 @@ set( ss_p2p_kademlia_source_files
 	dht_manager.cpp
 	node_id.cpp
 	k_observer.cpp
-	k_observer_strage.cpp
 	k_message.cpp
 	rpc_manager.cpp
 	direct_routing_table_controller.cpp
@@ -92,7 +90,6 @@ set( ss_p2p_ice_agent_include_files
 set( ss_p2p_ice_agent_source_files 
 	ice_agent.cpp
 	ice_observer.cpp
-	ice_observer_strage.cpp
 	signaling_server.cpp
 	stun_server.cpp
 	ice_message.cpp

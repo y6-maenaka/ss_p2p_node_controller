@@ -1,9 +1,7 @@
 #include <optional>
 
 #include <ss_p2p/ice_agent/ice_agent.hpp>
-#include <ss_p2p/ice_agent/ice_observer_strage.hpp>
 #include <ss_p2p/observer.hpp>
-
 
 
 namespace ss

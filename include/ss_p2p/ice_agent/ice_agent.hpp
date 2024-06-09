@@ -12,11 +12,11 @@
 #include <ss_p2p/sender.hpp>
 #include <ss_p2p/ss_logger.hpp>
 #include <utils.hpp>
-#include "./ice_message.hpp"
-#include "./ice_sender.hpp"
-#include "./ice_observer_strage.hpp"
-#include "./signaling_server.hpp"
-#include "./stun_server.hpp"
+#include <ss_p2p/ice_agent/ice_observer_strage.hpp>
+#include <ss_p2p/ice_agent/ice_message.hpp>
+#include <ss_p2p/ice_agent/ice_sender.hpp>
+#include <ss_p2p/ice_agent/signaling_server.hpp>
+#include <ss_p2p/ice_agent/stun_server.hpp>
 
 #include "boost/asio.hpp"
 

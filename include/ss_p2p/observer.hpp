@@ -2,6 +2,7 @@
 #define A3106EAE_F653_43A8_AFA9_3E54D88AD98F
 
 
+#include <string>
 #include <ss_p2p/message.hpp>
 
 #include "boost/asio.hpp"
@@ -26,13 +27,15 @@ constexpr unsigned short DEFAULT_EXPIRE_TIME_s = 20/*[seconds]*/;
 class base_observer
 {
 public:
+  const std::string type_name;
+
   using id = uuid;
   uuid get_id() const;
   std::string get_id_str() const;
   bool is_expired() const;
 
 protected:
-  base_observer( io_context &io_ctx );
+  base_observer( io_context &io_ctx, std::string t_name );
 
   void destruct_self(); // 本オブザーバーの破棄を許可する
   void extend_expire_at( std::time_t t = DEFAULT_EXPIRE_TIME_s );
@@ -88,6 +91,10 @@ public:
   id get_id() const
   {
 	return _body->get_id();
+  }
+  const std::string get_type_name() const
+  {
+	return _body->type_name;
   }
   void print() const
   {

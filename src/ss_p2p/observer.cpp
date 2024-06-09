@@ -5,10 +5,11 @@ namespace ss
 {
 
 
-base_observer::base_observer( io_context &io_ctx ) : 
+base_observer::base_observer( io_context &io_ctx, std::string t_name ) : 
   _id( random_generator()() ) 
   , _io_ctx( io_ctx )
   , _expire_at(std::time(nullptr) + DEFAULT_EXPIRE_TIME_s)
+  , type_name( t_name )
 {
   return;
 }

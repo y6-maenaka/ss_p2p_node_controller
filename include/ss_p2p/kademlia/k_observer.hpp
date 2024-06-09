@@ -32,7 +32,7 @@ class rpc_manager;
 class k_observer : public ss::base_observer
 {
 public:
-  k_observer( io_context &io_ctx );
+  k_observer( io_context &io_ctx, std::string t_name );
 };
 
 

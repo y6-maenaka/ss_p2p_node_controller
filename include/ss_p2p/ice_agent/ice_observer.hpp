@@ -14,8 +14,7 @@
 #include <ss_p2p/message.hpp>
 #include <ss_p2p/sender.hpp>
 #include <utils.hpp>
-#include "./ice_message.hpp"
-#include "./stun_server.hpp"
+#include <ss_p2p/ice_agent/ice_message.hpp>
 
 #include "boost/asio.hpp"
 
@@ -29,6 +28,8 @@ namespace ice
 {
 
 
+class stun_server;
+class sr_object;
 class ice_sender;
 constexpr unsigned short DEFAULT_SIGNALING_OPEN_TTL = 5;
 constexpr unsigned short MAXIMUM_BINDING_REQUEST_INQUIRE_COUNT = 6; // デフォルトでbinding_requestを送信するノード数
@@ -38,7 +39,7 @@ constexpr unsigned short DEFAULT_BINDING_REQUEST_TIMEOUT_s = 4;
 class signaling_observer : public ss::base_observer
 {
 public:
-  signaling_observer( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
+  signaling_observer( io_context &io_ctx, std::string t_name, class sender &sender, class ice_sender &ice_sender, ip::udp::endpoint &glob_self_ep, ss::kademlia::direct_routing_table_controller &d_routing_table_controller );
 protected:
   ss::kademlia::direct_routing_table_controller &_d_routing_table_controller;
   sender &_sender;
@@ -94,6 +95,7 @@ public:
 };
 
 
+
 class stun_observer : public ss::base_observer
 {
 public:
@@ -101,7 +103,7 @@ public:
   int income_message( message &msg, ip::udp::endpoint &ep );
   void print() const;
   
-  stun_observer( io_context &io_ctx, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &_d_routing_table_controller );
+  stun_observer( io_context &io_ctx, std::string t_name, class sender &sender, class ice_sender &ice_sender, ss::kademlia::direct_routing_table_controller &_d_routing_table_controller );
 private:
   sender &_sender;
   ice_sender &_ice_sender;
@@ -111,7 +113,7 @@ private:
 class binding_request : public stun_observer
 {
 public:
-  void init( std::shared_ptr<stun_server::sr_object> sr );
+  void init( std::shared_ptr<sr_object> sr );
 
   struct consensus_ctx
   {
@@ -142,7 +144,7 @@ public:
 #endif
   deadline_timer _timer; // for notice timeout
   std::vector <std::pair<ip::udp::endpoint/*問い合わせ先*/, std::optional<ip::udp::endpoint>/*問い合わせ結果*/> > _responses; // stun_requestを送信したノード一覧
-  std::shared_ptr<stun_server::sr_object> _sr;
+  std::shared_ptr<sr_object> _sr;
   bool _is_handler_called:1;
   bool _is_timeout:1;
 };
