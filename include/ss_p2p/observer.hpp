@@ -42,8 +42,20 @@ protected:
   std::time_t get_expire_time_left() const;
 
   std::time_t _expire_at; // このオブザーバーを破棄する時間
+  bool _expire_flag = false; // このフラグがtrueの時は強制的にexpireされたとみなす
   io_context &_io_ctx;
   const id _id;
+};
+
+
+class timer_observer // expireが時間によって制御される
+{
+
+};
+
+class counter_observer // expireがカウンタによって制御される
+{
+
 };
 
 

@@ -53,11 +53,11 @@ ss_message::ref peer::receive( std::time_t timeout )
   return std::make_shared<ss_message>(poped_msg, this->get_endpoint() /*自身のendpointを埋め込む*/ );
 }
 
-void peer::send( std::string msg )
+/* void peer::send( std::string msg )
 {
   json j_msg = msg;
   _s_send_func( _ep, std::string("messenger"), j_msg );
-} 
+} */
 
 ip::udp::endpoint peer::get_endpoint() const
 {

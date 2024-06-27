@@ -42,7 +42,7 @@ void base_observer::extend_expire_at( std::time_t t )
 
 bool base_observer::is_expired() const
 {
-  return _expire_at <= std::time(nullptr);
+  return (_expire_flag) || (_expire_at <= std::time(nullptr));
 }
 
 

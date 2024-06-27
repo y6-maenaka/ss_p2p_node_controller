@@ -41,8 +41,9 @@ public:
 
   bool operator ==(const peer& pr) const;
 
-  void send( std::span<char> msg );
-  void send( std::string msg );
+  /* void send( std::span<char> msg );
+  void send( std::string msg ); */
+  template <typename Container> void send( const Container &payload_c );
   ss_message_ref receive( std::time_t timeout = -1 );
   // -1: データが到着するまでブロッキングする
   // 0 : すぐに戻す
@@ -60,6 +61,14 @@ private:
   peer_message_buffer_ref _msg_pool_entry_ref; // 自身の受信バッファ
   s_send_func _s_send_func;
 };
+
+
+template <typename Container> void peer::send( const Container &payload_c /*payload_container*/ )
+{
+  std::string payload_s( payload_c.begin(), payload_c.end() );
+  json msg_j = payload_s;
+  _s_send_func( _ep, std::string("messenger"), msg_j ); // 実環境では,任意のアプリケーション名を指定する
+}
 
 
 }; // namespace ss
