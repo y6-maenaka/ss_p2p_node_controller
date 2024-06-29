@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include <random>
 #include <ss_p2p/message.hpp>
 
 #include "boost/asio.hpp"
@@ -35,17 +36,26 @@ public:
   bool is_expired() const;
 
 protected:
-  base_observer( io_context &io_ctx, std::string t_name );
+  base_observer( io_context &io_ctx, std::string t_name, const id &id_from = id() );
 
   void destruct_self(); // 本オブザーバーの破棄を許可する
   void extend_expire_at( std::time_t t = DEFAULT_EXPIRE_TIME_s );
   std::time_t get_expire_time_left() const;
 
-  std::time_t _expire_at; // このオブザーバーを破棄する時間
+  std::time_t _expire_at; // このオブザーバーを破棄する時間(UNIXタイム)
   bool _expire_flag = false; // このフラグがtrueの時は強制的にexpireされたとみなす
   io_context &_io_ctx;
-  const id _id;
+  id _id; // constが望ましい
 };
+
+static uuid generate_uuid_from_str( const std::string &seed )
+{
+  std::seed_seq ss( seed.begin(), seed.end() );
+  std::mt19937 rng(ss);
+
+  boost::uuids::basic_random_generator<std::mt19937> gen(&rng);
+  return gen();
+}
 
 
 class timer_observer // expireが時間によって制御される

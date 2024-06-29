@@ -5,13 +5,14 @@ namespace ss
 {
 
 
-base_observer::base_observer( io_context &io_ctx, std::string t_name ) : 
-  _id( random_generator()() ) 
+base_observer::base_observer( io_context &io_ctx, std::string t_name, const id &id_from ) : 
+  // _id( random_generator()() ) 
+  _id( random_generator()() )
   , _io_ctx( io_ctx )
   , _expire_at(std::time(nullptr) + DEFAULT_EXPIRE_TIME_s)
   , type_name( t_name )
 {
-  return;
+  if( _id.is_nil() ) _id = boost::uuids::random_generator()();
 }
 
 std::time_t base_observer::get_expire_time_left() const
