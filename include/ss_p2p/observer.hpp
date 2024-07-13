@@ -94,15 +94,11 @@ public:
   {
 	_body = std::make_shared<T>(io_ctx, std::forward<Args>(args)...);
   }
-
-  /* ref get_ref()
-  {
-	return shared_from_this();
-  } */
-  /* std::shared_ptr<observer<T>> get_ref()
+  
+  ref get_ref()
   {
 	return this->shared_from_this();
-  } */
+  }
 
   template < typename ... Args >
   void init( Args&& ... args )
