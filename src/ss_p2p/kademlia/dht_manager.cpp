@@ -38,7 +38,7 @@ int dht_manager::income_message( std::shared_ptr<message> msg, ip::udp::endpoint
   {
 	case k_message::rpc::ping :
 	  {
-		if( std::optional<observer<ping>> obs = _obs_strage.find_observer<ping>(obs_id); obs != std::nullopt ){
+		if( observer<ping>::ref obs = _obs_strage.find_observer<ping>(obs_id); obs != nullptr ){
 		  // std::cout << "\x1b[33m" << "<k observer strage> ping found" << "\n" << "\x1b[39m";
 		  return call_observer_income_message(*obs); // relay_observerの検索
 		}
@@ -46,7 +46,7 @@ int dht_manager::income_message( std::shared_ptr<message> msg, ip::udp::endpoint
 	  }
 	case k_message::rpc::find_node :
 	  {
-		if( std::optional<observer<find_node>> obs = _obs_strage.find_observer<find_node>(obs_id); obs != std::nullopt ){
+		if( observer<find_node>::ref obs = _obs_strage.find_observer<find_node>(obs_id); obs != nullptr ){
 		  // std::cout << "\x1b[33m" << "[dht_manager](k observer strage) find_node found" << "\n" << "\x1b[39m";
 		  return call_observer_income_message(*obs); // relay_observerの検索
 		}

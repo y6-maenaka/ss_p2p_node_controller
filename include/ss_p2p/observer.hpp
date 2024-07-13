@@ -34,6 +34,7 @@ public:
   uuid get_id() const;
   std::string get_id_str() const;
   bool is_expired() const;
+  const std::string get_type_name() const;
 
 protected:
   base_observer( io_context &io_ctx, std::string t_name, const id &id_from = id() );
@@ -70,13 +71,14 @@ class counter_observer // expireがカウンタによって制御される
 
 
 template < typename T >
-class observer // 実質wrapperクラス
+class observer : public std::enable_shared_from_this<observer<T>> // 実質wrapperクラス
 {
 private:
   std::shared_ptr<T> _body;
 
 public:
   using id = base_observer::id;
+  using ref = std::shared_ptr< observer<T> >;
 
   observer( std::shared_ptr<T> from )
   {
@@ -92,6 +94,15 @@ public:
   {
 	_body = std::make_shared<T>(io_ctx, std::forward<Args>(args)...);
   }
+
+  /* ref get_ref()
+  {
+	return shared_from_this();
+  } */
+  /* std::shared_ptr<observer<T>> get_ref()
+  {
+	return this->shared_from_this();
+  } */
 
   template < typename ... Args >
   void init( Args&& ... args )
@@ -116,7 +127,7 @@ public:
   }
   const std::string get_type_name() const
   {
-	return _body->type_name;
+	return _body->get_type_name();
   }
   void print() const
   {
@@ -143,9 +154,13 @@ public:
 template < typename T >
 struct observer<T>::Hash
 {
-  std::size_t operator()( const observer<T> &obs ) const
+  /* std::size_t operator()( const observer<T> &obs ) const
   {
 	return std::hash<std::string>()( boost::uuids::to_string(obs.get_id()) );
+  } */
+  std::size_t operator()( const std::shared_ptr<observer<T>> obs_ref  ) const
+  {
+	return 10;
   }
 };
 

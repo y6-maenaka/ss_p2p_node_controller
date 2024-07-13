@@ -31,7 +31,7 @@ int ice_agent::income_message( std::shared_ptr<message> msg, ip::udp::endpoint &
 
   auto call_observer_income_message = [&]( auto &obs )
   {
-	return obs.income_message( *msg, ep );
+	return obs->income_message( *msg, ep );
   };
 
   const auto protocol = ice_msg.get_protocol();
@@ -39,17 +39,17 @@ int ice_agent::income_message( std::shared_ptr<message> msg, ip::udp::endpoint &
   {
 	observer_id obs_id = ice_msg.get_observer_id();
 
-	if( std::optional<observer<signaling_relay>> obs = _obs_strage.find_observer<signaling_relay>(obs_id); obs != std::nullopt ){
+	if( observer<signaling_relay>::ref obs = _obs_strage.find_observer<signaling_relay>(obs_id); obs != nullptr ){
 	  // std::cout << "\x1b[33m" << "<ice observer strage> signaling_relay found" << "\n" << "\x1b[39m";
-	  return call_observer_income_message(*obs); // relay_observerの検索
+	  return call_observer_income_message(obs); // relay_observerの検索
 	}
-	if( std::optional<observer<signaling_request>> obs = _obs_strage.find_observer<signaling_request>(obs_id); obs != std::nullopt ){
+	if( observer<signaling_request>::ref obs = _obs_strage.find_observer<signaling_request>(obs_id); obs != nullptr ){
 	  // std::cout << "\x1b[33m" << "<ice observer strage> signaling_request found" << "\n" << "\x1b[39m";
-	  return call_observer_income_message(*obs); // relay_observerの検索
+	  return call_observer_income_message(obs); // relay_observerの検索
 	}
-	if( std::optional<observer<signaling_response>> obs = _obs_strage.find_observer<signaling_response>(obs_id); obs != std::nullopt ){
+	if( observer<signaling_response>::ref obs = _obs_strage.find_observer<signaling_response>(obs_id); obs != nullptr ){
 	  // std::cout << "\x1b[33m" << "<ice observer strage> signaling_response found" << "\n" << "\x1b[39m";
-	  return call_observer_income_message(*obs); // relay_observerの検索
+	  return call_observer_income_message(obs); // relay_observerの検索
 	}
 
 	/* #if SS_DEBUG
@@ -63,9 +63,9 @@ int ice_agent::income_message( std::shared_ptr<message> msg, ip::udp::endpoint &
   {
 	observer_id obs_id = ice_msg.get_observer_id();
 
-	if( std::optional<observer<binding_request>> obs = _obs_strage.find_observer<binding_request>(obs_id); obs != std::nullopt ){
+	if( observer<binding_request>::ref obs = _obs_strage.find_observer<binding_request>(obs_id); obs != nullptr ){
 	  // std::cout << "\x1b[33m" << "<stun observer strage> binding_request found" << "\n" << "\x1b[39m";
-	  return call_observer_income_message (*obs);
+	  return call_observer_income_message (obs);
 	}
 
 	_stun_server.income_message( msg, ep);

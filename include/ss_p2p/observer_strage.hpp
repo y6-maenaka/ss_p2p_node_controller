@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <optional>
+#include <iostream>
 
 #include "./observer.hpp"
 #include <utils.hpp>
@@ -26,13 +27,13 @@ constexpr unsigned short DEFAULT_OBSERVER_STRAGE_SHOW_STATE_TIME_s = 2/*[seconds
 template <typename... Ts> class observer_strage
 {
 protected:
-  template < typename T > using entry = std::unordered_set< observer<T>, typename observer<T>::Hash >;
+  template < typename T > using entry = std::unordered_set< typename observer<T>::ref, typename observer<T>::Hash >;
 
   std::tuple< entry<Ts>... > _strage;
   io_context &_io_ctx;
 
   template < typename T > void delete_expires_observer( entry<T> &entry );
-  template < typename T > void print_entry_state( entry<T> &entry );
+  template < typename T > void print_entry_state( const entry<T> &e );
 
   void call_tick();
   void refresh_tick( const boost::system::error_code &ec );
@@ -41,17 +42,36 @@ protected:
 public:
   observer_strage( io_context &io_ctx );
 
-  template < typename T > std::optional< observer<T> > find_observer( observer_id id ); // 検索・取得メソッド
+  template < typename T > typename observer<T>::ref find_observer( const observer_id &id ); // 検索・取得メソッド
+  template < typename T > typename observer<T>::ref pop_observer( const observer_id &id );
   template < typename T > void add_observer( observer<T> obs ); // 追加メソッド
-  
+  template < typename T > void add_observer( typename observer<T>::ref obs_ref );
+
   #if SS_DEBUG
   deadline_timer _debug_tick_timer;
-
   void show_state( const boost::system::error_code &ec )
   {
 	std::apply([this](auto &... args)
 	  {
-		  ((print_entry_state(args)), ...);
+		  // ((this->print_entry_state<typename std::decay<decltype(*args.begin())>::type::element_type>(args)), ...);
+		  /*
+		   decltype(*args.begin()); 
+			- パラメータパックのbegin()メソッドを呼び出す
+			- decltypeはその参照型を取得する
+
+			std::decay<...>::type;
+			- std::decayは型修飾を取り除き, 基本的な型を取得する. (例) ポインタや修飾, const属性を取り除く
+
+			element_type;
+			- スマートポインタやコンテナ型などで使用されるメンバ型
+		  */
+
+		  ((this->print_entry_state<Ts>(args)), ...);
+		  /* イメージ
+		   print_entry_state(args1);
+		   print_entry_state(args2);
+		   print_entry_state(args3);
+		  */
 	  }, _strage );
 
 	_debug_tick_timer.expires_from_now(boost::posix_time::seconds( DEFAULT_OBSERVER_STRAGE_SHOW_STATE_TIME_s ));
@@ -77,10 +97,12 @@ template< typename T > void observer_strage<Ts...>::delete_expires_observer( obs
 {
   for( auto itr = entry.begin(); itr != entry.end(); )
   {
-	if( (*itr).is_expired() )
+	if( (*itr)->is_expired() )
 	{
 	  #if SS_VERBOSE
-	  std::cout << "\x1b[33m" << " | [" << (*itr).get_type_name() << "](delete observer) :: " <<"\x1b[39m" << (*itr).get_id() << "\n";
+	  // std::cout << "\x1b[33m" << " | [" << (*itr)->get_type_name() << "](delete observer) :: " <<"\x1b[39m" << (*itr)->get_id() << "\n";
+	  std::cout << (*itr)->get_type_name() << "\n";
+	  std::cout << (*itr)->get_id() << "\n";
 	  #endif
 	  itr = entry.erase(itr);
 	}
@@ -90,30 +112,30 @@ template< typename T > void observer_strage<Ts...>::delete_expires_observer( obs
 }
 
 template < typename... Ts >
-template < typename T > void observer_strage<Ts...>::print_entry_state( observer_strage::entry<T> &entry ) // 修正が必要
+template < typename T > void observer_strage<Ts...>::print_entry_state( const observer_strage::entry<T> &e ) // 修正が必要
 {
   for( int i=0; i<get_console_width()/2; i++ ){ printf("="); } std::cout << "\n";
-  /* if constexpr (std::is_same_v<T, signaling_request>)
-	std::cout << "| signaling_request" << "\n";
-  else if constexpr (std::is_same_v<T, signaling_relay>) std::cout << "| signaling_relay" << "\n";
-  else if constexpr (std::is_same_v<T, signaling_response>) std::cout << "| signaling_response" << "\n";
-  else if constexpr (std::is_same_v<T, binding_request>) std::cout << "| binding_request" << "\n";
-  else if constexpr (std::is_same_v<T, ping>) std::cout << "| ping" << "\n";
-  else if constexpr (std::is_same_v<T, find_node>) std::cout << "| find_node" << "\n";
-  else std::cout << "| undefine" << "\n"; */
+  // if constexpr (std::is_same_v<T, signaling_request>)
+  // std::cout << "| signaling_request" << "\n";
+  // else if constexpr (std::is_same_v<T, signaling_relay>) std::cout << "| signaling_relay" << "\n";
+  // else if constexpr (std::is_same_v<T, signaling_response>) std::cout << "| signaling_response" << "\n";
+  // else if constexpr (std::is_same_v<T, binding_request>) std::cout << "| binding_request" << "\n";
+  // else if constexpr (std::is_same_v<T, ping>) std::cout << "| ping" << "\n";
+  // else if constexpr (std::is_same_v<T, find_node>) std::cout << "| find_node" << "\n";
+  // else std::cout << "| undefine" << "\n";
   std::cout << "| ENTRY" << "\n";
 
   unsigned int count = 0;
   for( int i=0; i<get_console_width()/2; i++ ){ printf("-"); } std::cout << "\n";
   std::cout << "\x1b[32m";
-  for( auto &itr : entry )
+  for( auto &itr : e )
   {
 	std::cout << "| ("<< count << ") ";
-	itr.print(); std::cout << "\n";
+	itr->print(); std::cout << "\n";
 	count++;
   }
   std::cout << "\x1b[39m" << "\n";
-}
+} 
 
 template < typename... Ts >
 void observer_strage<Ts...>::call_tick()
@@ -127,20 +149,27 @@ void observer_strage<Ts...>::refresh_tick( const boost::system::error_code &ec )
 {
   std::apply([this](auto &... args)
 	  {
-		  ((delete_expires_observer(args)), ...);
-	  }, _strage );
+		  // ((this->delete_expires_observer<typename std::decay<decltype(*args.begin())>::type::element_type>(args)), ...);
+		  ((this->delete_expires_observer<Ts>(args)), ...);
+	  }, _strage ); 
 
   call_tick(); // 循環的に呼び出し
 }
 
 template < typename... Ts >
-template < typename T > std::optional< observer<T> > observer_strage<Ts...>::find_observer( observer_id id ) // 検索・取得メソッド
+template < typename T > typename observer<T>::ref observer_strage<Ts...>::find_observer( const observer_id &id ) // 検索・取得メソッド
 {
  auto &s_entry = std::get< entry<T> >(_strage);
   for( auto &itr : s_entry )
-	if( itr.get_id() == id && !(itr.is_expired()) ) return itr;
+	if( itr->get_id() == id && !(itr->is_expired()) ) return itr;
 
-  return std::nullopt;
+  return nullptr;
+}
+
+template < typename... Ts >
+template < typename T > typename observer<T>::ref observer_strage<Ts...>::pop_observer( const observer_id &id )
+{
+  return nullptr;
 }
 
 template < typename... Ts >
@@ -154,8 +183,18 @@ template < typename T > void observer_strage<Ts...>::add_observer( observer<T> o
   else std::cout << "| [ice observer strage](undefined observer) store" << "\n";
   #endif */
 
-  auto &s_entry = std::get< observer_strage::entry<T> >(_strage);
-  s_entry.insert(obs);
+  // auto &s_entry = std::get< observer_strage::entry<T> >(_strage);
+  // s_entry.insert( obs );
+
+  /* auto &s_entry = std::get< entry<T> >(_strage);
+  s_entry.insert( obs.get_ref() ); */
+}
+
+template < typename... Ts >
+template < typename T > void observer_strage<Ts...>::add_observer( typename observer<T>::ref obs_ref )
+{
+  /* auto &s_entry = std::get< observer_strage::entry<T> >(_strage);
+  s_entry.insert( obs_ref ); */
 }
 
 

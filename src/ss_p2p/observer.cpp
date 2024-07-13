@@ -46,6 +46,11 @@ bool base_observer::is_expired() const
   return (_expire_flag) || (_expire_at <= std::time(nullptr));
 }
 
+const std::string base_observer::get_type_name() const
+{
+  return type_name;
+}
+
 
 base_observer::id str_to_observer_id( std::string id_str )
 {
