@@ -81,12 +81,12 @@ void peer::print() const
 
 std::size_t peer::Hash::operator()( const peer &p ) const
 {
-  return 10;
+  return std::hash<std::string>()( std::string(p._id.begin(), p._id.end()) );
 }
 
 std::size_t peer::Hash::operator()( const peer::ref &p_ref ) const
 {
-  return 10;
+  return std::hash<std::string>()( std::string(p_ref->_id.begin(), p_ref->_id.end()) );
 }
 
 

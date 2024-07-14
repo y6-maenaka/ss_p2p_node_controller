@@ -133,10 +133,6 @@ public:
   {
 	return _body->print();
   }
-  /* std::shared_ptr<T> get_raw()
-  {
-	return _body;
-  } */
   std::time_t get_expire_time_left() const
   {
 	return std::dynamic_pointer_cast<base_observer>(_body)->get_expire_time_left();
