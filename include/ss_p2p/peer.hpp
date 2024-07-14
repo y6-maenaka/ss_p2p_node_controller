@@ -48,6 +48,7 @@ public:
   // -1: データが到着するまでブロッキングする
   // 0 : すぐに戻す
   // n : n秒間データの到着を待つ
+  const bool ping() const; // peerが生きているか調べる
 
   peer( ip::udp::endpoint ep, peer_message_buffer_ref _msg_pool_entry_ref/*message_poolで管理される自身の受信バッファ*/, s_send_func send_func );
   ~peer();
@@ -57,9 +58,17 @@ public:
   static peer::id calc_peer_id( const ip::udp::endpoint &ep );
 
   void print() const;
+
+  struct Hash;
 private:
   peer_message_buffer_ref _msg_pool_entry_ref; // 自身の受信バッファ
   s_send_func _s_send_func;
+};
+
+struct peer::Hash
+{
+  std::size_t operator()( const peer &p ) const;
+  std::size_t operator()( const peer::ref &p_ref ) const;
 };
 
 

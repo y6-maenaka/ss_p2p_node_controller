@@ -53,6 +53,11 @@ ss_message::ref peer::receive( std::time_t timeout )
   return std::make_shared<ss_message>(poped_msg, this->get_endpoint() /*自身のendpointを埋め込む*/ );
 }
 
+const bool peer::ping() const
+{
+  return false;
+}
+
 /* void peer::send( std::string msg )
 {
   json j_msg = msg;
@@ -72,6 +77,16 @@ peer::id peer::calc_peer_id( const ip::udp::endpoint &ep )
 void peer::print() const
 {
   std::cout << _ep << " : ";
+}
+
+std::size_t peer::Hash::operator()( const peer &p ) const
+{
+  return 10;
+}
+
+std::size_t peer::Hash::operator()( const peer::ref &p_ref ) const
+{
+  return 10;
 }
 
 

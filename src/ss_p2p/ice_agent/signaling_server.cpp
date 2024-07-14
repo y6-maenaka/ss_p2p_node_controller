@@ -42,7 +42,7 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
 	auto enc_msg = ice_msg.encode(); // ルーティングテーブルにリクエストepが存在しなくてもとりあえず返信する
 	_sender.async_send( src_ep, "ice_agent", enc_msg
 		, std::bind( &signaling_response::init
-		  , *(sgnl_response_obs.get_raw())
+		  , *(sgnl_response_obs.get())
 		  , std::placeholders::_1 )
 		);
 
@@ -61,7 +61,7 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
   {
 	_ice_sender.async_ice_send( dest_ep, ice_msg, // 直接相手アドレスに転送する
 		std::bind( &signaling_relay::init // 送信に失敗したらオブザーバーは早めに破棄される
-		  , *(sgnl_relay_obs.get_raw()) )
+		  , *(sgnl_relay_obs.get()) )
 		);
 
 	#ifndef SS_LOGGING_DISABLE
@@ -87,7 +87,7 @@ int signaling_server::income_message( std::shared_ptr<message> msg, ip::udp::end
   {
 	_ice_sender.async_ice_send( itr, ice_msg
 		, std::bind( &signaling_relay::init // 送信に失敗したら早めに削除される
-		  , *(sgnl_relay_obs.get_raw()) )
+		  , *(sgnl_relay_obs.get()) )
 		);
 
 	#ifndef SS_LOGGING_DISABLE

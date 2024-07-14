@@ -100,8 +100,12 @@ public:
 	return this->shared_from_this();
   }
 
-  template < typename ... Args >
-  void init( Args&& ... args )
+  std::shared_ptr<T> get()
+  {
+	return _body;
+  }
+
+  template < typename ... Args > void init( Args&& ... args )
   {
 	return _body->init( std::forward<Args>(args)... );
   }
@@ -129,10 +133,10 @@ public:
   {
 	return _body->print();
   }
-  std::shared_ptr<T> get_raw()
+  /* std::shared_ptr<T> get_raw()
   {
 	return _body;
-  }
+  } */
   std::time_t get_expire_time_left() const
   {
 	return std::dynamic_pointer_cast<base_observer>(_body)->get_expire_time_left();
@@ -145,18 +149,19 @@ public:
   {
 	return _body->get_id() != obs.get_id();
   }
+
   struct Hash;
 };
 template < typename T >
 struct observer<T>::Hash
 {
-  /* std::size_t operator()( const observer<T> &obs ) const
+  std::size_t operator()( const observer<T> &obs ) const
   {
 	return std::hash<std::string>()( boost::uuids::to_string(obs.get_id()) );
-  } */
-  std::size_t operator()( const std::shared_ptr<observer<T>> obs_ref  ) const
+  } 
+  std::size_t operator()( const std::shared_ptr<observer<T>> &obs_ref  ) const
   {
-	return 10;
+	return std::hash<std::string>()( boost::uuids::to_string(obs_ref->get_id()) );
   }
 };
 

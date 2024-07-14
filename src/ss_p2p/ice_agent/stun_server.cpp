@@ -64,7 +64,7 @@ void stun_server::on_send_done( const boost::system::error_code &ec, std::size_t
   for( auto itr : request_nodes )
   { // binding_requestを送信する
 	_ice_sender.async_ice_send( itr, ice_msg, std::bind( &stun_server::on_send_done, this, std::placeholders::_1, std::placeholders::_2 ) );
-	binding_req_obs.get_raw()->add_requested_ep( itr );
+	binding_req_obs.get()->add_requested_ep( itr );
   }
   return sr;
 }
