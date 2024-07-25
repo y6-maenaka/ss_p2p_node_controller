@@ -11,6 +11,14 @@
 #include <utils.hpp>
 
 #include "boost/asio.hpp"
+#include "boost/multi_index_container.hpp"
+#include "boost/multi_index/tag.hpp"
+#include "boost/multi_index/identity.hpp"
+#include "boost/multi_index/indexed_by.hpp"
+#include "boost/multi_index/hashed_index.hpp"
+#include "boost/multi_index/ordered_index.hpp"
+#include "boost/multi_index/sequenced_index.hpp"
+#include "boost/multi_index/member.hpp"
 
 
 using namespace boost::asio;
@@ -22,6 +30,23 @@ namespace ss
 
 constexpr unsigned short DEFAULT_OBSERVER_STRAGE_TICK_TIME_s = 60/*[seconds]*/;
 constexpr unsigned short DEFAULT_OBSERVER_STRAGE_SHOW_STATE_TIME_s = 2/*[seconds]*/;
+
+
+struct by_observer_id;
+
+template <typename T> struct DEFAULT_OBSERVER_STRAGE_POLICY
+{
+  typedef boost::multi_index::indexed_by 
+	<
+	  boost::multi_index::hashed_unique< boost::multi_index::tag<by_observer_id>, boost::multi_index::identity< observer<T> >, typename observer<T>::Hash, typename observer<T>::Equal  > // observer_id
+	> index;
+
+  /*
+   インデックスの種類
+   (identity) : 要素自体をキーとして使用するインデックス(カスタムハッシュ等を与えることもできる)
+   (member) : 構造体のメンバーを直接指定してそれをキーにすることができる
+  */
+};
 
 
 template <typename... Ts> class observer_strage
@@ -42,11 +67,14 @@ protected:
 public:
   observer_strage( io_context &io_ctx );
 
+  // search系メソッド
   template < typename T > typename observer<T>::ref find_observer( const observer_id &id ); // 検索・取得メソッド
   template < typename T > entry<T>::iterator find_observer_itr( const observer_id &id );
   template < typename T > typename observer<T>::ref pop_observer( const observer_id &id );
-  template < typename T > void add_observer( observer<T> obs ); // 追加メソッド
-  template < typename T > void add_observer( typename observer<T>::ref obs_ref );
+ 
+  // 追加/削除系メソッド
+  template < typename T > const bool add_observer( observer<T> obs ); // 追加メソッド
+  template < typename T > const bool add_observer( typename observer<T>::ref obs_ref );
   template < typename T > entry<T>::iterator delete_observer( entry<T> &e, entry<T>::iterator obs_itr );
 
   #if SS_DEBUG
@@ -134,19 +162,19 @@ void observer_strage<Ts...>::refresh_tick( const boost::system::error_code &ec )
 }
 
 template < typename... Ts >
-template < typename T > typename observer<T>::ref observer_strage<Ts...>::find_observer( const observer_id &id ) // 検索・取得メソッド
-{
-  if( auto ret = this->find_observer_itr<T>(id); ret != std::get< entry<T> >(_strage).end() ) return *ret;
-  return nullptr;
-}
-
-template < typename... Ts >
 template < typename T > observer_strage<Ts...>::entry<T>::iterator observer_strage<Ts...>::find_observer_itr( const observer_id &id )
 {
   auto &s_entry = std::get< entry<T> >(_strage);
   for( auto itr = s_entry.begin(); itr != s_entry.end(); itr++ )
 	if( (*itr)->get_id() == id && !((*itr)->is_expired()) ) return itr;
   return s_entry.end();
+}
+
+template < typename... Ts >
+template < typename T > typename observer<T>::ref observer_strage<Ts...>::find_observer( const observer_id &id ) // 検索・取得メソッド
+{
+  if( auto ret = this->find_observer_itr<T>(id); ret != std::get< entry<T> >(_strage).end() ) return *ret;
+  return nullptr;
 }
 
 template < typename... Ts >
@@ -163,7 +191,7 @@ template < typename T > typename observer<T>::ref observer_strage<Ts...>::pop_ob
 }
 
 template < typename... Ts >
-template < typename T > void observer_strage<Ts...>::add_observer( observer<T> obs ) // 修正が必要
+template < typename T > const bool observer_strage<Ts...>::add_observer( observer<T> obs ) // 修正が必要
 {
   /* #if SS_VERBOSE
   if constexpr (std::is_same_v<T, signaling_request>) std::cout << "| [ice observer strage](signaling_request observer) store" << "\n";
@@ -175,14 +203,14 @@ template < typename T > void observer_strage<Ts...>::add_observer( observer<T> o
 
   // auto &s_entry = std::get< entry<T> >(_strage);
   auto &s_entry = std::get< typename observer_strage<Ts...>::template entry<T> >(_strage);
-  s_entry.insert( obs.get_ref() );
+  return (s_entry.insert( obs.get_ref() )).second;
 }
 
 template < typename... Ts >
-template < typename T > void observer_strage<Ts...>::add_observer( typename observer<T>::ref obs_ref )
+template < typename T > const bool observer_strage<Ts...>::add_observer( typename observer<T>::ref obs_ref )
 {
   auto &s_entry = std::get< typename observer_strage<Ts...>::template entry<T> >(_strage);
-  s_entry.insert( obs_ref );
+  return (s_entry.insert( obs_ref )).second;
 }
 
 template < typename... Ts >

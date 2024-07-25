@@ -147,6 +147,7 @@ public:
   }
 
   struct Hash;
+  struct Equal;
 };
 template < typename T >
 struct observer<T>::Hash
@@ -158,6 +159,14 @@ struct observer<T>::Hash
   std::size_t operator()( const std::shared_ptr<observer<T>> &obs_ref  ) const
   {
 	return std::hash<std::string>()( boost::uuids::to_string(obs_ref->get_id()) );
+  }
+};
+template < typename T >
+struct observer<T>::Equal
+{
+  bool operator()( const observer<T> &lobs, const observer<T> &robs ) const
+  {
+	return lobs == robs;
   }
 };
 
