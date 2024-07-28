@@ -48,12 +48,18 @@ template <typename T> struct DEFAULT_OBSERVER_STRAGE_POLICY
   */
 };
 
-
-template <typename... Ts> class observer_strage
+template < template<typename> class IndexPolicy, typename... Ts >
+class observer_strage
 {
 protected:
-  template < typename T > using entry = std::unordered_set< typename observer<T>::ref, typename observer<T>::Hash >;
+  // template < typename T > using entry = std::unordered_set< typename observer<T>::ref, typename observer<T>::Hash >;
 
+  template<typename T>
+	using entry = boost::multi_index_container<
+		typename observer<T>::ref // 型がこの段階で特定できない場合にtypenameを使う(?)
+		, typename IndexPolicy<T>::index >;
+
+  // std::tuple< entry<Ts>... > _strage;
   std::tuple< entry<Ts>... > _strage;
   io_context &_io_ctx;
 
@@ -84,8 +90,8 @@ public:
 };
 
 
-template < typename... Ts >
-observer_strage<Ts...>::observer_strage( io_context &io_ctx ) :
+template < template<typename> class IndexPolicy, typename... Ts >
+observer_strage< IndexPolicy, Ts...>::observer_strage( io_context &io_ctx ) :
   _io_ctx(io_ctx)
   , _refresh_tick_timer( io_ctx )
   #if SS_DEBUG
@@ -95,8 +101,8 @@ observer_strage<Ts...>::observer_strage( io_context &io_ctx ) :
   this->call_tick();
 }
 
-template< typename... Ts >
-template< typename T > void observer_strage<Ts...>::delete_expires_observer( observer_strage::entry<T> &e )
+template< template<typename> class IndexPolicy, typename... Ts >
+template< typename T > void observer_strage< IndexPolicy, Ts...>::delete_expires_observer( typename observer_strage::entry<T> &e )
 {
   for( auto itr = e.begin(); itr != e.end(); )
   {
@@ -116,8 +122,8 @@ template< typename T > void observer_strage<Ts...>::delete_expires_observer( obs
   return;
 }
 
-template < typename... Ts >
-template < typename T > void observer_strage<Ts...>::print_entry_state( const observer_strage::entry<T> &e ) // 修正が必要
+template < template<typename> class IndexPolicy, typename... Ts >
+template < typename T > void observer_strage< IndexPolicy, Ts...>::print_entry_state( const typename observer_strage::entry<T> &e ) // 修正が必要
 {
   for( int i=0; i<get_console_width()/2; i++ ){ printf("="); } std::cout << "\n";
   // if constexpr (std::is_same_v<T, signaling_request>)
@@ -142,15 +148,15 @@ template < typename T > void observer_strage<Ts...>::print_entry_state( const ob
   std::cout << "\x1b[39m" << "\n";
 } 
 
-template < typename... Ts >
-void observer_strage<Ts...>::call_tick()
+template < template<typename> class IndexPolicy, typename... Ts >
+void observer_strage< IndexPolicy, Ts...>::call_tick()
 {
   _refresh_tick_timer.expires_from_now(boost::posix_time::seconds( DEFAULT_OBSERVER_STRAGE_TICK_TIME_s ));
   _refresh_tick_timer.async_wait( std::bind( &observer_strage::refresh_tick, this , std::placeholders::_1 ) );
 }
 
-template < typename... Ts >
-void observer_strage<Ts...>::refresh_tick( const boost::system::error_code &ec )
+template < template<typename> class IndexPolicy, typename... Ts >
+void observer_strage< IndexPolicy, Ts...>::refresh_tick( const boost::system::error_code &ec )
 {
   std::apply([this](auto &... args)
 	  {
@@ -161,8 +167,8 @@ void observer_strage<Ts...>::refresh_tick( const boost::system::error_code &ec )
   call_tick(); // 循環的に呼び出し
 }
 
-template < typename... Ts >
-template < typename T > observer_strage<Ts...>::entry<T>::iterator observer_strage<Ts...>::find_observer_itr( const observer_id &id )
+template < template<typename> class IndexPolicy, typename... Ts >
+template < typename T > observer_strage< IndexPolicy, Ts...>::entry<T>::iterator observer_strage< IndexPolicy, Ts...>::find_observer_itr( const observer_id &id )
 {
   auto &s_entry = std::get< entry<T> >(_strage);
   for( auto itr = s_entry.begin(); itr != s_entry.end(); itr++ )
@@ -170,15 +176,15 @@ template < typename T > observer_strage<Ts...>::entry<T>::iterator observer_stra
   return s_entry.end();
 }
 
-template < typename... Ts >
-template < typename T > typename observer<T>::ref observer_strage<Ts...>::find_observer( const observer_id &id ) // 検索・取得メソッド
+template < template <typename> class IndexPolicy, typename... Ts >
+template < typename T > typename observer<T>::ref observer_strage< IndexPolicy, Ts...>::find_observer( const observer_id &id ) // 検索・取得メソッド
 {
   if( auto ret = this->find_observer_itr<T>(id); ret != std::get< entry<T> >(_strage).end() ) return *ret;
   return nullptr;
 }
 
-template < typename... Ts >
-template < typename T > typename observer<T>::ref observer_strage<Ts...>::pop_observer( const observer_id &id )
+template < template<typename> class IndexPolicy, typename... Ts >
+template < typename T > typename observer<T>::ref observer_strage< IndexPolicy, Ts...>::pop_observer( const observer_id &id )
 {
   auto &s_entry = std::get< entry<T> >(_strage);
   if( auto ret_itr = find_observer_itr<T>(id); ret_itr != s_entry.end() )
@@ -190,8 +196,8 @@ template < typename T > typename observer<T>::ref observer_strage<Ts...>::pop_ob
   return nullptr;
 }
 
-template < typename... Ts >
-template < typename T > const bool observer_strage<Ts...>::add_observer( observer<T> obs ) // 修正が必要
+template < template<typename> class IndexPolicy, typename... Ts >
+template < typename T > const bool observer_strage< IndexPolicy, Ts...>::add_observer( observer<T> obs ) // 修正が必要
 {
   /* #if SS_VERBOSE
   if constexpr (std::is_same_v<T, signaling_request>) std::cout << "| [ice observer strage](signaling_request observer) store" << "\n";
@@ -202,27 +208,28 @@ template < typename T > const bool observer_strage<Ts...>::add_observer( observe
   #endif */
 
   // auto &s_entry = std::get< entry<T> >(_strage);
-  auto &s_entry = std::get< typename observer_strage<Ts...>::template entry<T> >(_strage);
+  
+  auto &s_entry = std::get< typename observer_strage<IndexPolicy, Ts...>::template entry<T> >(_strage);
   return (s_entry.insert( obs.get_ref() )).second;
 }
 
-template < typename... Ts >
-template < typename T > const bool observer_strage<Ts...>::add_observer( typename observer<T>::ref obs_ref )
+template < template<typename> class IndexPolicy, typename... Ts >
+template < typename T > const bool observer_strage< IndexPolicy, Ts...>::add_observer( typename observer<T>::ref obs_ref )
 {
-  auto &s_entry = std::get< typename observer_strage<Ts...>::template entry<T> >(_strage);
+  auto &s_entry = std::get< typename observer_strage< IndexPolicy, Ts...>::template entry<T> >(_strage);
   return (s_entry.insert( obs_ref )).second;
 }
 
-template < typename... Ts >
-template < typename T > observer_strage<Ts...>::entry<T>::iterator observer_strage<Ts...>::delete_observer( entry<T> &e, entry<T>::iterator obs_itr )
+template < template<typename> class IndexPolicy, typename... Ts >
+template < typename T > observer_strage< IndexPolicy, Ts...>::entry<T>::iterator observer_strage< IndexPolicy, Ts...>::delete_observer( entry<T> &e, entry<T>::iterator obs_itr )
 {
   return e.erase(obs_itr);
 }
 
 
 #if SS_DEBUG
-template < typename... Ts >
-void observer_strage<Ts...>::show_state( const boost::system::error_code &ec )
+template < template<typename> class IndexPolicy, typename... Ts >
+void observer_strage< IndexPolicy, Ts...>::show_state( const boost::system::error_code &ec )
 {
   std::apply([this](auto &... args)
 	{

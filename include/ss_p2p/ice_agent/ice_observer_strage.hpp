@@ -14,7 +14,7 @@ namespace ice
 
 constexpr unsigned short DEFAULT_OBSERVER_STRAGE_TICK_TIME_s = 10/*[seconds]*/;
 constexpr unsigned short DEFAULT_OBSERVER_STRAGE_SHOW_STATE_TIME_s = 2/*[seconds]*/;
-using ice_observer_strage = observer_strage< signaling_request, signaling_response, signaling_relay, binding_request >;
+using ice_observer_strage = observer_strage< DEFAULT_OBSERVER_STRAGE_POLICY, signaling_request, signaling_response, signaling_relay, binding_request >;
 
 
 };

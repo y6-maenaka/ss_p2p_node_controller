@@ -15,7 +15,7 @@ namespace kademlia
 
 constexpr unsigned short DEFAULT_OBSERVER_STRAGE_TICK_TIME_s = 8/*[seconds]*/;
 constexpr unsigned short DEFAULT_OBSERVER_STRAGE_SHOW_STATE_TIME_s = 2/*[seconds]*/;
-using k_observer_strage = observer_strage<ping, find_node>;
+using k_observer_strage = observer_strage< DEFAULT_OBSERVER_STRAGE_POLICY, ping, find_node>;
 
 
 };
