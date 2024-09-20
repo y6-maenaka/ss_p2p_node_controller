@@ -27,6 +27,7 @@ constexpr unsigned short DEFAULT_EXPIRE_TIME_s = 20/*[seconds]*/;
 
 class base_observer
 {
+  // friend struct by_observer_id;
 public:
   const std::string type_name;
 
@@ -160,6 +161,10 @@ struct observer<T>::Hash
   {
 	return std::hash<std::string>()( boost::uuids::to_string(obs_ref->get_id()) );
   }
+  std::size_t operator()( const typename observer<T>::id &obs_id ) const
+  {
+	return std::hash<std::string>()( boost::uuids::to_string(obs_id) );
+  }
 };
 template < typename T >
 struct observer<T>::Equal
@@ -167,6 +172,14 @@ struct observer<T>::Equal
   bool operator()( const observer<T> &lobs, const observer<T> &robs ) const
   {
 	return lobs == robs;
+  }
+  bool operator()( const observer<T>::ref &lobs_ref, const observer<T>::ref &robs_ref ) const
+  {
+	return (*lobs_ref) == (*robs_ref);
+  }
+  bool operator()( const typename observer<T>::id &lid, const typename observer<T>::id &rid ) const
+  {
+	return lid == rid;
   }
 };
 

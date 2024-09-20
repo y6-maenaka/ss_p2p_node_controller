@@ -28,7 +28,7 @@ int dht_manager::income_message( std::shared_ptr<message> msg, ip::udp::endpoint
 
   auto call_observer_income_message = [&]( auto &obs )
   {
-	return obs.income_message( *msg, ep );
+	return obs->income_message( *msg, ep );
   };
 
   const auto rpc = k_msg.get_rpc();
@@ -38,17 +38,19 @@ int dht_manager::income_message( std::shared_ptr<message> msg, ip::udp::endpoint
   {
 	case k_message::rpc::ping :
 	  {
-		if( observer<ping>::ref obs = _obs_strage.find_observer<ping>(obs_id); obs != nullptr ){
+		if( k_observer_strage::found_observers<ping> obs_vec = _obs_strage.find_observer<ping>(obs_id); !(obs_vec.empty()) ){
 		  // std::cout << "\x1b[33m" << "<k observer strage> ping found" << "\n" << "\x1b[39m";
-		  return call_observer_income_message(*obs); // relay_observerの検索
+		  // return call_observer_income_message(*(obs_vec.begin())); // 一つしか一致するobserverはないと仮定 relay_observerの検索
+		  return call_observer_income_message(*obs_vec.begin())	;
 		}
 		break;
 	  }
 	case k_message::rpc::find_node :
 	  {
-		if( observer<find_node>::ref obs = _obs_strage.find_observer<find_node>(obs_id); obs != nullptr ){
+		if( k_observer_strage::found_observers<find_node> obs_vec = _obs_strage.find_observer<find_node>(obs_id); !(obs_vec.empty()) ){
 		  // std::cout << "\x1b[33m" << "[dht_manager](k observer strage) find_node found" << "\n" << "\x1b[39m";
-		  return call_observer_income_message(*obs); // relay_observerの検索
+		  // return call_observer_income_message(*(obs_vec.begin())); // relay_observerの検索
+		  return call_observer_income_message(*obs_vec.begin());
 		}
 		break;
 	  }

@@ -19,6 +19,7 @@
 #include "boost/multi_index/ordered_index.hpp"
 #include "boost/multi_index/sequenced_index.hpp"
 #include "boost/multi_index/member.hpp"
+#include "boost/multi_index/mem_fun.hpp"
 
 
 using namespace boost::asio;
@@ -38,7 +39,11 @@ template <typename T> struct DEFAULT_OBSERVER_STRAGE_POLICY
 {
   typedef boost::multi_index::indexed_by 
 	<
-	  boost::multi_index::hashed_unique< boost::multi_index::tag<by_observer_id>, boost::multi_index::identity< observer<T> >, typename observer<T>::Hash, typename observer<T>::Equal  > // observer_id
+	  boost::multi_index::hashed_unique< boost::multi_index::tag<by_observer_id>
+	  , boost::multi_index::const_mem_fun< observer<T>, typename observer<T>::id/*戻り値の型*/, &observer<T>::get_id/*キー取得用のメソッド*/>
+	  // , typename observer<T>::Hash
+	  // , typename observer<T>::Equal 
+	  > // observer_id
 	> index;
 
   /*
@@ -74,9 +79,11 @@ public:
   observer_strage( io_context &io_ctx );
 
   // search系メソッド
-  template < typename T > typename observer<T>::ref find_observer( const observer_id &id ); // 検索・取得メソッド
-  template < typename T > entry<T>::iterator find_observer_itr( const observer_id &id );
-  template < typename T > typename observer<T>::ref pop_observer( const observer_id &id );
+  template < typename T > using found_observers = std::vector< typename observer<T>::ref >;
+  template < typename T, typename Key = struct by_observer_id > found_observers<T> find_observer( const observer_id &id ); // 検索・取得メソッド
+  template < typename T, typename Key = struct by_observer_id > auto find_observer_itr_range( const observer_id &id ) 
+	-> decltype(std::declval<entry<T>>().template get<Key>().equal_range(id));
+  template < typename T, typename Key = struct by_observer_id > found_observers<T> pop_observer( const observer_id &id );
  
   // 追加/削除系メソッド
   template < typename T > const bool add_observer( observer<T> obs ); // 追加メソッド
@@ -168,24 +175,57 @@ void observer_strage< IndexPolicy, Ts...>::refresh_tick( const boost::system::er
 }
 
 template < template<typename> class IndexPolicy, typename... Ts >
-template < typename T > observer_strage< IndexPolicy, Ts...>::entry<T>::iterator observer_strage< IndexPolicy, Ts...>::find_observer_itr( const observer_id &id )
+template < typename T, typename Key > auto observer_strage< IndexPolicy, Ts...>::find_observer_itr_range( const observer_id &id ) 
+  -> decltype(std::declval<entry<T>>().template get<Key>().equal_range(id))
 {
+  /*
   auto &s_entry = std::get< entry<T> >(_strage);
   for( auto itr = s_entry.begin(); itr != s_entry.end(); itr++ )
 	if( (*itr)->get_id() == id && !((*itr)->is_expired()) ) return itr;
   return s_entry.end();
+  */
+  
+  auto &s_entry = std::get< entry<T> >(_strage);
+  auto ret_itr_range = s_entry.template get<Key>().equal_range(id);
+  return ret_itr_range;
 }
 
 template < template <typename> class IndexPolicy, typename... Ts >
-template < typename T > typename observer<T>::ref observer_strage< IndexPolicy, Ts...>::find_observer( const observer_id &id ) // 検索・取得メソッド
+template < typename T, typename Key > std::vector< typename observer<T>::ref > observer_strage< IndexPolicy, Ts...>::find_observer( const observer_id &id ) // 検索・取得メソッド
 {
+  // auto &s_entry = std::get< entry<T> >(_strage);
+  // s_entry.template get<by_observer_id>().find( id ); // templateつけて明示的に依存関係を通知する
+
+  found_observers<T> ret;
+  auto itr_range = this->find_observer_itr_range<T, Key>(id);
+  for( auto itr = itr_range.first; itr != itr_range.second; ++itr ) ret.push_back(*itr);
+
+  return ret;
+
+  /*
   if( auto ret = this->find_observer_itr<T>(id); ret != std::get< entry<T> >(_strage).end() ) return *ret;
   return nullptr;
+  */
 }
 
 template < template<typename> class IndexPolicy, typename... Ts >
-template < typename T > typename observer<T>::ref observer_strage< IndexPolicy, Ts...>::pop_observer( const observer_id &id )
+template < typename T, typename Key > std::vector< typename observer<T>::ref > observer_strage< IndexPolicy, Ts...>::pop_observer( const observer_id &id )
 {
+  found_observers<T> ret;
+
+  auto itr_range = this->find_observer_itr_range<T, Key>(id);
+  for( auto itr = itr_range.first; itr != itr_range.second; ++itr ) 
+  {
+	typename observer<T>::ref itr_ref = *itr;
+
+	// 冗長かも
+	auto &s_entry = std::get< entry<T> >(_strage);
+	this->delete_observer<T>( s_entry, itr );
+
+	ret.push_back( itr_ref );
+  }
+  
+  /*
   auto &s_entry = std::get< entry<T> >(_strage);
   if( auto ret_itr = find_observer_itr<T>(id); ret_itr != s_entry.end() )
   {
@@ -194,6 +234,9 @@ template < typename T > typename observer<T>::ref observer_strage< IndexPolicy, 
 	return ret_ref;
   }
   return nullptr;
+  */
+
+  return ret;
 }
 
 template < template<typename> class IndexPolicy, typename... Ts >
