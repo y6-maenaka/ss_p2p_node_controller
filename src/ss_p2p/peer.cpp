@@ -69,6 +69,11 @@ ip::udp::endpoint peer::get_endpoint() const
   return _ep;
 }
 
+const peer::id peer::get_id() const
+{
+  return _id;
+}
+
 peer::id peer::calc_peer_id( const ip::udp::endpoint &ep )
 {
   return (cu::sha1::hash( endpoint_to_str(ep) ).to_array< peer::id::value_type, PEER_ID_LENGTH_BYTES>());

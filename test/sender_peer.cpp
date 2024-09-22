@@ -28,6 +28,8 @@ int sender_peer( int argc, const char* argv[] )
   n_controller.start();
   ss::peer dest_peer = n_controller.get_peer( dest_endpoint );
 
+  std::cout << dest_peer.get_id().to_size_t() << "\n";
+
   std::this_thread::sleep_for( std::chrono::seconds(1) );
   for(;;)
   {

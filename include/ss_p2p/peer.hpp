@@ -42,6 +42,10 @@ public:
 	bool operator ==( const id &other ) const{
 	  return std::equal( _body.cbegin(), _body.cend(), other.cbegin() );
 	}
+	std::size_t to_size_t() const {  // 一旦hash形式でstd::size_tを得るようにしておく
+	  // 255.255.255.255:0000 -> std::size_t
+	  return std::hash<std::string>()( this->to_str() );
+	}
 
 	id( transport_id from ) : _body(from){};
   };
