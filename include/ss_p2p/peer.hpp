@@ -39,15 +39,31 @@ public:
 	peer::transport_id::const_iterator cbegin() const { return _body.cbegin(); };
 	peer::transport_id::const_iterator cend() const { return _body.cend(); };
 	std::string to_str() const { return std::string( _body.cbegin(), _body.cend() ); };
-	bool operator ==( const id &other ) const{
-	  return std::equal( _body.cbegin(), _body.cend(), other.cbegin() );
-	}
 	std::size_t to_size_t() const {  // 一旦hash形式でstd::size_tを得るようにしておく
 	  // 255.255.255.255:0000 -> std::size_t
 	  return std::hash<std::string>()( this->to_str() );
 	}
+	std::size_t get_hash() const{
+	  return std::hash<std::string>()(this->to_str());
+	}
 
+	id(){};
 	id( transport_id from ) : _body(from){};
+	static id (none)(){
+	  peer::id ret;
+	  ret._body.fill(0x00);
+	  return ret;
+	};
+
+	bool operator ==( const id &other ) const{
+	  return std::equal( _body.cbegin(), _body.cend(), other.cbegin() );
+	}
+	bool operator<(const peer::id &other ){
+	  return this->to_size_t() < other.to_size_t();
+	};
+	bool operator>(const peer::id &other){
+	  return this->to_size_t() > other.to_size_t();
+	}
   };
   
   ip::udp::endpoint _ep;
@@ -96,6 +112,13 @@ template <typename Container> void peer::send( const Container &payload_c /*payl
 
 
 }; // namespace ss
+
+
+namespace boost{
+  inline std::size_t hash_value(const ss::peer::id &id){
+	return id.get_hash();
+  }
+};
 
 
 #endif 
