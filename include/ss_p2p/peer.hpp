@@ -33,13 +33,24 @@ public:
   using ref = std::shared_ptr<class peer>;
   using s_send_func = std::function<void(ip::udp::endpoint&, std::string, json /*高レイヤアプリケーションのダンプされた完全なメッセージ*/)>;
   using transport_id = std::array< std::uint8_t, PEER_ID_LENGTH_BYTES >; // this is made from peer( ip + port )
-  using id = transport_id;
+  struct id {
+	using value_type = peer::transport_id::value_type;
+	peer::transport_id _body;
+	peer::transport_id::const_iterator cbegin() const { return _body.cbegin(); };
+	peer::transport_id::const_iterator cend() const { return _body.cend(); };
+	std::string to_str() const { return std::string( _body.cbegin(), _body.cend() ); };
+	bool operator ==( const id &other ) const{
+	  return std::equal( _body.cbegin(), _body.cend(), other.cbegin() );
+	}
+
+	id( transport_id from ) : _body(from){};
+  };
   
   ip::udp::endpoint _ep;
   const id _id; // node_controllerからの逆引きで使用するため必須
   std::time_t keep_alive = 1;
 
-  bool operator ==(const peer& pr) const;
+  // bool operator ==(const peer& pr) const;
 
   /* void send( std::span<char> msg );
   void send( std::string msg ); */

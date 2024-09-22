@@ -181,13 +181,14 @@ public:
 };
 using message_pool_entry_peer_id = class peer_message_buffer_peer_id;
 
-class peer_id_linear_hasher
+class peer_id_linear_hasher // multi_index用
 {
 public:
   std::size_t operator()( const peer_message_buffer_peer_id::result_type &input ) const
   { // もっといい方法ああると思う(二重ハッシュになっている)
-	std::string input_str( input.begin(), input.end() );
-	return std::hash<std::string>()(input_str);
+	/* std::string input_str( input.cbegin(), input.cend() );
+	return std::hash<std::string>()(input_str); */
+	return std::hash<std::string>()(input.to_str());
   }
 };
 
