@@ -92,6 +92,7 @@ public:
   template < typename T > const bool add_observer( observer<T> obs ); // 追加メソッド
   template < typename T > const bool add_observer( typename observer<T>::ref obs_ref );
   template < typename T > entry<T>::iterator delete_observer( entry<T> &e, entry<T>::iterator obs_itr );
+  template < typename T, typename Key = struct by_observer_id > entry<T>::iterator delete_observer( const Key::template key_type<T> &id );
 
   #if SS_DEBUG
   deadline_timer _debug_tick_timer;
@@ -272,6 +273,12 @@ template < typename T > observer_strage< IndexPolicy, Ts...>::entry<T>::iterator
   return e.erase(obs_itr);
 }
 
+template < template<typename> class IndexPolicy, typename... Ts >
+template < typename T, typename Key > observer_strage< IndexPolicy, Ts... >::entry<T>::iterator observer_strage< IndexPolicy, Ts...>::delete_observer( const Key::template key_type<T> &id )
+{
+  auto &s_entry = std::get< entry<T> >(_strage);
+  return s_entry.erase( s_entry.template get<Key>().find(id) );
+}
 
 #if SS_DEBUG
 template < template<typename> class IndexPolicy, typename... Ts >
