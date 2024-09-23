@@ -17,6 +17,7 @@ node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io
   , _tick_timer( *io_ctx )
   , _msg_pool( *io_ctx, std::bind( &node_controller::get_peer_ref, this, std::placeholders::_1 ) ,&_logger, true )
   , _sender( _u_sock_manager, _id )
+  , _interface( *io_ctx, std::bind( &node_controller::on_command_input, this, std::placeholders::_1 ), &_logger )
 {
   ip::udp::endpoint init_ep( ip::address::from_string("0.0.0.0"), 0 ); // 一旦適当な初期値で開始する
   _glob_self_ep = init_ep;
@@ -93,6 +94,13 @@ void node_controller::update_global_self_endpoint( ip::udp::endpoint ep )
 
   _ice_agent->update_global_self_endpoint( ep );
   _dht_manager->update_global_self_endpoint( ep );
+}
+
+void node_controller::on_command_input( std::string input )
+{
+  #if SS_DEBUG
+  std::cout << "<<< " << input << "\n";
+  #endif
 }
 
 void node_controller::start( std::vector<ip::udp::endpoint> boot_eps )

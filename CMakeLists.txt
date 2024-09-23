@@ -41,6 +41,8 @@ set( ss_p2p_include_files
 	observer.hpp
 	observer_strage.hpp
 	sender.hpp
+	multicast_manager.hpp
+	interface.hpp
 	ss_logger.hpp
 	ss_logger.impl.hpp
 )
@@ -53,6 +55,8 @@ set( ss_p2p_source_files
 	udp_server.cpp
 	observer.cpp
 	sender.cpp
+	multicast_manager.cpp
+	interface.cpp
 )
 set( ss_p2p_kademlia_include_files
     k_routing_table.hpp

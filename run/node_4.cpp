@@ -18,6 +18,7 @@
 #include "../test/setup_signaling_response_host.cpp"
 #include "../test/setup_stun_client.cpp"
 #include "../test/setup_stun_server.cpp"
+#include "../test/setup_multicast_manager.cpp"
 
 
 using boost::asio::ip::udp;
@@ -27,9 +28,7 @@ int main( int argc, const char* argv[] )
 {
   std::cout << "Hello node_4" << "\n";
 
-  setup_peer( argc, argv );
-  // setup_stun_server();
-  // setup_k_routing_table();
+  setup_multicast_manager();
 
 
   std::mutex mtx;

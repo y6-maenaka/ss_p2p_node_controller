@@ -21,6 +21,7 @@
 #include <ss_p2p/socket_manager.hpp>
 #include <ss_p2p/sender.hpp>
 #include <ss_p2p/ss_logger.hpp>
+#include <ss_p2p/interface.hpp>
 
 
 using namespace boost::asio;
@@ -74,6 +75,9 @@ public:
 
   void update_global_self_endpoint( ip::udp::endpoint ep );
 
+  // using input_commanf_callback = std::function<void(std::string)>;
+  void on_command_input( std::string input ); // パースはしない
+
   #if SS_DEBUG
   kademlia::k_routing_table &get_routing_table();
   ice::ice_agent &get_ice_agent();
@@ -95,6 +99,7 @@ private:
   std::shared_ptr<io_context> _core_io_ctx;
   boost::asio::deadline_timer _tick_timer;
   sender _sender;
+  interface _interface;
 
   /* モジュール系 */
   std::shared_ptr< udp_server > _udp_server;
