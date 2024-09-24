@@ -2,6 +2,7 @@
 #define D8FB837F_FA5A_462D_B238_4ECAEDF22DE5
 
 
+#include <iostream>
 #include <logger/logger.hpp>
 
 #include "boost/asio.hpp"

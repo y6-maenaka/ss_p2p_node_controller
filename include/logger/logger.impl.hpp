@@ -83,7 +83,11 @@ std::ofstream logger::get_log_ofs()
   std::stringstream logger_outfile_path_ss; logger_outfile_path_ss << _logger_outfile_dir << "/" << logger_outfile_name;
 
   ret.open( logger_outfile_path_ss.str() , std::ios::app );
-  return std::move(ret);
+  if( !ret.is_open() )
+  {
+	std::cerr << "Error opening log file: " << logger_outfile_path_ss.str() << "\n";
+  }
+  return ret;
 }
 
 inline std::string logger::utils::replace( std::string base, std::string rpl_from, std::string rpl_to )

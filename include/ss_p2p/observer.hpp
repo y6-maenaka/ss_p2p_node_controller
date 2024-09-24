@@ -98,7 +98,8 @@ public:
   
   ref get_ref()
   {
-	return this->shared_from_this();
+	return std::make_shared<observer<T>>(_body);
+	// return this->shared_from_this();
   }
 
   std::shared_ptr<T> get()
