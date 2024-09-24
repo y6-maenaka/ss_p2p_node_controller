@@ -19,6 +19,16 @@ using namespace boost::asio;
 using json = nlohmann::json;
 
 
+class message_server
+{
+public:
+  void on_receive_message( ss::peer::ref peer_ref , ss::ss_message::ref msg_ref ){
+    std::cout << "message received" << "\n";
+    std::cout << peer_ref->get_endpoint() << " : " << msg_ref->body << "\n";
+  }
+};
+
+
 int setup_node_controller( int argc, const char* argv[] )
 {
   std::span args( argv, argc );
@@ -43,8 +53,12 @@ int setup_node_controller( int argc, const char* argv[] )
   auto &ice_observer_strage = n_controller.get_ice_agent().get_observer_strage();
   auto &direct_routing_table_controller = n_controller.get_direct_routing_table_controller();
   direct_routing_table_controller.auto_update_batch( boot_nodes );
+  auto &message_hub = n_controller.get_message_hub();
 
   n_controller.start( boot_nodes );
+
+  message_server msg_server;
+  message_hub.start( std::bind( &message_server::on_receive_message, msg_server, std::placeholders::_1, std::placeholders::_2) );
 
   // ice_observer_strage.show_state( boost::system::error_code{} );
   // k_observer_strage.show_state( boost::system::error_code{} );

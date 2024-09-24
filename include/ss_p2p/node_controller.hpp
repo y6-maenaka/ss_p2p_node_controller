@@ -76,7 +76,7 @@ public:
   void update_global_self_endpoint( ip::udp::endpoint ep );
 
   // using input_commanf_callback = std::function<void(std::string)>;
-  void on_command_input( std::string input ); // パースはしない
+  void on_command_input( std::vector<std::string> inputs ); // パースはしない
 
   #if SS_DEBUG
   kademlia::k_routing_table &get_routing_table();

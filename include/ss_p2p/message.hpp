@@ -22,12 +22,14 @@ using encoded_message = std::span<char const>;
 
 
 class ss_message;
+class message_pool;
 
 
 class message
 /* Endpointのコントローラ間のメッセージ */
 {
   friend ss_message;
+  friend message_pool;
 public:
   using ref = std::shared_ptr<class message>;
   using app_id = std::array<char, 8>;

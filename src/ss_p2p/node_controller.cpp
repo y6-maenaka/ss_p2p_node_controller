@@ -96,11 +96,38 @@ void node_controller::update_global_self_endpoint( ip::udp::endpoint ep )
   _dht_manager->update_global_self_endpoint( ep );
 }
 
-void node_controller::on_command_input( std::string input )
+void node_controller::on_command_input( std::vector<std::string> inputs )
 {
+  auto input_itr = inputs.begin();
+
+  if( input_itr == inputs.end() ) return;
+  if( *input_itr == "stop" ) this->stop();
+
   #if SS_DEBUG
-  std::cout << "<<< " << input << "\n";
+  std::cout << "<<< ";
+  for( auto itr : inputs ) std::cout << itr << " ";
+  std::cout << "\n";
   #endif
+
+
+  // 一旦仮にコマンドハンドラを実装する 
+  if( *input_itr == "send" )
+  {
+
+	// boost::asio::ip::address peer_addr = boost::asio::ip::address::from_string((*input_itr).substr(0, (*input_itr).find(':')));
+	auto peer_addr_str = *(++input_itr);
+	auto peer_ep = str_to_endpoint( peer_addr_str );
+	auto peer_ref = this->get_peer_ref( peer_ep );
+ 
+	if( peer_ref == nullptr ) std::cout << " : (Invalid peer address)" << "\n";
+	else std::cout << " : (Get peer) " << peer_ref->get_endpoint() << "\n";
+
+	auto payload = *(++input_itr);
+	peer_ref->send( payload );
+
+	return;
+  }
+  
 }
 
 void node_controller::start( std::vector<ip::udp::endpoint> boot_eps )

@@ -15,6 +15,7 @@ interface::interface( io_context &io_ctx, const input_command_callback notify_fu
   #ifndef SS_LOGGING_DISABLE
   _logger->log( logger::log_level::INFO, "(@interface)","start" );
   #endif
+
 }
 
 interface::~interface()
@@ -24,13 +25,27 @@ interface::~interface()
   #ifndef SS_LOGGING_DISABLE
   _logger->log( logger::log_level::ALERT, "(@interface)","stop" );
   #endif
+
 }
 
 void interface::listen_stdin()
 {
+  std::vector< std::string > inputs;
   std::string input;
 
-  _io_ctx.post([this, input](){ _notify_func(input); });
+  while( true )
+  {
+	std::getline( std::cin, input );
+	std::istringstream iss(input);
+	std::string _;
+	while( iss >> _ ){
+	  inputs.push_back(_);
+	}
+
+	_io_ctx.post([this, inputs](){ _notify_func(inputs); });
+	inputs.clear(); // inputsのクリア
+  }
+  return;
 }
 
 

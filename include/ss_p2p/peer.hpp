@@ -11,6 +11,7 @@
 #include <span>
 #include <optional>
 #include <chrono>
+#include <iostream>
 
 #include <json.hpp>
 // #include <ss_p2p/message.hpp>
@@ -105,9 +106,13 @@ struct peer::Hash
 
 template <typename Container> void peer::send( const Container &payload_c /*payload_container*/ )
 {
+  std::cout << "## 1" << "\n";
   std::string payload_s( payload_c.begin(), payload_c.end() );
+  std::cout << "## 2" << "\n";
   json msg_j = payload_s;
+  std::cout << "## 3" << "\n";
   _s_send_func( _ep, std::string("messenger"), msg_j ); // 実環境では,任意のアプリケーション名を指定する
+  std::cout << "## 4" << "\n";
 }
 
 
