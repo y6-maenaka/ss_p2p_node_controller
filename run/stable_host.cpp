@@ -12,6 +12,9 @@
 #include <vector>
 
 
+#include "../test/test_messenger_server.hpp"
+
+
 using namespace boost::asio;
 
 
@@ -31,9 +34,12 @@ int main( int argc, const char* argv[] )
 	dummy_eps.push_back( dummy_ep );
   }
   direct_routing_table_controller.auto_update_batch( dummy_eps );
+  auto &message_hub = n_controller.get_message_hub();
 
   n_controller.start();
 
+  message_server msg_server;
+  message_hub.start( std::bind( &message_server::on_receive_message, msg_server, std::placeholders::_1, std::placeholders::_2) );
 
 
 

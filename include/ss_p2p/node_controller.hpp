@@ -93,6 +93,7 @@ protected:
 
 private:
   ss_logger _logger; // 一番初めに初期化する
+  message_pool _msg_pool;
 
   // データ系
   ip::udp::endpoint _self_ep;
@@ -107,7 +108,6 @@ private:
   std::shared_ptr< udp_server > _udp_server;
   std::shared_ptr<ice::ice_agent> _ice_agent;
   std::shared_ptr<kademlia::dht_manager> _dht_manager;
-  message_pool _msg_pool;
 };
 
 

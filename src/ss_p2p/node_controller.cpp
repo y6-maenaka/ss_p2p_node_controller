@@ -12,10 +12,10 @@ namespace ss
 
 node_controller::node_controller( ip::udp::endpoint &self_ep, std::shared_ptr<io_context> io_ctx ) :
    _self_ep(self_ep)
+  , _msg_pool( *io_ctx, std::bind( &node_controller::get_peer_ref, this, std::placeholders::_1 ), &_logger, true )
   , _core_io_ctx( io_ctx )
   , _u_sock_manager( self_ep, std::ref(*io_ctx) )
   , _tick_timer( *io_ctx )
-  , _msg_pool( *io_ctx, std::bind( &node_controller::get_peer_ref, this, std::placeholders::_1 ) ,&_logger, true )
   , _sender( _u_sock_manager, _id )
   , _interface( *io_ctx, std::bind( &node_controller::on_command_input, this, std::placeholders::_1 ), &_logger )
 {
@@ -104,7 +104,7 @@ void node_controller::on_command_input( std::vector<std::string> inputs )
   if( *input_itr == "stop" ) this->stop();
 
   #if SS_DEBUG
-  std::cout << "<<< ";
+  std::cout << "### ";
   for( auto itr : inputs ) std::cout << itr << " ";
   std::cout << "\n";
   #endif
@@ -119,15 +119,11 @@ void node_controller::on_command_input( std::vector<std::string> inputs )
 	auto peer_ep = str_to_endpoint( peer_addr_str );
 	auto peer_ref = this->get_peer_ref( peer_ep );
  
-	if( peer_ref == nullptr ) std::cout << " : (Invalid peer address)" << "\n";
-	else std::cout << " : (Get peer) " << peer_ref->get_endpoint() << "\n";
-
 	auto payload = *(++input_itr);
 	peer_ref->send( payload );
 
 	return;
   }
-  
 }
 
 void node_controller::start( std::vector<ip::udp::endpoint> boot_eps )
@@ -200,7 +196,8 @@ peer node_controller::get_peer( const ip::udp::endpoint &ep )
 
 peer::ref node_controller::get_peer_ref( const ip::udp::endpoint &ep )
 {
-  return std::make_shared<peer>( ep, _msg_pool.get_peer_message_buffer( peer::calc_peer_id(ep)), _ice_agent->get_signaling_send_func() );
+  auto ret = std::make_shared<peer>( ep, _msg_pool.get_peer_message_buffer( peer::calc_peer_id(ep)), _ice_agent->get_signaling_send_func() ); // テスト用
+  return ret;
 }
 
 void node_controller::on_receive_packet( std::vector<std::uint8_t> raw_msg, ip::udp::endpoint &ep )

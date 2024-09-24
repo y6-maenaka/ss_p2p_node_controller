@@ -112,12 +112,33 @@ peer_message_buffer::received_message::ref peer_message_buffer::pop( unsigned in
   return nullptr;
 }
 
-peer_message_buffer::received_message::ref peer_message_buffer::pop_by_id( const peer_message_buffer::received_message::message_id &id, pop_flag )
+peer_message_buffer::received_message::ref peer_message_buffer::pop_by_id( const peer_message_buffer::received_message::message_id &id, pop_flag flag )
 {
-  return nullptr;
+  if( _msg_queue.empty() ) return nullptr;
+
+  message_queue::iterator ret_itr = _msg_queue.end();
+  peer_message_buffer::received_message::ref ret = nullptr;
+  for( auto itr = _msg_queue.begin(); itr != _msg_queue.end(); itr++ ){
+    if( (*itr)->id == id ){
+       ret_itr = itr;
+       ret = *ret_itr;
+    }
+  }
+
+  if( flag == pop_flag::none )
+  {
+    _msg_queue.erase(ret_itr);
+    _dynamic_mem_usage_bytes -= 1;
+  }
+  else if( flag == pop_flag::peek )
+  {
+    // pass
+  }
+
+  return ret;
 }
 
-peer_message_buffer::received_message::ref peer_message_buffer::pop_since( std::time_t since, pop_flag )
+peer_message_buffer::received_message::ref peer_message_buffer::pop_since( std::time_t since, pop_flag flag )
 {
   std::unique_lock<boost::recursive_mutex> lock(_rmtx);
 
@@ -174,13 +195,13 @@ peer_message_buffer generate_peer_message_buffer( ip::udp::endpoint ep )
 }
 
 
-message_pool::message_pool( io_context &io_ctx, const message_pool::endpoint_to_peer_func &ep_to_peer_func, ss_logger *logger, bool requires_refresh ) :
+message_pool::message_pool( io_context &io_ctx, const message_pool::endpoint_to_peer_func ep_to_peer_func, ss_logger *logger, bool requires_refresh ) :
   _io_ctx( io_ctx )
   , _refresh_tick_timer( io_ctx )
-  , _ep_to_peer_func( ep_to_peer_func )
   , _requires_refresh( requires_refresh )
   , _logger(logger)
-  , _msg_hub( ep_to_peer_func )
+  , _ep_to_peer_func( ep_to_peer_func )
+  , _msg_hub( _ep_to_peer_func )
 {
   return;
 }

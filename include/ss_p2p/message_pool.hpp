@@ -96,9 +96,9 @@ public:
 	none, // 取得と同時にdequeueする
 	peek // 要素の取得のみ行う(dequeueしない)
   };
-  received_message::ref pop( unsigned int idx = 0 /*先頭(古い)からのインデックス*/, pop_flag = pop_flag::none ); // 存在しない場合でも即座に返す
-  received_message::ref pop_by_id( const received_message::message_id &id, pop_flag = pop_flag::none ); // message_idでメッセージをpopする
-  received_message::ref pop_since( std::time_t since = 0, pop_flag = pop_flag::none ); // 0: binded_at以降のメッセージ指定
+  received_message::ref pop( unsigned int idx = 0 /*先頭(古い)からのインデックス*/, pop_flag flag = pop_flag::none ); // 存在しない場合でも即座に返す
+  received_message::ref pop_by_id( const received_message::message_id &id, pop_flag flag = pop_flag::none ); // ※非推奨 // message_idでメッセージをpopする
+  received_message::ref pop_since( std::time_t since = 0, pop_flag flag = pop_flag::none ); // 0: binded_at以降のメッセージ指定
   /* 指定時間後に受信したメッセージ以降を取得する */ 
   received_message::message_id push( message::ref msg_ref );
   void clear(); // msg_queueを空にする
@@ -204,16 +204,16 @@ private:
 	  , boost::multi_index::indexed_by<
 		  boost::multi_index::hashed_unique< boost::multi_index::tag<by_peer_id>, message_pool_entry_peer_id, peer_id_linear_hasher > // index by peer_id
 		  , boost::multi_index::ordered_non_unique< boost::multi_index::tag<by_received_at>, boost::multi_index::identity<message_pool_entry>, message_pool_entry_compare_received_at > // index by received_at
-	  > // peer_id or 最終取得が近いエントリから取得する
+    > // peer_id or 最終取得が近いエントリから取得する
 	>;
   indexed_message_set _pool __attribute__((guarded_by(_rmtx))); 
   using entry = indexed_message_set::iterator;
-
-  io_context &_io_ctx;
-  const endpoint_to_peer_func &_ep_to_peer_func;
+  
   deadline_timer _refresh_tick_timer;
   bool _requires_refresh; // 更新を行うな否か
   ss_logger *_logger;
+  io_context &_io_ctx;
+  const endpoint_to_peer_func _ep_to_peer_func = nullptr;
 
 #if SS_DEBUG
 public:
@@ -225,7 +225,8 @@ public:
   peer_message_buffer::ref allocate_new_buffer( const ip::udp::endpoint &ep ); // 空のpeer_message_bufferを作成する
 
 public:
-  message_pool( io_context &io_ctx, const endpoint_to_peer_func &ep_to_peer_func, ss_logger *logger, bool requires_refresh = true );
+  // message_pool( io_context &io_ctx, const endpoint_to_peer_func ep_to_peer_func, ss_logger *logger, bool requires_refresh = true );
+  message_pool( io_context &io_ctx, const endpoint_to_peer_func ep_to_peer_func, ss_logger *logger, bool requires_refresh = true );
 
   void requires_refresh( bool b );
   void store( message::ref msg_ref, const ip::udp::endpoint &ep ); // 受信したメッセージを追加
@@ -247,8 +248,9 @@ public:
 	  mutable boost::recursive_mutex _rmtx;
 	  boost::condition_variable_any _bcv;
 	  bool _is_active __attribute__((guarded_by(_rmtx)));
-	  const message_pool::endpoint_to_peer_func &_ep_to_peer_func; // この方法あまりよくないかも
-  } _msg_hub;
+	  const message_pool::endpoint_to_peer_func &_ep_to_peer_func = nullptr; // この方法あまりよくないかも
+  };
+  struct message_hub _msg_hub;
 
   message_hub &get_message_hub();
   peer_message_buffer::ref get_peer_message_buffer( const peer::id &pid ) const;

@@ -2,6 +2,7 @@
 #include <ss_p2p/kademlia/dht_manager.hpp>
 #include <ss_p2p/ice_agent/ice_agent.hpp>
 #include <ss_p2p/kademlia/k_node.hpp>
+#include <utils.hpp>
 
 #include "boost/asio.hpp"
 
@@ -14,19 +15,12 @@
 #include <span>
 #include <fstream>
 #include <vector>
+#include <iostream>
+
+#include "./test_messenger_server.hpp"
 
 using namespace boost::asio;
 using json = nlohmann::json;
-
-
-class message_server
-{
-public:
-  void on_receive_message( ss::peer::ref peer_ref , ss::ss_message::ref msg_ref ){
-    std::cout << "message received" << "\n";
-    std::cout << peer_ref->get_endpoint() << " : " << msg_ref->body << "\n";
-  }
-};
 
 
 int setup_node_controller( int argc, const char* argv[] )
