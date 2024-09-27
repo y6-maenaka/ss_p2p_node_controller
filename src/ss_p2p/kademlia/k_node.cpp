@@ -12,7 +12,7 @@ k_node::k_node()
   _id = node_id::none();
 }
   
-k_node::k_node( ip::udp::endpoint &ep ) : 
+k_node::k_node( ip::udp::endpoint ep ) : 
   _ep(ep) , 
   _id( calc_node_id(ep) )
 {
@@ -31,7 +31,7 @@ k_node::k_node( const k_node &kn ) :
   return;
 }
 
-ip::udp::endpoint k_node::get_endpoint()
+ip::udp::endpoint k_node::get_endpoint() const
 {
   return _ep;
 }
@@ -59,6 +59,11 @@ std::string k_node::to_str()
 {
   std::string ret = endpoint_to_str(_ep) + "|" + _id.to_str();
   return ret;
+}
+
+k_node::ref k_node::to_ref()
+{
+  return shared_from_this();
 }
 
 void k_node::print() const

@@ -8,6 +8,7 @@
 
 #include "../test/setup_message_pool.cpp"
 #include "../test/setup_peer.cpp"
+#include "../test/setup_multicast_manager.cpp"
 
 using boost::asio::ip::udp;
 

@@ -28,7 +28,8 @@ int main( int argc, const char* argv[] )
 {
   std::cout << "Hello node_4" << "\n";
 
-  setup_multicast_manager();
+
+  setup_multicast_manager( argc, argv );
 
 
   std::mutex mtx;

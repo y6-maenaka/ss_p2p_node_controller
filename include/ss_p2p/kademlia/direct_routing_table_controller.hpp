@@ -14,19 +14,24 @@ using namespace boost::asio;
 
 namespace ss
 {
+
+
+class multicast_manager;
+
 namespace kademlia
 {
 
 
 class direct_routing_table_controller
 {
+  friend class multicast_manager;
 private:
   k_routing_table &_routing_table;
+  k_routing_table &get_routing_table();
 
 public:
   // direct_routing_table_controller( const direct_routing_table_controller &controller );
   direct_routing_table_controller( k_routing_table &routing_table );
-  k_routing_table &get_routing_table();
   
   std::vector<k_node> collect_node( k_node& root_node, std::size_t max_count = 2/*要検討*/, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
   std::vector<ip::udp::endpoint> collect_endpoint( ip::udp::endpoint& root_ep, std::size_t max_count = 2, const std::vector<ip::udp::endpoint> &ignore_eps = std::vector<ip::udp::endpoint>() );

@@ -4,6 +4,7 @@
 
 #include <array>
 #include <string>
+#include <memory>
 
 #include "./node_id.hpp"
 #include <utils.hpp>
@@ -20,20 +21,23 @@ namespace kademlia
 {
 
 
-class k_node 
+class k_node : public std::enable_shared_from_this<class k_node>
 {
 public:
+  using ref = std::shared_ptr<k_node>;
+
   k_node();
   k_node( const k_node &kn );
-  k_node( ip::udp::endpoint &ep );
+  k_node( ip::udp::endpoint ep );
 
   bool operator==( const k_node &kn ) const;
   bool operator!=( const k_node &kn ) const;
 
-  ip::udp::endpoint get_endpoint();
+  ip::udp::endpoint get_endpoint() const;
   node_id& get_id();
 
   std::string to_str();
+  ref to_ref();
   void print() const;
 
   static k_node (blank)();

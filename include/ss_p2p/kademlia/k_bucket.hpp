@@ -28,6 +28,8 @@ private:
   std::vector< k_node > _nodes;
 
 public:
+  using k_nodes = std::vector<k_node>;
+
   k_bucket();
 
   enum update_state
@@ -40,9 +42,9 @@ public:
   };
   update_state auto_update( k_node kn );
 
-  std::vector<k_node> get_node_front( std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
-  std::vector<k_node> get_node_back( std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
-  std::vector<k_node> get_nodes(); // 全てのノードを取得する
+  k_nodes get_node_front( std::size_t count = 1, const k_nodes &ignore_nodes = std::vector<k_node>() );
+  k_nodes get_node_back( std::size_t count = 1, const k_nodes &ignore_nodes = std::vector<k_node>() );
+  k_nodes get_nodes(); // 全てのノードを取得する
 
   void add_back( k_node kn );
   void move_back( k_node &kn );

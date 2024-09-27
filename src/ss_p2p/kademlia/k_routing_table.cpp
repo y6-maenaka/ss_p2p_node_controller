@@ -55,7 +55,7 @@ k_bucket::update_state k_routing_table::auto_update( k_node kn )
 
 std::vector<k_node> k_routing_table::get_node_front( k_node& root_node, std::size_t count, const std::vector<k_node> &ignore_nodes )
 {
-   k_bucket &target_bucket = this->get_bucket( root_node );
+  k_bucket &target_bucket = this->get_bucket( root_node );
   return target_bucket.get_node_front( count, ignore_nodes );
 }
 

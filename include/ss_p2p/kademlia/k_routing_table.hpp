@@ -40,6 +40,7 @@ class k_routing_table
   friend k_bucket;
   friend k_bucket_iterator;
   using routing_table = std::array< k_bucket, K_BUCKET_COUNT >;
+
 private:
   routing_table _table;
 
@@ -53,11 +54,13 @@ public:
   update_state auto_update( k_node kn );
   bool is_exist( k_node &kn );
 
-  std::vector<k_node> collect_node( k_node& root_node, std::size_t max_count
-	  , const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  std::vector<k_node> collect_node( k_node& root_node, std::size_t max_count, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  // root_nodeから指定個(max_count)ノードを取得する(bucketを跨ぐこともある)
 
-  std::vector<k_node> get_node_front( k_node &root_node, std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  std::vector<k_node> get_node_front( k_node &root_node, std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() ); 
+  // root_nodeに指定したノードが属するbucketの前方からノードを指定個数分取得する
   std::vector<k_node> get_node_back( k_node &root_node, std::size_t count = 1, const std::vector<k_node> &ignore_nodes = std::vector<k_node>() );
+  // root_nodeに指定したノードが属するbucketの後方からノードを指定個数分取得する
 
   k_bucket& get_bucket( k_node &kn );
   k_bucket& get_bucket( unsigned short branch );
@@ -66,7 +69,10 @@ public:
   ss_logger *_logger;
 
   k_bucket_iterator get_begin_bucket_iterator();
-  
+
+  static constexpr int bucket_first_index = 0;
+  static constexpr int bucket_end_index = 159;
+
   void print( int start_branch = 1 );
 };
 

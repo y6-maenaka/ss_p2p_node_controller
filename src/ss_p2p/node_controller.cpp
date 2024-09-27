@@ -82,6 +82,11 @@ message_pool::message_hub &node_controller::get_message_hub()
   return _msg_pool.get_message_hub();
 }
 
+multicast_manager node_controller::get_multicast_manager()
+{
+  return multicast_manager( _dht_manager->get_routing_table(), std::bind( &node_controller::get_peer_ref, this, std::placeholders::_1) );
+}
+
 void node_controller::update_global_self_endpoint( ip::udp::endpoint ep )
 {
   ip::udp::endpoint __prev_global_self_ep = _glob_self_ep;
@@ -194,7 +199,7 @@ peer node_controller::get_peer( const ip::udp::endpoint &ep )
   return ret;
 }
 
-peer::ref node_controller::get_peer_ref( const ip::udp::endpoint &ep )
+peer::ref node_controller::get_peer_ref( const ip::udp::endpoint ep )
 {
   auto ret = std::make_shared<peer>( ep, _msg_pool.get_peer_message_buffer( peer::calc_peer_id(ep)), _ice_agent->get_signaling_send_func() ); // テスト用
   return ret;
