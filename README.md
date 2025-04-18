@@ -58,8 +58,12 @@ Kademliaは高Churn耐性(ノードの頻繁な参加・離脱に対して安定
 distance(x, y) = x ⊕ y;  // ビット単位の排他的論理和
 ```
 
-<br>
+### 3. アーキテクチャ図
+<a href="https://gitdiagram.com/y6-maenaka/ss_p2p_node_controller"><img src="https://github.com/y6-maenaka/ss_p2p_node_controller/blob/main/images/diagram.png"></a>
+<p>powered by <a href="https://gitdiagram.com/">GitDiagram</a></p>
 
+
+<br><hr><br>
 
 <h2>使い方</h2>
 1. Object instantiation and initialization of the node controller <br>
