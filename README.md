@@ -68,6 +68,7 @@ distance(x, y) = x ⊕ y;  // ビット単位の排他的論理和
 <h2>使い方</h2>
 1. Object instantiation and initialization of the node controller <br>
 (共通) 1. ノードコントローラーのオブジェクト化と開始
+
 ```cpp
 ss::node_controlelr n_controller( boost::asio::ip::udp::endpoint self_endpoint, std::shared_ptr<boost::asio::io_context> io_context );
 n_controller.start( std::vector<boost::asio::ip::udp::endpoint> boot_eps ); // 既知のノードをブートノードとして幾つか(>0)与える
