@@ -1,5 +1,7 @@
 # SS P2P Node Controller
 
+![SS_P2P_Logo](images/logo.png)
+
 ## 概要
 SS P2P Node Controllerは, P2Pファイル共有プログラム（[Tinny](https://github.com/y6-maenaka/Tinny)）や独自ブロックチェーンシステム（[miya_core](https://github.com/y6-maenaka/miya_core)）などのネットワークモジュールとして開発された, UDPベースの全自動P2Pオーバーレイネットワーク構築・管理ライブラリです.
 
