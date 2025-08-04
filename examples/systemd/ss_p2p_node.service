@@ -1,0 +1,36 @@
+[Unit]
+Description=SS P2P Node Controller Service
+Documentation=https://github.com/yourusername/ss_p2p_node_controller
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/ss_p2p_chat --config /etc/ss_p2p/config.json --daemon
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+
+# Security settings
+User=ss_p2p
+Group=ss_p2p
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/ss_p2p /var/log/ss_p2p
+RuntimeDirectory=ss_p2p
+RuntimeDirectoryMode=0755
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=512
+MemoryLimit=1G
+CPUQuota=50%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ss_p2p
+
+[Install]
+WantedBy=multi-user.target

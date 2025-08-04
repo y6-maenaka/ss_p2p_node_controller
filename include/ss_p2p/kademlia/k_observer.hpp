@@ -1,83 +1,190 @@
-#ifndef D9FF498B_70E3_4A08_98DF_231CCB8B904D
-#define D9FF498B_70E3_4A08_98DF_231CCB8B904D
+#pragma once
 
+#include "../observer.hpp"
+#include "../message.hpp"
+#include "../core/types.hpp"
+#include "./k_node.hpp"
 
 #include <memory>
 #include <functional>
-
-#include <ss_p2p/observer.hpp>
-#include <ss_p2p/message.hpp>
-#include <utils.hpp>
-#include <ss_p2p/kademlia/k_message.hpp>
-#include <ss_p2p/kademlia/k_node.hpp>
-#include <ss_p2p/kademlia/k_routing_table.hpp>
+#include <chrono>
+#include <string>
 
 #include "boost/asio.hpp"
 
+namespace ss::kademlia {
 
-using namespace boost::asio;
-using namespace boost::uuids;
+/**
+ * @brief Legacy observer constants
+ */
+constexpr unsigned int DEFAULT_PING_RESPONSE_TIMEOUT_s = 5;
 
-
-namespace ss
-{
-namespace kademlia
-{
-
-
-constexpr unsigned int DEFAULT_PING_RESPONSE_TIMEOUT_s = 5; // デフォルトのpong待機時間
 class rpc_manager;
 
-
-class k_observer : public ss::base_observer
-{
+/**
+ * @brief Legacy k_observer adapter - wraps modern observer system
+ * 
+ * This adapter provides backward compatibility for the legacy Kademlia observer
+ * by wrapping the new ss::base_observer implementation. All operations are 
+ * delegated to the underlying modern implementation.
+ * 
+ * RAII Principles:
+ * - Automatic resource management through base class
+ * - Exception-safe operations
+ * - Proper timer and callback management
+ */
+class k_observer : public ss::base_observer {
 public:
-  k_observer( io_context &io_ctx, std::string t_name );
+    /**
+     * @brief Constructor
+     * @param io_ctx IO context for async operations
+     * @param t_name Observer type name
+     */
+    k_observer(boost::asio::io_context& io_ctx, const std::string& t_name);
+
+    /**
+     * @brief Virtual destructor
+     */
+    virtual ~k_observer() = default;
+
+protected:
+    /**
+     * @brief Protected copy constructor (deleted)
+     */
+    k_observer(const k_observer&) = delete;
+
+    /**
+     * @brief Protected move constructor (deleted)
+     */
+    k_observer(k_observer&&) = delete;
+
+    /**
+     * @brief Protected copy assignment (deleted)
+     */
+    k_observer& operator=(const k_observer&) = delete;
+
+    /**
+     * @brief Protected move assignment (deleted)
+     */
+    k_observer& operator=(k_observer&&) = delete;
 };
 
-
-class ping : public k_observer
-{
+/**
+ * @brief Legacy ping observer adapter
+ * 
+ * Handles PING/PONG operations with timeout management and callbacks.
+ * Provides backward compatibility with the legacy ping observer API.
+ */
+class ping : public k_observer {
 public:
-  using on_pong_handler = std::function<void(ip::udp::endpoint)>; // 引数は勝手にバイドすること
-  using on_timeout_handler = std::function<void(ip::udp::endpoint)>;
-  ping( io_context &io_ctx, ip::udp::endpoint ep/* 一応保持しておく*/, on_pong_handler pong_handler, on_timeout_handler timeout_handler );
+    using on_pong_handler = std::function<void(boost::asio::ip::udp::endpoint)>;
+    using on_timeout_handler = std::function<void(boost::asio::ip::udp::endpoint)>;
 
-  int income_message( message &msg, ip::udp::endpoint &ep ); // このメソッドをタイマーセットしてio_ctxにポスト
-  void timeout( const boost::system::error_code &ec );
-  void init();
-  void print() const;
+    /**
+     * @brief Constructor
+     * @param io_ctx IO context for async operations
+     * @param ep Target endpoint
+     * @param pong_handler Callback for successful pong
+     * @param timeout_handler Callback for timeout
+     */
+    ping(boost::asio::io_context& io_ctx, 
+         boost::asio::ip::udp::endpoint ep,
+         on_pong_handler pong_handler, 
+         on_timeout_handler timeout_handler);
+
+    /**
+     * @brief Handle incoming message
+     * @param msg Incoming message
+     * @param ep Sender endpoint
+     * @return Processing result
+     */
+    int income_message(message& msg, boost::asio::ip::udp::endpoint& ep);
+
+    /**
+     * @brief Handle timeout
+     * @param ec Error code from timer
+     */
+    void timeout(const boost::system::error_code& ec);
+
+    /**
+     * @brief Initialize observer
+     */
+    void init();
+
+    /**
+     * @brief Print observer state (debug)
+     */
+    void print() const;
 
 private:
-  bool _is_pong_arrived:1;
-  deadline_timer _timer; 
-
-  ip::udp::endpoint _dest_ep;
-  on_pong_handler _pong_handler;
-  on_timeout_handler  _timeout_handler;
+    /// Whether pong has arrived
+    bool is_pong_arrived_ : 1;
+    
+    /// Timeout timer
+    std::unique_ptr<boost::asio::steady_timer> timer_;
+    
+    /// Target endpoint
+    boost::asio::ip::udp::endpoint dest_ep_;
+    
+    /// Pong success callback
+    on_pong_handler pong_handler_;
+    
+    /// Timeout callback
+    on_timeout_handler timeout_handler_;
+    
+    /// IO context reference
+    boost::asio::io_context& io_ctx_;
 };
 
-class find_node : public k_observer
-{
+/**
+ * @brief Legacy find_node observer adapter
+ * 
+ * Handles FIND_NODE operations with response processing and callbacks.
+ * Provides backward compatibility with the legacy find_node observer API.
+ */
+class find_node : public k_observer {
 public:
-  using on_response_handler = std::function<void(ip::udp::endpoint)>;
-  find_node( io_context &io_ctx, on_response_handler response_handler ); // find_nodeで見つかったノードに対して全てresponse_handlerを呼び出す
-  void init();
-  int income_message( message &msg, ip::udp::endpoint &ep );
-  void print() const;
+    using on_response_handler = std::function<void(boost::asio::ip::udp::endpoint)>;
+
+    /**
+     * @brief Constructor
+     * @param io_ctx IO context for async operations
+     * @param response_handler Callback for each found node
+     */
+    find_node(boost::asio::io_context& io_ctx, on_response_handler response_handler);
+
+    /**
+     * @brief Initialize observer
+     */
+    void init();
+
+    /**
+     * @brief Handle incoming message
+     * @param msg Incoming message
+     * @param ep Sender endpoint
+     * @return Processing result
+     */
+    int income_message(message& msg, boost::asio::ip::udp::endpoint& ep);
+
+    /**
+     * @brief Print observer state (debug)
+     */
+    void print() const;
 
 private:
-  on_response_handler _response_handler;
+    /// Response callback
+    on_response_handler response_handler_;
 };
 
-
+/**
+ * @brief Type alias for observer pointer (legacy compatibility)
+ */
 using base_observer_ptr = std::shared_ptr<base_observer>;
-const std::string generate_h_id();
 
+/**
+ * @brief Generate unique handler ID (legacy compatibility)
+ * @return Unique identifier string
+ */
+std::string generate_h_id();
 
-};
-};
-
-
-
-#endif
+} // namespace ss::kademlia

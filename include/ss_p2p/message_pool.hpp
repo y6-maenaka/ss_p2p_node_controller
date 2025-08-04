@@ -1,272 +1,331 @@
-#ifndef CD82DC15_71A2_4534_A194_33DF2E3A0011
-#define CD82DC15_71A2_4534_A194_33DF2E3A0011
+#pragma once
 
-
-#include <vector>
-#include <functional>
 #include <memory>
-#include <optional>
-#include <iostream>
-#include <chrono>
-#include <condition_variable>
+#include <vector>
 #include <unordered_map>
-#include <iterator>
+#include <queue>
+#include <atomic>
+#include <shared_mutex>
+#include <condition_variable>
+#include <thread>
+#include <functional>
+#include <chrono>
+#include <optional>
+#include <array>
 
-#include "boost/asio.hpp"
-#include "boost/uuid/uuid.hpp"
-#include "boost/uuid/uuid_io.hpp"
-#include "boost/uuid/uuid_generators.hpp"
-#include "boost/lexical_cast.hpp"
-#include "boost/thread/recursive_mutex.hpp"
-#include "boost/thread/condition_variable.hpp"
+#include <boost/asio.hpp>
 
-// for multi_index_container
-#include "boost/multi_index_container.hpp"
-#include "boost/multi_index/tag.hpp"
-#include "boost/multi_index/identity.hpp"
-#include "boost/multi_index/indexed_by.hpp"
-#include "boost/multi_index/hashed_index.hpp"
-#include "boost/multi_index/ordered_index.hpp"
-#include "boost/multi_index/sequenced_index.hpp"
-#include "boost/chrono.hpp"
+#include "message.hpp"
+#include "message_pool.fwd.hpp"
 
-#include <ss_p2p/ss_logger.hpp>
-#include <ss_p2p/peer.hpp>
-#include <json.hpp>
-#include "./message.hpp"
+namespace ss {
 
-
-using namespace boost::asio;
-using namespace boost::uuids;
-using json = nlohmann::json;
-
-
-namespace ss
-{
-
-
-constexpr std::time_t DEFAULT_MEMPOOL_REFRESH_TICK_TIME_S = 200/*[second]*/; // 時間周期処理
-constexpr std::time_t DEFAULT_MESSAGE_LIFETIME_M = 20/*[minute]*/;
-constexpr std::size_t MAX_RECEIVE_BUFFER_SIZE = 8388608; // 8メガバイト
-
-
-class peer_message_buffer 
-  /* Peer毎のメッセージバッファ
-	 message_poolのエントリ */
-{
-  // friend message_pool;
-  friend peer;
-
+// Simple concurrent message queue (replacing boost::lockfree for compatibility)
+template<size_t MaxSize = 1024>
+class concurrent_message_queue {
+public:
+    struct queue_entry {
+        message_ptr msg;
+        endpoint_t source;
+        time_point_t enqueue_time;
+        
+        queue_entry() = default;
+        queue_entry(message_ptr m, endpoint_t ep) 
+            : msg(std::move(m)), source(ep), enqueue_time(std::chrono::steady_clock::now()) {}
+    };
+    
+    concurrent_message_queue() = default;
+    
+    bool push(message_ptr msg, const endpoint_t& source) noexcept {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (queue_.size() >= MaxSize) {
+            return false;
+        }
+        queue_.emplace(std::move(msg), source);
+        return true;
+    }
+    
+    result<queue_entry> pop() noexcept {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (queue_.empty()) {
+            return std::nullopt;
+        }
+        queue_entry entry = std::move(queue_.front());
+        queue_.pop();
+        return entry;
+    }
+    
+    bool empty() const noexcept {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return queue_.empty();
+    }
+    
+    size_t size() const noexcept {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return queue_.size();
+    }
+    
 private:
-  mutable boost::recursive_mutex _rmtx;
-  boost::condition_variable_any _bcv;
-
-public:
-  using ref = std::shared_ptr<peer_message_buffer>; // as peer message buffer symbol
-
-  struct received_message  
-  {
-	using ref = std::shared_ptr<struct received_message>;
-	using message_id = uuid;
-	received_message( const message::ref msg_from );
-	// received_message( std::time_t timestampe );
-
-	const message_id id; // for pop_by_id
-	const message::ref msg;
-	const std::time_t time; // 受信した時間
-  
-	static message_id (invalid_message_id)();
-	bool is_invalid() const;
-
-	void print() const;
-  };
-  using message_queue = std::vector< received_message::ref >;
-  static bool compare_received_at( const std::time_t &base_time, const peer_message_buffer::received_message::ref msg_ref ); // for pop_since, drop
-  message_queue _msg_queue; // メッセージバッファ本体
-
-  const ip::udp::endpoint _binding_ep; // このバッファを所有するエンドポイント
-
-  mutable std::size_t max_dynamic_mem_usage_bytes = MAX_RECEIVE_BUFFER_SIZE; // メッセージバッファの最大サイズ
-  std::size_t _dynamic_mem_usage_bytes __attribute__((guarded_by(_rmtx))); // このメッセージのメモリ使用バイト数
-  std::time_t _last_binded_at __attribute__((guarded_by(_rmtx))); // 最後にこの受信バッファを取得した時間
-  std::time_t _last_received_at __attribute__((guarded_by(_rmtx)));  // このバッファにメッセージが最後に到着した時間
-
-  enum pop_flag
-  {
-	none, // 取得と同時にdequeueする
-	peek // 要素の取得のみ行う(dequeueしない)
-  };
-  received_message::ref pop( unsigned int idx = 0 /*先頭(古い)からのインデックス*/, pop_flag flag = pop_flag::none ); // 存在しない場合でも即座に返す
-  received_message::ref pop_by_id( const received_message::message_id &id, pop_flag flag = pop_flag::none ); // ※非推奨 // message_idでメッセージをpopする
-  received_message::ref pop_since( std::time_t since = 0, pop_flag flag = pop_flag::none ); // 0: binded_at以降のメッセージ指定
-  /* 指定時間後に受信したメッセージ以降を取得する */ 
-  received_message::message_id push( message::ref msg_ref );
-  void clear(); // msg_queueを空にする
-  template< typename Iterator > void drop( Iterator begin, Iterator end ); // 指定範囲を削除する
-
-  ip::udp::endpoint get_binding_endpoint() const; 
-  const std::time_t get_last_received_at() const;
-  void update_last_binded_at();
-
-  bool operator ==( const peer_message_buffer &pe ) const;
-  bool operator !=( const peer_message_buffer &pe ) const;
-
-  peer_message_buffer( ip::udp::endpoint ep ); // create from endpoint 
-  peer_message_buffer( const peer_message_buffer &from ); // copy constructor
-
-  void print() const; // for debug
-};
-using message_pool_entry = class peer_message_buffer; // message_poolではmessage_pool_entryの名の方が使いやすい
-
-template< typename Iterator > void peer_message_buffer::drop( Iterator begin, Iterator end )
-{
-  static_assert(  std::is_same<
-	  typename std::iterator_traits<Iterator>::value_type
-	  , peer_message_buffer::message_queue::value_type>::value
-	  , "drop can get iterator of message_queue" );
-
-  if constexpr (std::is_same_v<Iterator, std::reverse_iterator<typename message_queue::iterator>> ||
-		        std::is_same_v<Iterator, std::reverse_iterator<typename message_queue::const_iterator>>) 
-  {
-	_msg_queue.erase( end.base(), begin.base() );
-  }
-  else {
-	_msg_queue.erase( begin, end );
-  }
-}
-
-
-struct ss_message // 他アプリケーションから参照される
-{
-  using ref = std::shared_ptr<ss_message>;
-  json body; // メッセージ本体(ss_p2p自体のルーティング情報も含む)
-  
-  struct
-  {
-    // ip::udp::endpoint src_endpoint; // 送信元
-	ip::udp::endpoint src_endpoint;
-	std::vector< ip::udp::endpoint > relay_endpoints; // 中継ノードリスト(relay_endpointsを取り出す機能は未実装)
-	std::time_t timestamp; // 受信時間
-  } meta;
-
-  ss_message( peer_message_buffer::received_message::ref msg_from, const ip::udp::endpoint &src_ep );
-  const json get( std::string app_id ) const; // bodyから,高アプリケーションのメッセージを取り出す
-  template < typename T > const std::optional<T> cast_get( std::string app_id ) const;
-  static bool (is_invalid)( const json &j );
+    mutable std::mutex mutex_;
+    std::queue<queue_entry> queue_;
 };
 
-
-struct by_peer_id{}; // tag for multi_index_container
-struct by_received_at{}; // tag for multi_index_container
-
-
-class peer_message_buffer_compare_received_at // received_messageの比較関数
-{
+// Memory pool for efficient message buffer allocation
+class message_memory_pool {
 public:
-  bool operator()( const peer_message_buffer &entry_1, const peer_message_buffer &entry_2 ) const 
-  {
-	return entry_1.get_last_received_at() < entry_2.get_last_received_at();
-  }
-};
-using message_pool_entry_compare_received_at = class peer_message_buffer_compare_received_at;
-
-class peer_message_buffer_peer_id
-{
-public:
-  typedef peer::id result_type;
-  result_type operator()( const peer_message_buffer &input ) const
-  {
-	return peer::calc_peer_id( input.get_binding_endpoint() );
-  }
-};
-using message_pool_entry_peer_id = class peer_message_buffer_peer_id;
-
-class peer_id_linear_hasher // multi_index用
-{
-public:
-  std::size_t operator()( const peer_message_buffer_peer_id::result_type &input ) const
-  { // もっといい方法ああると思う(二重ハッシュになっている)
-	/* std::string input_str( input.cbegin(), input.cend() );
-	return std::hash<std::string>()(input_str); */
-	return std::hash<std::string>()(input.to_str());
-  }
-};
-
-
-class message_pool
-{
-public:
-  using endpoint_to_peer_func = std::function<peer::ref(const ip::udp::endpoint &ep)>;
+    explicit message_memory_pool(size_t pool_size = constants::default_pool_size);
+    ~message_memory_pool();
+    
+    // Disable copy and move (due to mutex)
+    message_memory_pool(const message_memory_pool&) = delete;
+    message_memory_pool& operator=(const message_memory_pool&) = delete;
+    message_memory_pool(message_memory_pool&&) = delete;
+    message_memory_pool& operator=(message_memory_pool&&) = delete;
+    
+    // Allocate buffer from pool
+    std::unique_ptr<uint8_t[]> allocate(size_t size) noexcept;
+    
+    // Return buffer to pool
+    void deallocate(std::unique_ptr<uint8_t[]> buffer, size_t size) noexcept;
+    
+    // Pool statistics
+    struct pool_stats {
+        std::atomic<size_t> total_allocations{0};
+        std::atomic<size_t> active_allocations{0};
+        std::atomic<size_t> pool_hits{0};
+        std::atomic<size_t> pool_misses{0};
+        std::atomic<size_t> total_memory{0};
+    };
+    
+    const pool_stats& get_stats() const noexcept { return stats_; }
+    
 private:
-  mutable boost::recursive_mutex _rmtx;
-  using indexed_message_set = boost::multi_index_container<
-		message_pool_entry
-	  , boost::multi_index::indexed_by<
-		  boost::multi_index::hashed_unique< boost::multi_index::tag<by_peer_id>, message_pool_entry_peer_id, peer_id_linear_hasher > // index by peer_id
-		  , boost::multi_index::ordered_non_unique< boost::multi_index::tag<by_received_at>, boost::multi_index::identity<message_pool_entry>, message_pool_entry_compare_received_at > // index by received_at
-    > // peer_id or 最終取得が近いエントリから取得する
-	>;
-  indexed_message_set _pool __attribute__((guarded_by(_rmtx))); 
-  using entry = indexed_message_set::iterator;
-  
-  deadline_timer _refresh_tick_timer;
-  bool _requires_refresh; // 更新を行うな否か
-  ss_logger *_logger;
-  io_context &_io_ctx;
-  const endpoint_to_peer_func _ep_to_peer_func = nullptr;
-
-#if SS_DEBUG
-public:
-#endif 
-  void call_refresh_tick();
-  void refresh_tick( const boost::system::error_code& ec ); // エントリーごと削除するか検討する
-
-  entry allocate_new_entry( const ip::udp::endpoint &ep );
-  peer_message_buffer::ref allocate_new_buffer( const ip::udp::endpoint &ep ); // 空のpeer_message_bufferを作成する
-
-public:
-  // message_pool( io_context &io_ctx, const endpoint_to_peer_func ep_to_peer_func, ss_logger *logger, bool requires_refresh = true );
-  message_pool( io_context &io_ctx, const endpoint_to_peer_func ep_to_peer_func, ss_logger *logger, bool requires_refresh = true );
-
-  void requires_refresh( bool b );
-  void store( message::ref msg_ref, const ip::udp::endpoint &ep ); // 受信したメッセージを追加
-
-  struct message_hub
-  {
-	friend message_pool;
-	public:
-	  bool is_active() const;
-	  message_hub( const message_pool::endpoint_to_peer_func &ep_to_peer_func );
-	  ~message_hub();
-	  void start( std::function<void(peer::ref, ss_message::ref)> f ); // イベント稼働型
-	  void stop(); 
-
-	private:
-	  void on_receive_message( std::function<peer_message_buffer::received_message::ref(void)> pop_func, ip::udp::endpoint src_ep );
-	  std::function<void(peer::ref, ss_message::ref)> _msg_handler;
-
-	  mutable boost::recursive_mutex _rmtx;
-	  boost::condition_variable_any _bcv;
-	  bool _is_active __attribute__((guarded_by(_rmtx)));
-	  const message_pool::endpoint_to_peer_func &_ep_to_peer_func = nullptr; // この方法あまりよくないかも
-  };
-  struct message_hub _msg_hub;
-
-  message_hub &get_message_hub();
-  peer_message_buffer::ref get_peer_message_buffer( const peer::id &pid ) const;
-  peer_message_buffer::ref allocate_message_buffer( const peer::id &pid );
-  peer_message_buffer::ref deallocate( const peer::id &pid );
-  
-  void print() const;
-  void print_by_peer_id() const;
-  void print_by_received_at() const;
-};
-using message_hub = message_pool::message_hub;
-
-
+    struct buffer_entry {
+        std::unique_ptr<uint8_t[]> buffer;
+        size_t size;
+        time_point_t last_used;
+    };
+    
+    mutable std::shared_mutex mutex_;
+    std::vector<buffer_entry> available_buffers_;
+    mutable pool_stats stats_;
+    
+    void cleanup_old_buffers() noexcept;
 };
 
+// Per-peer message buffer with timeout management
+class message_buffer {
+public:
+    explicit message_buffer(endpoint_t endpoint, size_t max_size = constants::default_buffer_size);
+    ~message_buffer() = default;
+    
+    // Disable copy and move (due to mutex)
+    message_buffer(const message_buffer&) = delete;
+    message_buffer& operator=(const message_buffer&) = delete;
+    message_buffer(message_buffer&&) = delete;
+    message_buffer& operator=(message_buffer&&) = delete;
+    
+    // Message operations
+    bool push_message(message_ptr msg) noexcept;
+    result<message_ptr> pop_message(duration_t timeout = duration_t{0}) noexcept;
+    result<message_ptr> peek_message() const noexcept;
+    
+    // Buffer management
+    void clear_messages() noexcept;
+    size_t message_count() const noexcept;
+    size_t estimated_memory_usage() const noexcept;
+    
+    // Timeout operations
+    void remove_expired_messages(duration_t max_age = constants::default_message_timeout) noexcept;
+    
+    // Access control
+    endpoint_t get_endpoint() const noexcept { return endpoint_; }
+    time_point_t last_activity() const noexcept;
+    void update_activity() noexcept;
+    
+private:
+    struct buffered_message {
+        message_ptr msg;
+        time_point_t received_at;
+        
+        buffered_message(message_ptr m) 
+            : msg(std::move(m)), received_at(std::chrono::steady_clock::now()) {}
+    };
+    
+    endpoint_t endpoint_;
+    mutable std::shared_mutex mutex_;
+    std::queue<buffered_message> message_queue_;
+    std::condition_variable_any condition_;
+    std::atomic<time_point_t> last_activity_;
+    std::atomic<size_t> current_size_;
+    const size_t max_size_;
+};
 
-#endif 
+// Message routing and distribution hub
+class message_hub {
+public:
+    explicit message_hub(boost::asio::io_context& io_context);
+    ~message_hub();
+    
+    // Disable copy and move
+    message_hub(const message_hub&) = delete;
+    message_hub& operator=(const message_hub&) = delete;
+    message_hub(message_hub&&) = delete;
+    message_hub& operator=(message_hub&&) = delete;
+    
+    // Lifecycle management
+    void start(message_handler_t handler);
+    void stop() noexcept;
+    bool is_running() const noexcept;
+    
+    // Message distribution
+    void distribute_message(message_ptr msg, const endpoint_t& source) noexcept;
+    
+    // Handler registration
+    void set_message_handler(message_handler_t handler) noexcept;
+    void set_peer_resolver(endpoint_to_peer_func_t resolver) noexcept;
+    
+    // Statistics
+    struct hub_metrics {
+        std::atomic<uint64_t> messages_processed{0};
+        std::atomic<uint64_t> messages_dropped{0};
+        std::atomic<uint64_t> processing_errors{0};
+        std::atomic<duration_t::rep> avg_processing_time{0};
+    };
+    
+    const hub_metrics& get_metrics() const noexcept { return metrics_; }
+    
+private:
+    boost::asio::io_context& io_context_;
+    std::unique_ptr<std::thread> worker_thread_;
+    concurrent_message_queue<> message_queue_;
+    
+    std::atomic<bool> running_{false};
+    message_handler_t message_handler_;
+    endpoint_to_peer_func_t peer_resolver_;
+    hub_metrics metrics_;
+    
+    void worker_loop() noexcept;
+    void process_message(message_ptr msg, const endpoint_t& source) noexcept;
+};
 
+// Utility functions for endpoint handling
+namespace pool_utils {
+    
+    // Endpoint hash function for unordered_map
+    struct endpoint_hash {
+        size_t operator()(const endpoint_t& ep) const noexcept {
+            auto addr_hash = std::hash<std::string>{}(ep.address().to_string());
+            auto port_hash = std::hash<uint16_t>{}(ep.port());
+            return addr_hash ^ (port_hash << 1);
+        }
+    };
+    
+    // Endpoint comparison
+    struct endpoint_equal {
+        bool operator()(const endpoint_t& lhs, const endpoint_t& rhs) const noexcept {
+            return lhs.address() == rhs.address() && lhs.port() == rhs.port();
+        }
+    };
+    
+} // namespace pool_utils
 
+// Main message pool with comprehensive management
+class message_pool {
+public:
+    // Type alias for backward compatibility
+    using message_hub = ss::message_hub;
+    explicit message_pool(
+        boost::asio::io_context& io_context,
+        endpoint_to_peer_func_t peer_resolver,
+        size_t pool_size = constants::default_pool_size
+    );
+    
+    ~message_pool();
+    
+    // Disable copy and move
+    message_pool(const message_pool&) = delete;
+    message_pool& operator=(const message_pool&) = delete;
+    message_pool(message_pool&&) = delete;
+    message_pool& operator=(message_pool&&) = delete;
+    
+    // Lifecycle management
+    void start();
+    void stop() noexcept;
+    bool is_running() const noexcept;
+    
+    // Message operations
+    void store_message(message_ptr msg, const endpoint_t& source) noexcept;
+    result<message_ptr> retrieve_message(const endpoint_t& endpoint, duration_t timeout = duration_t{100}) noexcept;
+    
+    // Buffer management
+    message_buffer_ptr get_or_create_buffer(const endpoint_t& endpoint) noexcept;
+    bool remove_buffer(const endpoint_t& endpoint) noexcept;
+    void cleanup_inactive_buffers(duration_t max_idle = std::chrono::minutes{10}) noexcept;
+    
+    // Message hub access
+    message_hub& get_message_hub() noexcept { return hub_; }
+    const message_hub& get_message_hub() const noexcept { return hub_; }
+    
+    // Memory management
+    message_memory_pool& get_memory_pool() noexcept { return memory_pool_; }
+    const message_memory_pool& get_memory_pool() const noexcept { return memory_pool_; }
+    
+    // Statistics and monitoring
+    struct pool_statistics {
+        size_t active_buffers{0};
+        size_t total_messages{0};
+        size_t memory_usage{0};
+        duration_t avg_message_age{0};
+        
+        // Performance metrics
+        uint64_t messages_stored{0};
+        uint64_t messages_retrieved{0};
+        uint64_t buffer_cache_hits{0};
+        uint64_t buffer_cache_misses{0};
+    };
+    
+    pool_statistics get_statistics() const noexcept;
+    
+    // Configuration
+    void set_cleanup_interval(duration_t interval) noexcept;
+    void set_message_timeout(duration_t timeout) noexcept;
+    void set_max_buffer_size(size_t size) noexcept;
+    
+private:
+    boost::asio::io_context& io_context_;
+    boost::asio::steady_timer cleanup_timer_;
+    
+    mutable std::shared_mutex buffers_mutex_;
+    std::unordered_map<endpoint_t, message_buffer_ptr, pool_utils::endpoint_hash, pool_utils::endpoint_equal> message_buffers_;
+    
+    message_memory_pool memory_pool_;
+    message_hub hub_;
+    endpoint_to_peer_func_t peer_resolver_;
+    
+    std::atomic<bool> running_{false};
+    std::atomic<duration_t::rep> cleanup_interval_{std::chrono::minutes{5}.count()};
+    std::atomic<duration_t::rep> message_timeout_{constants::default_message_timeout.count()};
+    std::atomic<size_t> max_buffer_size_{constants::default_buffer_size};
+    
+    // Performance counters
+    mutable std::atomic<uint64_t> messages_stored_{0};
+    mutable std::atomic<uint64_t> messages_retrieved_{0};
+    mutable std::atomic<uint64_t> buffer_cache_hits_{0};
+    mutable std::atomic<uint64_t> buffer_cache_misses_{0};
+    
+    void schedule_cleanup() noexcept;
+    void perform_cleanup(const boost::system::error_code& ec) noexcept;
+    message_buffer_ptr find_buffer(const endpoint_t& endpoint) const noexcept;
+};
+
+namespace pool_utils {
+    // Create typed message pools
+    std::unique_ptr<message_pool> create_pool(
+        boost::asio::io_context& io_context,
+        endpoint_to_peer_func_t peer_resolver,
+        size_t pool_size = constants::default_pool_size
+    );
+} // namespace pool_utils
+
+} // namespace ss

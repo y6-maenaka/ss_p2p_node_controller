@@ -1,43 +1,86 @@
-#ifndef DCA789F2_049E_4A86_91A5_F44944098F52
-#define DCA789F2_049E_4A86_91A5_F44944098F52
+#pragma once
 
+#include <ss_p2p/core/types.hpp>
+#include <logger/logger.hpp>
 
 #include <iostream>
 #include <thread>
 #include <string>
 #include <vector>
-#include <ss_p2p/ss_logger.hpp>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <atomic>
+#include <boost/asio.hpp>
 
-#include "boost/asio.hpp"
+namespace ss {
 
-
-using namespace boost::asio;
-
-namespace ss
-{
-
-
-class interface
-{ 
-  // テスト用に簡易的な標準入力からの入力を受け付ける機能を実装
-  using input_command_callback = std::function<void(std::vector<std::string>)>;
+/**
+ * @brief Legacy command line interface (deprecated - minimal implementation)
+ * 
+ * This class provides minimal backward compatibility for legacy test interfaces.
+ * New code should use the application layer's service interfaces.
+ */
+class interface {
 public:
-  interface( io_context &io_ctx, const input_command_callback notify_func, ss_logger *logger );
-  ~interface();
+    using input_command_callback = std::function<void(std::vector<std::string>)>;
 
-  void listen_stdin();
+    /**
+     * @brief Constructor
+     * @param io_ctx IO context for posting commands
+     * @param notify_func Callback for handling input commands
+     * @param logger_ptr Logger instance (optional)
+     */
+    interface(core::io_context& io_ctx, 
+              const input_command_callback& notify_func, 
+              std::shared_ptr<logger::logger> logger_ptr = nullptr);
+
+    /**
+     * @brief Destructor
+     */
+    ~interface();
+
+    /**
+     * @brief Start listening to standard input (deprecated)
+     * 
+     * In minimal implementation, this does nothing.
+     * Use application layer interfaces instead.
+     */
+    void listen_stdin();
+
+    /**
+     * @brief Stop the interface
+     */
+    void stop();
+
+    /**
+     * @brief Check if interface is running
+     * @return true if active, false otherwise
+     */
+    bool is_running() const noexcept;
 
 private:
-  std::thread _th;
-  io_context &_io_ctx;
-  const input_command_callback _notify_func;
-  ss_logger *_logger;
+    /// Background thread for input processing
+    std::thread _input_thread;
+    /// IO context reference
+    core::io_context& _io_ctx;
+    /// Command callback function
+    input_command_callback _notify_func;
+    /// Logger instance
+    std::shared_ptr<logger::logger> _logger;
+    /// Thread safety mutex
+    mutable std::mutex _mutex;
+    /// Running flag
+    std::atomic<bool> _running{false};
+    /// Stop flag
+    std::atomic<bool> _stop_requested{false};
+
+    /**
+     * @brief Internal input processing loop
+     */
+    void input_processing_loop();
 };
 
-
-};
-
-
-#endif 
+} // namespace ss 
 
 

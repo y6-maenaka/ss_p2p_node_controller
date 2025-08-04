@@ -12,11 +12,11 @@ namespace kademlia
 {
 
 
-rpc_manager::rpc_manager( node_id &self_id, io_context &io_ctx, k_observer_strage &obs_strage, sender &sender, s_send_func &send_func, ss_logger *logger ) :
+rpc_manager::rpc_manager( node_id &self_id, io_context &io_ctx, k_observer_storage &obs_storage, sender &sender, s_send_func &send_func, ss_logger *logger ) :
   _self_id( self_id )
   , _io_ctx( io_ctx )
   , _tick_timer( io_ctx )
-  , _obs_strage( obs_strage )
+  , _obs_storage( obs_storage )
   , _sender( sender )
   , _s_send_func( send_func )
   , _routing_table( self_id, logger )
@@ -30,7 +30,7 @@ void rpc_manager::ping_request( ip::udp::endpoint ep, on_pong_handler pong_handl
 {
   observer<ping> ping_obs( _io_ctx, ep, pong_handler, timeout_handler );
   ping_obs.init();
-  _obs_strage.add_observer( ping_obs ); // 送信より先に保存しておく
+  _obs_storage.add_observer( ping_obs ); // 送信より先に保存しておく
 
   k_message k_msg = k_message::_request_( k_message::rpc::ping );
   k_msg.set_observer_id( ping_obs.get_id() );
@@ -46,7 +46,7 @@ void rpc_manager::find_node_request( ip::udp::endpoint ep, std::vector<ip::udp::
 {
   observer<find_node> find_node_obs( _io_ctx, response_handler );
   find_node_obs.init();
-  _obs_strage.add_observer( find_node_obs ); // 送信するより先に保存しておく
+  _obs_storage.add_observer( find_node_obs ); // 送信するより先に保存しておく
 
   k_message k_msg = k_message::_request_( k_message::rpc::find_node );
   k_msg.set_observer_id( find_node_obs.get_id() );

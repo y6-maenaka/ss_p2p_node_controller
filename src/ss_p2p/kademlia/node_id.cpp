@@ -2,103 +2,201 @@
 #include <utils.hpp>
 #include <crypto_utils/crypto_utils.hpp>
 
+#include <stdexcept>
+#include <cstring>
+#include <random>
 
-namespace ss
-{
-namespace kademlia
-{
+namespace ss::kademlia {
 
-
-node_id::node_id()
-{
-  _id.fill(0);
+// Default constructor
+node_id::node_id() noexcept 
+    : core_id_(std::make_unique<ss::core::node_id>())
+    , cache_valid_(false) {
 }
 
-/* node_id::node_id( std::vector<unsigned char> id_from )
-{
-  std::copy( id_from.begin(), id_from.end(), _id.begin() ); 
-} */
- 
-node_id::node_id( const node_id &nid ) 
-{
-  // _id = nid._id;
-  std::copy( nid._id.begin(), nid._id.end(), _id.begin() );
+// Constructor from raw data
+node_id::node_id(const void* from) 
+    : core_id_(std::make_unique<ss::core::node_id>())
+    , cache_valid_(false) {
+    
+    if (!from) {
+        throw std::invalid_argument("node_id: null pointer provided");
+    }
+    
+    // Copy data into core node_id
+    auto& core_data = core_id_->data();
+    std::memcpy(core_data.data(), from, ss::core::node_id::SIZE);
 }
 
-node_id::node_id( const void *from )
-{
-  std::memcpy( _id.data(), from, _id.size() );
+// Copy constructor
+node_id::node_id(const node_id& nid) noexcept 
+    : core_id_(std::make_unique<ss::core::node_id>(*nid.core_id_))
+    , cache_valid_(false) {
 }
 
-std::string node_id::to_str() const 
-{
-  return std::string(); // 後で修正 
+// Move constructor
+node_id::node_id(node_id&& nid) noexcept 
+    : core_id_(std::move(nid.core_id_))
+    , cached_data_(std::move(nid.cached_data_))
+    , cache_valid_(nid.cache_valid_) {
+    
+    nid.cache_valid_ = false;
 }
 
-bool node_id::operator ==( const node_id &nid ) const
-{
-  return _id == nid._id;
+// Constructor from core::node_id
+node_id::node_id(const ss::core::node_id& core_id) noexcept 
+    : core_id_(std::make_unique<ss::core::node_id>(core_id))
+    , cache_valid_(false) {
 }
 
-node_id::id node_id::operator()() const
-{
-  return _id;
+// Constructor from core::node_id (move)
+node_id::node_id(ss::core::node_id&& core_id) noexcept 
+    : core_id_(std::make_unique<ss::core::node_id>(std::move(core_id)))
+    , cache_valid_(false) {
 }
 
-/* node_id node_id::operator=( const node_id &nid ) const
-{
-  return *this;
-} */
-
-unsigned char node_id::operator[](unsigned short idx) const
-{
-  return static_cast<unsigned char>(_id[idx]);
+// Copy assignment
+node_id& node_id::operator=(const node_id& nid) noexcept {
+    if (this != &nid) {
+        *core_id_ = *nid.core_id_;
+        cache_valid_ = false;
+    }
+    return *this;
 }
 
-node_id node_id::none() noexcept
-{
-  node_id ret;
-  ret._id.fill(0); 
-  return ret;
+// Move assignment
+node_id& node_id::operator=(node_id&& nid) noexcept {
+    if (this != &nid) {
+        core_id_ = std::move(nid.core_id_);
+        cached_data_ = std::move(nid.cached_data_);
+        cache_valid_ = nid.cache_valid_;
+        nid.cache_valid_ = false;
+    }
+    return *this;
 }
 
-void node_id::print() const
-{
-  for( int i=0; i<_id.size(); i++ )
-	printf("%02X", _id[i] );
+// Convert to string representation
+std::string node_id::to_str() const {
+    return core_id_->to_hex();
 }
 
-
-unsigned short calc_node_xor_distance( const node_id &nid_1, const node_id &nid_2 )
-{
-  unsigned char xorDistance[ K_NODE_ID_LENGTH ];
-  for( int i=0; i<K_NODE_ID_LENGTH; i++ )
-	xorDistance[i] = (nid_1[i]) ^ (nid_2[i]);
-
-  unsigned short prefixZeroCount = 0;
-  for( int i=0; i<K_NODE_ID_LENGTH * 8; i++ ){
-	if( ((xorDistance[i/8] >> (i%8)) & 1) == 0x01 ) break;
-	prefixZeroCount++;
-  }
-  return prefixZeroCount;
+// Equality comparison
+bool node_id::operator==(const node_id& nid) const noexcept {
+    return *core_id_ == *nid.core_id_;
 }
 
-node_id calc_node_id( void* ep_bin, std::size_t ep_bin_len )
-{
-  unsigned char in[ep_bin_len]; std::memcpy( in, ep_bin, ep_bin_len );
-  auto ep_md = cu::sha1::hash( in, ep_bin_len );
-
-  auto node_id_from = (ep_md.to_array< std::uint8_t, K_NODE_ID_LENGTH >());
-  return node_id( node_id_from.data() );
+// Inequality comparison
+bool node_id::operator!=(const node_id& nid) const noexcept {
+    return !(*this == nid);
 }
 
-node_id calc_node_id( ip::udp::endpoint &ep )
-{
-  auto ep_bin = endpoint_to_binary( ep );
-  return calc_node_id( ep_bin.first.get(), ep_bin.second );
+// Less-than comparison
+bool node_id::operator<(const node_id& nid) const noexcept {
+    return *core_id_ < *nid.core_id_;
 }
 
+// Get raw ID data (legacy compatibility)
+node_id::id node_id::operator()() const noexcept {
+    update_cache();
+    return cached_data_;
+}
 
+// Array subscript operator
+unsigned char node_id::operator[](unsigned short idx) const {
+    if (idx >= K_NODE_ID_LENGTH) {
+        throw std::out_of_range("node_id: index out of range");
+    }
+    update_cache();
+    return cached_data_[idx];
+}
 
-};
-};
+// Create zero node_id
+node_id node_id::none() noexcept {
+    return node_id{};
+}
+
+// Generate random node_id
+node_id node_id::random() {
+    auto core_random = ss::core::node_id::random();
+    return node_id{std::move(core_random)};
+}
+
+// Print node_id to stdout
+void node_id::print() const {
+    update_cache();
+    for (std::size_t i = 0; i < cached_data_.size(); ++i) {
+        printf("%02X", cached_data_[i]);
+    }
+}
+
+// Get underlying core::node_id
+const ss::core::node_id& node_id::core() const noexcept {
+    return *core_id_;
+}
+
+// Get mutable underlying core::node_id
+ss::core::node_id& node_id::core() noexcept {
+    cache_valid_ = false; // Invalidate cache when core is modified
+    return *core_id_;
+}
+
+// Direct access to raw data
+const node_id::id& node_id::data() const noexcept {
+    update_cache();
+    return cached_data_;
+}
+
+// Update cached data from core_id
+void node_id::update_cache() const {
+    if (!cache_valid_) {
+        const auto& core_data = core_id_->data();
+        std::copy(core_data.begin(), core_data.end(), cached_data_.begin());
+        cache_valid_ = true;
+    }
+}
+
+// Calculate node_id from endpoint (legacy compatibility)
+node_id calc_node_id(boost::asio::ip::udp::endpoint& ep) {
+    auto ep_bin = endpoint_to_binary(ep);
+    
+    // Use SHA1 hash of endpoint binary data
+    auto ep_md = cu::sha1::hash(ep_bin.first.get(), ep_bin.second);
+    auto hash_array = ep_md.template to_array<std::uint8_t, node_id::K_NODE_ID_LENGTH>();
+    
+    return node_id{hash_array.data()};
+}
+
+// Calculate XOR distance between two node_ids (legacy compatibility)
+unsigned short calc_node_xor_distance(const node_id& nid_1, const node_id& nid_2) {
+    auto distance = nid_1.core().distance(nid_2.core());
+    
+    // Count leading zero bits in distance
+    const auto& distance_data = distance.data();
+    unsigned short prefix_zero_count = 0;
+    
+    for (std::size_t byte_idx = 0; byte_idx < distance_data.size(); ++byte_idx) {
+        std::uint8_t byte_val = distance_data[byte_idx];
+        
+        for (int bit_idx = 7; bit_idx >= 0; --bit_idx) {
+            if ((byte_val >> bit_idx) & 1) {
+                return prefix_zero_count;
+            }
+            ++prefix_zero_count;
+        }
+    }
+    
+    return prefix_zero_count;
+}
+
+// Convert string to node_id (legacy compatibility)  
+node_id str_to_node_id(const std::string& from) {
+    try {
+        auto core_id = ss::core::node_id::from_hex(from);
+        return node_id{std::move(core_id)};
+    } catch (const std::exception&) {
+        // Return zero node_id on parse failure (legacy behavior)
+        return node_id::none();
+    }
+}
+
+} // namespace ss::kademlia

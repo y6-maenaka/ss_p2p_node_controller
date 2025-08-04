@@ -1,0 +1,8 @@
+/Users/yuri/Develop/ss_p2p_node_controller/test/CMakeFiles/ss_p2p.dir
+/Users/yuri/Develop/ss_p2p_node_controller/test/CMakeFiles/test.dir
+/Users/yuri/Develop/ss_p2p_node_controller/test/CMakeFiles/edit_cache.dir
+/Users/yuri/Develop/ss_p2p_node_controller/test/CMakeFiles/rebuild_cache.dir
+/Users/yuri/Develop/ss_p2p_node_controller/test/CMakeFiles/list_install_components.dir
+/Users/yuri/Develop/ss_p2p_node_controller/test/CMakeFiles/install.dir
+/Users/yuri/Develop/ss_p2p_node_controller/test/CMakeFiles/install/local.dir
+/Users/yuri/Develop/ss_p2p_node_controller/test/CMakeFiles/install/strip.dir

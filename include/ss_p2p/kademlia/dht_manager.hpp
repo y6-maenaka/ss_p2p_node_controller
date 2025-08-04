@@ -17,7 +17,7 @@
 #include "./k_node.hpp"
 #include "./node_id.hpp"
 #include "./k_observer.hpp"
-#include "./k_observer_strage.hpp"
+#include "./k_observer_storage.hpp"
 #include "./rpc_manager.hpp"
 #include "./k_message.hpp"
 
@@ -51,7 +51,7 @@ public:
   void init( s_send_func s_send_func ); 
 
   #if SS_DEBUG
-  k_observer_strage &get_observer_strage();
+  k_observer_storage &get_observer_storage();
   #endif
 
   void start(); // 実質はtickをcallするだけ
@@ -63,7 +63,7 @@ private:
   ip::udp::endpoint &_self_ep;
   node_id _self_id;
   rpc_manager _rpc_manager;
-  k_observer_strage _obs_strage;
+  k_observer_storage _obs_storage;
   sender &_sender;
   s_send_func _s_send_func; // initにより初期化され
   ss_logger *_logger;

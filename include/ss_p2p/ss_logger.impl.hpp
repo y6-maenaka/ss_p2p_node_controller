@@ -1,35 +1,68 @@
-#ifndef E5188D95_D8A9_4E6C_A813_A3A531B512A3
-#define E5188D95_D8A9_4E6C_A813_A3A531B512A3
+#pragma once
 
+// Implementation file for ss_logger template methods
+// This file contains the constructor and non-template method implementations
 
-#include <utils.hpp>
+#include <iostream>
+#include <string>
 
+namespace ss {
 
-namespace ss
-{
-
-
-template <typename ... Args > void ss_logger::log( const logger::log_level &ll, Args&& ... args )
-{
-  _logger.log( ll, std::forward<Args>(args)... );
-
-  _logger.set_custom_header("[SS_P2P]");
-  _packet_logger.set_custom_header("[SS_P2P]");
+// Constructor implementation (inline in header since it's simple)
+inline ss_logger::ss_logger() {
+    try {
+        // Create system logger with file output
+        #ifndef SS_LOGGING_DISABLE
+        _system_logger = logger::create_file_logger(
+            "ss_p2p_system", 
+            SS_LOGGER_SYSTEM_OUTFILE_NAME
+        );
+        _system_logger->set_pattern("[SS_P2P][%Y-%m-%d %H:%M:%S] [%l] %v");
+        
+        // Create packet logger with separate file
+        _packet_logger = logger::create_file_logger(
+            "ss_p2p_packet", 
+            SS_LOGGER_PACKET_OUTFILE_NAME
+        );
+        _packet_logger->set_pattern("[SS_P2P][%Y-%m-%d %H:%M:%S] [%l] %v");
+        #else
+        // Logging disabled - create null loggers
+        _system_logger = nullptr;
+        _packet_logger = nullptr;
+        #endif
+        
+    } catch (const std::exception& e) {
+        // Fallback to console logging if file logging fails
+        std::cerr << "ss_logger: Failed to create file loggers, using console: " << e.what() << std::endl;
+        
+        _system_logger = logger::create_console_logger("ss_p2p_system_console");
+        _packet_logger = logger::create_console_logger("ss_p2p_packet_console");
+        
+        if (_system_logger) {
+            _system_logger->set_pattern("[SS_P2P][%H:%M:%S] [%l] %v");
+        }
+        if (_packet_logger) {
+            _packet_logger->set_pattern("[SS_P2P][%H:%M:%S] [%l] %v");
+        }
+    }
 }
 
-template <typename... Args > void ss_logger::log_packet( const logger::log_level &ll, const packet_direction &pd, const ip::udp::endpoint &ep, Args&& ... args )
-{
-  std::string ep_str = endpoint_to_str(ep);
-  if( pd == ss_logger::packet_direction::INCOMING ) return _packet_logger.log( ll, "(receive):" , ep_str.c_str() ,std::forward<Args>(args)... );
-  else return _packet_logger.log( ll, "(send):", ep_str.c_str() ,std::forward<Args>(args)... );
+// Convert legacy log level to new logger level
+inline logger::level ss_logger::convert_log_level(const logger::log_level& ll) const {
+    switch (ll) {
+        case logger::log_level::DEBUG:
+            return logger::level::debug;
+        case logger::log_level::INFO:
+            return logger::level::info;
+        case logger::log_level::WARN:
+            return logger::level::warn;
+        case logger::log_level::ERROR:
+            return logger::level::err;
+        case logger::log_level::ALERT:
+            return logger::level::critical;
+        default:
+            return logger::level::info;
+    }
 }
 
-/*
- [INFO][22:10:54] [SEND](UDP) 
-*/
-
-
-};
-
-
-#endif
+} // namespace ss
