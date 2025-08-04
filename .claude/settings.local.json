@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkg-config:*)",
+      "Bash(openssl:*)",
+      "Bash(find:*)",
+      "Bash(brew list:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(cmake:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(mkdir:*)",
+      "Bash(make:*)",
+      "Bash(g++:*)",
+      "Bash(ls:*)",
+      "Bash(./build/test_core_demo)",
+      "Bash(rm:*)",
+      "Bash(xcode-select:*)",
+      "Bash(true)",
+      "Bash(mv:*)",
+      "Bash(./test_simple_message)",
+      "Bash(lldb:*)",
+      "Bash(./test_minimal)",
+      "Bash(cp:*)",
+      "Bash(BUILD_TESTS=OFF cmake ..)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "Bash(git checkout:*)",
+      "Bash(timeout 60 cmake --build .)",
+      "Bash(ctest:*)",
+      "Bash(chmod:*)"
+    ],
+    "deny": []
+  }
+}

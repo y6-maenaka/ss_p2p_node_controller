@@ -6,12 +6,12 @@ namespace ss
 {
 
 
-std::pair< std::shared_ptr<unsigned char>, std::size_t > endpoint_to_binary( ip::udp::endpoint &ep ) noexcept
+std::pair< std::shared_ptr<unsigned char[]>, std::size_t > endpoint_to_binary( ip::udp::endpoint &ep ) noexcept
 {
   const auto addr_str = ep.address().to_string();
   const auto port = ep.port();
 
-  std::shared_ptr<unsigned char> addr_binary = std::shared_ptr<unsigned char>( new unsigned char[addr_str.size() + sizeof(port)] );
+  std::shared_ptr<unsigned char[]> addr_binary = std::shared_ptr<unsigned char[]>( new unsigned char[addr_str.size() + sizeof(port)] );
   std::size_t cpyOffset = 0;
   std::memcpy( addr_binary.get() + cpyOffset, addr_str.data(), addr_str.size() ); cpyOffset += addr_str.size();
   std::memcpy( addr_binary.get() + cpyOffset, &port, sizeof(port) ); cpyOffset += sizeof(port);
@@ -30,7 +30,7 @@ ip::udp::endpoint str_to_endpoint( std::string &ep_str )
   std::string ipv4 = ep_str.substr( 0, ep_str.find(":") );
   unsigned short port = std::stoi(ep_str.substr(ep_str.find(':') + 1));
 
-  return ip::udp::endpoint( ip::address::from_string(ipv4), port );
+  return ip::udp::endpoint( ip::make_address(ipv4), port );
 }
 
 std::pair<std::string, std::uint16_t> extract_endpoint( ip::udp::endpoint &ep )
@@ -40,7 +40,7 @@ std::pair<std::string, std::uint16_t> extract_endpoint( ip::udp::endpoint &ep )
 
 ip::udp::endpoint addr_pair_to_endpoint( std::string ip, std::uint16_t port )
 {
-  return ip::udp::endpoint( ip::address::from_string(ip), port );
+  return ip::udp::endpoint( ip::make_address(ip), port );
 }
 
 ip::udp::endpoint generate_random_endpoint()

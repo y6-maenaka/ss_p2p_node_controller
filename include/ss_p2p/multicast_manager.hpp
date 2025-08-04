@@ -1,64 +1,95 @@
-#ifndef F3E546BD_6C47_421E_AA93_1BDB088BA9F0
-#define F3E546BD_6C47_421E_AA93_1BDB088BA9F0
+#pragma once
 
+#include <ss_p2p/core/types.hpp>
+#include <ss_p2p/peer.hpp>
 
 #include <vector>
 #include <memory>
-#include <random>
+#include <functional>
+#include <mutex>
+#include <boost/asio.hpp>
 
-#include <ss_p2p/kademlia/k_routing_table.hpp>
-#include <ss_p2p/kademlia/k_node.hpp>
-#include <ss_p2p/peer.hpp>
+namespace ss {
 
-#include "boost/range/irange.hpp"
-#include "boost/range/algorithm_ext.hpp"
-
-
-namespace ss
-{
-
-
-class multicast_manager
-{
-  // 基本的にcontextを初期化しなi限り一度pickされたpeerは選出されなi
-
+/**
+ * @brief Legacy multicast manager (deprecated - minimal implementation)
+ * 
+ * This class provides minimal backward compatibility for legacy code.
+ * New code should use the application layer's message bus for broadcasting.
+ */
+class multicast_manager {
 public:
-  using peers = std::vector<peer::ref>;
-  using endpoint_to_peer_func = std::function<peer::ref(const ip::udp::endpoint)>;
+    using endpoint = boost::asio::ip::udp::endpoint;
+    using peers = std::vector<std::shared_ptr<peer>>;
+    using endpoint_to_peer_func = std::function<std::shared_ptr<peer>(const endpoint&)>;
+
+    /**
+     * @brief Cast type enumeration (legacy compatibility)
+     */
+    enum cast_type {
+        breath_first,  // Breadth-first peer selection
+        depth_first    // Depth-first peer selection (not implemented)
+    };
+
+    /**
+     * @brief Constructor (minimal implementation)
+     * @param routing_table_ref Unused legacy parameter (kept for compatibility)
+     * @param ep_to_peer_func Function to convert endpoint to peer
+     */
+    template<typename RoutingTableRef>
+    multicast_manager(RoutingTableRef& routing_table_ref, const endpoint_to_peer_func& ep_to_peer_func)
+        : _ep_to_peer_func(ep_to_peer_func) {
+        // Legacy constructor - routing table parameter ignored in minimal implementation
+        (void)routing_table_ref; // Suppress unused parameter warning
+    }
+
+    /**
+     * @brief Get multicast targets (minimal implementation)
+     * @param n Number of peers to select
+     * @param type Cast type (ignored in minimal implementation)
+     * @return Empty vector (multicast not implemented)
+     */
+    peers get_multicast_target(std::size_t n, cast_type type = cast_type::breath_first);
+
+    /**
+     * @brief Get random peer (minimal implementation)
+     * @return nullptr (not implemented)
+     */
+    std::shared_ptr<peer> get_random();
+
+    /**
+     * @brief Update context with picked peer (no-op)
+     * @param picked_peer Selected peer
+     */
+    void update_context(std::shared_ptr<peer> picked_peer);
+
+    /**
+     * @brief Update context with picked peers (no-op)
+     * @param picked_peers Selected peers
+     */
+    void update_context(const peers& picked_peers);
+
+    /**
+     * @brief Clear context (no-op)
+     */
+    void clear_context();
+
+    /**
+     * @brief Check if multicast manager is enabled
+     * @return false (always disabled in minimal implementation)
+     */
+    bool is_enabled() const noexcept { return false; }
 
 private:
-  kademlia::k_routing_table &_routing_table;
-  const endpoint_to_peer_func &_ep_to_peer_func; // k_nodeをpeerに変換する関数
-
-  struct context
-  {
-	peers _picked_peers; //(≒ignore_peers) // 本multicast_managerからpickされたpeers
-	
-	std::vector< kademlia::k_node > convert_peers_to_k_nodes( peers from ) const;
-  } _context;
-
-public:
-  enum cast_type
-  {
-	breath_first // 幅優先: 複数のバケットにまたがってmulticast先peerを取得する
-	, depth_first // 深さ優先: 単一のバケットを集中的にmulticast先peerを取得する(今の所未対応)
-  };
-
-  multicast_manager( kademlia::k_routing_table &routing_table, const endpoint_to_peer_func &ep_to_peer_func );
-
-  peers get_multicast_target( std::size_t n, cast_type type = cast_type::breath_first ); // 今のところ幅優先typeのみ
-  peer::ref get_random(); // 内部に持つcontextから,マルチキャスト先の次のpeerを選ぶ(基本的にすでにpickされたpeerは選択されない) 
-						  // ※ 内部処理的に結構重いので極力使用は避ける
- 
-  void update_context( peer::ref picked_peer );
-  void update_context( peers picked_peers );
-  void clear_context();
+    endpoint_to_peer_func _ep_to_peer_func;
+    mutable std::mutex _mutex;
+    
+    // Legacy context (kept for compatibility but unused)
+    struct context {
+        peers _picked_peers;
+    } _context;
 };
 
-
-};
-
-
-#endif 
+} // namespace ss 
 
 

@@ -10,7 +10,7 @@
 #include <ss_p2p/sender.hpp>
 #include <ss_p2p/ss_logger.hpp>
 // #include "./k_observer.hpp"
-#include "./k_observer_strage.hpp"
+#include "./k_observer_storage.hpp"
 #include "./node_id.hpp"
 #include "./k_routing_table.hpp"
 #include "./direct_routing_table_controller.hpp"
@@ -69,7 +69,7 @@ private:
   deadline_timer _tick_timer;
   sender &_sender;
   s_send_func &_s_send_func;
-  k_observer_strage &_obs_strage;
+  k_observer_storage &_obs_storage;
   ss_logger *_logger;
 };
 
