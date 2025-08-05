@@ -27,7 +27,11 @@
       "Bash(git checkout:*)",
       "Bash(timeout 60 cmake --build .)",
       "Bash(ctest:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(docker build:*)",
+      "Bash(./ss_chat:*)",
+      "Bash(timeout:*)",
+      "Bash(gtimeout:*)"
     ],
     "deny": []
   }

@@ -1,0 +1,38 @@
+# Build artifacts
+build/
+build_tests/
+tests/build/
+
+# Log files
+log/*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+*.md
+docs/
+
+# Images
+images/
+
+# Temporary files
+*.tmp
+*.temp
