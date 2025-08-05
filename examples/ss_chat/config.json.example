@@ -1,0 +1,119 @@
+{
+    "node": {
+        "endpoint": {
+            "host": "0.0.0.0",
+            "port": 8080
+        },
+        "bootstrap_nodes": [
+            {
+                "host": "127.0.0.1",
+                "port": 8081
+            },
+            {
+                "host": "127.0.0.1",
+                "port": 8082
+            },
+            {
+                "host": "127.0.0.1",
+                "port": 8083
+            }
+        ]
+    },
+    "network": {
+        "transport": "udp",
+        "max_message_size": 65536,
+        "connection_timeout": 5000,
+        "keep_alive_interval": 30,
+        "enable_stats": true,
+        "io_threads": 1,
+        "send_buffer_size": 65536,
+        "receive_buffer_size": 65536
+    },
+    "dht": {
+        "k_bucket_size": 20,
+        "alpha": 3,
+        "beta": 20,
+        "node_id_bits": 160,
+        "rpc_timeout": 5000,
+        "find_timeout": 30000,
+        "lookup_timeout": 5,
+        "maintenance_interval": 600,
+        "bucket_refresh_interval": 3600,
+        "republish_interval": 3600,
+        "node_timeout": 900,
+        "max_failures": 3,
+        "max_retries": 2,
+        "replication_factor": 3,
+        "max_stored_values": 100000,
+        "max_storage_bytes": 104857600,
+        "enable_statistics": true,
+        "enable_debug_logging": false,
+        "min_bootstrap_nodes": 3,
+        "bootstrap_timeout": 300
+    },
+    "ice": {
+        "enable_nat_traversal": true,
+        "stun_timeout": 3000,
+        "hole_punch_timeout": 5000,
+        "max_punch_attempts": 10,
+        "attempt_interval": 100,
+        "enable_port_prediction": true,
+        "port_prediction_range": 5,
+        "enable_parallel_punch": true,
+        "parallel_threads": 3,
+        "candidate_gathering_timeout": 10000
+    },
+    "security": {
+        "enable_encryption": false,
+        "cipher_suite": "AES-256-GCM",
+        "key_rotation_interval": 86400,
+        "enable_authentication": false,
+        "enable_node_id_validation": false,
+        "enable_value_signatures": false,
+        "max_requests_per_second": 100,
+        "enable_sybil_protection": false
+    },
+    "chat": {
+        "username": "user",
+        "display_name": "Anonymous User",
+        "message_history_limit": 1000,
+        "enable_file_transfer": false,
+        "max_file_size": 1048576,
+        "enable_broadcast": true,
+        "auto_discovery": true
+    },
+    "logging": {
+        "level": "info",
+        "file": "ss_p2p_chat.log",
+        "console": true,
+        "max_file_size": 10485760,
+        "max_files": 5,
+        "enable_detailed_logging": false
+    },
+    "service": {
+        "daemon": false,
+        "pid_file": "/var/run/ss_p2p_chat.pid",
+        "working_directory": ".",
+        "user": "",
+        "group": ""
+    },
+    "examples": {
+        "description": "Modern P2P Chat using SS P2P APIs",
+        "features": [
+            "DHT-based peer discovery",
+            "ICE NAT traversal",
+            "Modern async/await APIs",
+            "Pluggable transport layer",
+            "Real-time messaging",
+            "Peer status monitoring"
+        ],
+        "usage": {
+            "start_node": "./ss_chat --host 127.0.0.1 --port 8080",
+            "connect_peer": "connect 127.0.0.1 8081",
+            "send_message": "send 127.0.0.1 8081 Hello World!",
+            "broadcast": "broadcast Hello everyone!",
+            "discover_peers": "discover",
+            "ping_peer": "ping 127.0.0.1 8081"
+        }
+    }
+}

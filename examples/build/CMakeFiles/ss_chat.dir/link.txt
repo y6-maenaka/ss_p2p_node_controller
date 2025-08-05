@@ -1,0 +1,1 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/ss_chat.dir/ss_chat/main.o -o ss_chat  -lss_p2p 

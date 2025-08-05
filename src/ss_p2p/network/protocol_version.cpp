@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <regex>
+#include <limits>
 
 namespace ss::network {
 

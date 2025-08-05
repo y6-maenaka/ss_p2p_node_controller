@@ -13,7 +13,7 @@
 #include <random>
 #include <chrono>
 #include <boost/asio.hpp>
-#include <nlohmann/json.hpp>
+#include <json.hpp>
 
 namespace ss::dht::impl {
 

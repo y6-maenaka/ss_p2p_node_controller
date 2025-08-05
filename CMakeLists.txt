@@ -108,6 +108,8 @@ set(NETWORK_HEADERS
 
 set(NETWORK_SOURCES
     src/ss_p2p/network/transport_factory.cpp
+    src/ss_p2p/network/protocol_version.cpp
+    src/ss_p2p/network/error_codes.cpp
     src/ss_p2p/network/message_buffer.cpp
     src/ss_p2p/network/impl/udp_transport.cpp
     src/ss_p2p/network/impl/tcp_transport.cpp
@@ -291,7 +293,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Examples
 if(BUILD_EXAMPLES)
-    # add_subdirectory(examples)  # Temporarily disabled - examples need updated API usage
+    add_subdirectory(examples)
 endif()
 
 # Tests

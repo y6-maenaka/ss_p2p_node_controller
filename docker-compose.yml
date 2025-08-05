@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # Development environment
+  ss-p2p-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ss_p2p_dev
+    volumes:
+      - .:/workspace/ss_p2p_node_controller
+      - /workspace/ss_p2p_node_controller/build
+      - ss_p2p_logs:/workspace/ss_p2p_node_controller/log
+    ports:
+      - "8080:8080"
+    networks:
+      - ss_p2p_network
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+    environment:
+      - NODE_ENV=development
+      - SS_P2P_LOG_LEVEL=debug
+
+  # Stable bootstrap node
+  stable-host:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ss_p2p_stable_host
+    volumes:
+      - ss_p2p_logs:/workspace/ss_p2p_node_controller/log
+    ports:
+      - "8080:8080"
+    networks:
+      - ss_p2p_network
+    command: bash -c "cd build && ./stable_host"
+    depends_on:
+      - ss-p2p-dev
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - SS_P2P_LOG_LEVEL=info
+
+  # P2P Node 0
+  node-0:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ss_p2p_node_0
+    volumes:
+      - ss_p2p_logs:/workspace/ss_p2p_node_controller/log
+    ports:
+      - "8081:8080"
+    networks:
+      - ss_p2p_network
+    command: bash -c "sleep 5 && cd build && ./node_0"
+    depends_on:
+      - stable-host
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - SS_P2P_LOG_LEVEL=info
+
+  # P2P Node 1
+  node-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ss_p2p_node_1
+    volumes:
+      - ss_p2p_logs:/workspace/ss_p2p_node_controller/log
+    ports:
+      - "8082:8080"
+    networks:
+      - ss_p2p_network
+    command: bash -c "sleep 10 && cd build && ./node_1"
+    depends_on:
+      - stable-host
+      - node-0
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - SS_P2P_LOG_LEVEL=info
+
+  # P2P Node 2
+  node-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ss_p2p_node_2
+    volumes:
+      - ss_p2p_logs:/workspace/ss_p2p_node_controller/log
+    ports:
+      - "8083:8080"
+    networks:
+      - ss_p2p_network
+    command: bash -c "sleep 15 && cd build && ./node_2"
+    depends_on:
+      - stable-host
+      - node-0
+      - node-1
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - SS_P2P_LOG_LEVEL=info
+
+  # P2P Node 3
+  node-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ss_p2p_node_3
+    volumes:
+      - ss_p2p_logs:/workspace/ss_p2p_node_controller/log
+    ports:
+      - "8084:8080"
+    networks:
+      - ss_p2p_network
+    command: bash -c "sleep 20 && cd build && ./node_3"
+    depends_on:
+      - stable-host
+      - node-0
+      - node-1
+      - node-2
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - SS_P2P_LOG_LEVEL=info
+
+networks:
+  ss_p2p_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  ss_p2p_logs:
+    driver: local
